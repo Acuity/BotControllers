@@ -1,0 +1,11 @@
+target
+nbactions.xml
+nb-configuration.xml
+/nbproject/
+project.properties
+*.iml
+.idea/
+.DS_Store
+*.class
+*.jfd
+/acuity-common/src/main/resources/access.properties
