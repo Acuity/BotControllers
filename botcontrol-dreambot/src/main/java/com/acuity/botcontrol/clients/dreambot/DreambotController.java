@@ -3,6 +3,7 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.control.client.AbstractBotController;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
+import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.proxy.Proxy;
@@ -28,7 +29,7 @@ public class DreambotController extends AbstractBotController {
     private Proxy proxy;
 
     public DreambotController(DreambotControlScript controlScript) {
-        super("acuitybotting.com");
+        super("acuitybotting.com", ClientType.DREAMBOT.getID());
         this.controlScript = controlScript;
     }
 
