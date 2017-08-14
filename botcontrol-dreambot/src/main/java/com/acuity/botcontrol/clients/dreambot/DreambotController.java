@@ -10,6 +10,7 @@ import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
+import com.acuity.security.PasswordStore;
 import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.script.AbstractScript;
 
@@ -29,7 +30,7 @@ public class DreambotController extends AbstractBotController {
     private Proxy proxy;
 
     public DreambotController(DreambotControlScript controlScript) {
-        super("acuitybotting.com", ClientType.DREAMBOT.getID());
+        super("localhost", ClientType.DREAMBOT.getID());
         this.controlScript = controlScript;
     }
 
@@ -133,5 +134,14 @@ public class DreambotController extends AbstractBotController {
 
     public Proxy getProxy() {
         return proxy;
+    }
+
+    public static void main(String[] args) {
+        DreambotController dreambotController = new DreambotController(null);
+        try {
+            dreambotController.start(PasswordStore.getAcuityEmail(), PasswordStore.getAcuityPassword());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
