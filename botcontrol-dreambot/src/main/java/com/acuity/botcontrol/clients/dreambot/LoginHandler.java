@@ -1,6 +1,6 @@
 package com.acuity.botcontrol.clients.dreambot;
 
-import com.acuity.db.domain.vertex.impl.RSAccount;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.utilities.Timer;
@@ -8,23 +8,26 @@ import org.dreambot.api.utilities.Timer;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-public class Application extends AbstractScript {
+public class LoginHandler extends AbstractScript {
 
 	private final Timer timer = new Timer();
 
     private DreambotControlScript dreambotControlScript;
 
-    public Application(DreambotControlScript dreambotControlScript) {
+    public LoginHandler(DreambotControlScript dreambotControlScript) {
         this.dreambotControlScript = dreambotControlScript;
     }
 
     @Subscribe
 	public int onLoop() {
-        RSAccount account = dreambotControlScript.getAccount();
+        RSAccount account = dreambotControlScript.getController().getAccount();
         if (account == null){
-
+            if (dreambotControlScript.getClient().isLoggedIn()){
+                dreambotControlScript.getTabs().logout();
+                return 1000;
+            }
         }
-        else {
+        else if (!dreambotControlScript.getClient().isLoggedIn()){
             switch (getClient().getLoginIndex()) {
                 case 2:
                     switch (getClient().getLoginResponse()) {
@@ -55,9 +58,10 @@ public class Application extends AbstractScript {
                     getMouse().click(new Point(462, 290));
                     break;
             }
+            return 1000;
         }
 
-		return 600;
+		return 0;
 	}
 
 	private String getPassword(RSAccount rsAccount){
