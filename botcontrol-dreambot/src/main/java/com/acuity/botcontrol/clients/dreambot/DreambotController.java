@@ -52,7 +52,12 @@ public class DreambotController extends AbstractBotController {
     @Override
     public void updateConfig(BotClientConfig botClientConfig) {
         updateProxy(botClientConfig);
+        updateBreakProfile(botClientConfig);
         updateScript(botClientConfig);
+    }
+
+    private void updateBreakProfile(BotClientConfig botClientConfig) {
+        controlScript.getBreakHandler().setProfile(botClientConfig.getBreakProfile());
     }
 
     private void updateProxy(BotClientConfig botClientConfig){
@@ -156,7 +161,7 @@ public class DreambotController extends AbstractBotController {
     }
 
     public static void main(String[] args) {
-        DreambotController dreambotController = new DreambotController(null);
+        DreambotController dreambotController = new DreambotController(new DreambotControlScript());
         try {
             dreambotController.start(PasswordStore.getAcuityEmail(), PasswordStore.getAcuityPassword());
         } catch (Exception e) {
