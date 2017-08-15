@@ -65,7 +65,7 @@ public class LoginHandler extends AbstractScript {
 	}
 
 	private String getPassword(RSAccount rsAccount){
-        return "";
+        return dreambotControlScript.getController().decryptString(rsAccount.getPassword()).orElse("");
     }
 
 	private void clearText() {

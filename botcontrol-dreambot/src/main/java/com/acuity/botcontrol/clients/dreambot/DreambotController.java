@@ -3,6 +3,7 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.control.client.AbstractBotController;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
+import com.acuity.control.client.util.ProxyUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
@@ -21,7 +22,6 @@ import java.util.concurrent.TimeUnit;
  * Created by Zachary Herridge on 8/14/2017.
  */
 public class DreambotController extends AbstractBotController {
-
 
     private DreambotControlScript controlScript;
 
@@ -51,34 +51,51 @@ public class DreambotController extends AbstractBotController {
 
     @Override
     public void updateConfig(BotClientConfig botClientConfig) {
-        proxy = botClientConfig.getProxy();
-        script = botClientConfig.getScript();
+        updateProxy(botClientConfig);
+        updateScript(botClientConfig);
+    }
 
-        if (script != null){
+    private void updateProxy(BotClientConfig botClientConfig){
+        boolean update = (proxy == null && botClientConfig.getProxy() != null) || (botClientConfig.getProxy() != null && !botClientConfig.getProxy().equals(proxy));
+        if (update){
+            ProxyUtil.setSocksProxy(proxy, this);
             try {
-                ScriptInstance scriptInstance = Scripts.loadScript(script);
-                scriptInstance.loadJar();
-                Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
-                    Class superclass = aClass.getSuperclass();
-                    if (superclass != null && superclass.equals(AbstractScript.class)){
-                        return true;
-                    }
-                    return false;
-                }).findAny().orElse(null);
-
-                if (result != null){
-                    try {
-                        AbstractScript abstractScript = (AbstractScript) result.newInstance();
-                        abstractScript.registerMethodContext(controlScript.getClient());
-                        abstractScript.registerContext(controlScript.getClient());
-                        abstractScript.onStart();
-                        controlScript.setDreambotScript(abstractScript);
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
+                controlScript.getClient().getSocketWrapper().getSocket().close();
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void updateScript(BotClientConfig botClientConfig){
+        if (botClientConfig.getScript() != null){
+            if (script == null || !script.getID().equals(botClientConfig.getAssignedScriptID())){
+                script = botClientConfig.getScript();
+                try {
+                    ScriptInstance scriptInstance = Scripts.loadScript(script, ClientType.DREAMBOT);
+                    scriptInstance.loadJar();
+                    Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
+                        Class superclass = aClass.getSuperclass();
+                        if (superclass != null && superclass.equals(AbstractScript.class)){
+                            return true;
+                        }
+                        return false;
+                    }).findAny().orElse(null);
+
+                    if (result != null){
+                        try {
+                            AbstractScript abstractScript = (AbstractScript) result.newInstance();
+                            abstractScript.registerMethodContext(controlScript.getClient());
+                            abstractScript.registerContext(controlScript.getClient());
+                            abstractScript.onStart();
+                            controlScript.setDreambotScript(abstractScript);
+                        } catch (InstantiationException | IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         else {
@@ -87,6 +104,7 @@ public class DreambotController extends AbstractBotController {
             if (abstractScript != null) abstractScript.onExit();
         }
     }
+
 
     public void onLoop(){
         sendAccountUpdate();
@@ -116,7 +134,7 @@ public class DreambotController extends AbstractBotController {
 
     @Override
     public void handleMessage(MessagePackage messagePackage) {
-        Object result = messagePackage.getBodyAsType();
+        Object result = messagePackage.getBodyAs(Object.class);
         if (result != null){
             if ("kill-bot".equals(result)){
                 System.exit(0);
