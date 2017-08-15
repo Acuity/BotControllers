@@ -73,6 +73,7 @@ public class DreambotController extends AbstractBotController {
                 script = botClientConfig.getScript();
                 try {
                     ScriptInstance scriptInstance = Scripts.loadScript(script, ClientType.DREAMBOT);
+                    if (scriptInstance == null) return;
                     scriptInstance.loadJar();
                     Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
                         Class superclass = aClass.getSuperclass();
