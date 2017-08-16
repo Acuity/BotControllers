@@ -105,6 +105,7 @@ public class DreambotController extends AbstractBotController {
             }
         }
         else {
+            script = null;
             AbstractScript abstractScript = controlScript.getDreambotScript();
             controlScript.setDreambotScript(null);
             if (abstractScript != null) abstractScript.onExit();

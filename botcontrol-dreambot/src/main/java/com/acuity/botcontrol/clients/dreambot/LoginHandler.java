@@ -2,6 +2,7 @@ package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.google.common.eventbus.Subscribe;
+import org.dreambot.api.methods.MethodProvider;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.utilities.Timer;
 
@@ -48,7 +49,7 @@ public class LoginHandler {
                             dreambotControlScript.getKeyboard().type(account.getEmail());
                             dreambotControlScript.getKeyboard().type(getPassword(account));
                             dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
-                            dreambotControlScript.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
+                            MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
                             break;
                     }
                 case 3:
