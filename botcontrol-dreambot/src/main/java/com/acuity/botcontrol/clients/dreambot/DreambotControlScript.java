@@ -1,5 +1,6 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.control.client.AcuityWSClient;
 import com.acuity.control.client.breaks.BreakHandler;
 import com.acuity.ui.LoginFrame;
 import org.dreambot.api.script.AbstractScript;
@@ -12,37 +13,16 @@ import java.awt.*;
 /**
  * Created by Zach on 8/12/2017.
  */
-@ScriptManifest(name = "AcuityBotControl", author = "AcuityBotting", category = Category.MISC, description = "", version = 0)
-public class DreambotControlScript extends AbstractScript implements PaintListener{
+@ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
+public class DreambotControlScript extends AbstractScript {
 
     private DreambotController dreambotController = new DreambotController(this);
-    private LoginFrame loginFrame = new LoginFrame();
     private LoginHandler loginHandler = new LoginHandler(this);
     private BreakHandler breakHandler = new BreakHandler(dreambotController);
     private AbstractScript dreambotScript;
 
-    @Override
-    public void onStart() {
-        loginFrame.getLoginButton().addActionListener(e -> {
-            try {
-                dreambotController.stop();
-                dreambotController.start(loginFrame.getEmailField().getText(), loginFrame.getPasswordField().getText());
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-        });
-        loginFrame.setVisible(true);
-    }
-
     public DreambotController getController() {
         return dreambotController;
-    }
-
-    @Override
-    public void onPaint(Graphics graphics) {
-        graphics.drawString("Script: " + dreambotController.getScript(), 100, 100);
-        graphics.drawString("Account: " + dreambotController.getAccount(), 100, 115);
-        graphics.drawString("Proxy: " + dreambotController.getProxy(), 100, 130);
     }
 
     public void setDreambotScript(AbstractScript dreambotScript) {
@@ -59,6 +39,8 @@ public class DreambotControlScript extends AbstractScript implements PaintListen
 
     @Override
     public int onLoop() {
+        if (!AcuityWSClient.getInstance().isConnected()) return 1000;
+
         dreambotController.onLoop();
 
         int result = breakHandler.loop();
