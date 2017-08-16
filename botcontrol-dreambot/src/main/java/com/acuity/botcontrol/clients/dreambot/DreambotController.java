@@ -1,21 +1,25 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.AbstractBotController;
+import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.control.client.util.ProxyUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.security.PasswordStore;
+import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.script.AbstractScript;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,6 +67,7 @@ public class DreambotController extends AbstractBotController {
     private void updateProxy(BotClientConfig botClientConfig){
         boolean update = (proxy == null && botClientConfig.getProxy() != null) || (botClientConfig.getProxy() != null && !botClientConfig.getProxy().equals(proxy));
         if (update){
+            proxy = botClientConfig.getProxy();
             ProxyUtil.setSocksProxy(proxy, this);
             try {
                 controlScript.getClient().getSocketWrapper().getSocket().close();
@@ -115,12 +120,26 @@ public class DreambotController extends AbstractBotController {
 
     public void onLoop(){
         sendAccountUpdate();
+        sendClientUpdate();
     }
 
-    private long lastSend = 0;
+    private long lastClientStateSend = 0;
+    private void sendClientUpdate(){
+        long timeMillis = System.currentTimeMillis();
+        if (timeMillis - lastClientStateSend > TimeUnit.SECONDS.toMillis(5)){
+            BotClientState state = new BotClientState();
+            state.setGameState(controlScript.getClient().getGameStateID());
+            state.setCpuUsage(MachineUtil.getCPUUsage());
+            state.setCaptureTimestamp(LocalDateTime.now());
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(state));
+            lastClientStateSend = timeMillis;
+        }
+    }
+
+    private long lastRSAccountStateSend = 0;
     private void sendAccountUpdate(){
         long timeMillis = System.currentTimeMillis();
-        if (timeMillis - lastSend > TimeUnit.SECONDS.toMillis(5)){
+        if (timeMillis - lastRSAccountStateSend > TimeUnit.SECONDS.toMillis(5)){
             RSAccountState rsAccountState = new RSAccountState();
 
             if (controlScript.getClient().isLoggedIn() && account != null){
@@ -131,10 +150,13 @@ public class DreambotController extends AbstractBotController {
                 rsAccountState.setPrayerPoints(controlScript.getSkills().getBoostedLevels(Skill.PRAYER));
                 rsAccountState.setRunEnergy(controlScript.getWalking().getRunEnergy());
 
+                Tile tile = controlScript.getLocalPlayer().getTile();
+                if (tile != null) rsAccountState.setTile(tile.getX() + "," + tile.getY() + "," + tile.getZ());
+
                 send(new MessagePackage(MessagePackage.Type.ACCOUNT_STATE_UPDATE, MessagePackage.SERVER).setBody(rsAccountState));
             }
 
-            lastSend = timeMillis;
+            lastRSAccountStateSend = timeMillis;
         }
     }
 

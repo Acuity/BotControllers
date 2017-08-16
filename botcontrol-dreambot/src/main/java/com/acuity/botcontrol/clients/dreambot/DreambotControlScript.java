@@ -6,7 +6,9 @@ import com.acuity.ui.LoginFrame;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.script.listener.InventoryListener;
 import org.dreambot.api.script.listener.PaintListener;
+import org.dreambot.api.wrappers.items.Item;
 
 import java.awt.*;
 
