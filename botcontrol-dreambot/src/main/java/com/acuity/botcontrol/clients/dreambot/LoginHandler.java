@@ -7,8 +7,9 @@ import org.dreambot.api.utilities.Timer;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.concurrent.TimeUnit;
 
-public class LoginHandler extends AbstractScript {
+public class LoginHandler {
 
 	private final Timer timer = new Timer();
 
@@ -27,12 +28,12 @@ public class LoginHandler extends AbstractScript {
                 return 1000;
             }
         }
-        else if (!dreambotControlScript.getClient().isLoggedIn()){
-            switch (getClient().getLoginIndex()) {
+        else if (dreambotControlScript.getClient().getGameStateID() < 25){
+            switch (dreambotControlScript.getClient().getLoginIndex()) {
                 case 2:
-                    switch (getClient().getLoginResponse()) {
+                    switch (dreambotControlScript.getClient().getLoginResponse()) {
                         case TOO_MANY_ATTEMPTS:
-                            log("Too many login attempts! Sleeping for 2 minutes.");
+                            dreambotControlScript.log("Too many login attempts! Sleeping for 2 minutes.");
                             clearText();
                             timer.setRunTime(120000);
                             timer.reset();
@@ -44,18 +45,18 @@ public class LoginHandler extends AbstractScript {
                             // TODO: 8/13/2017 Locked
                             break;
                         default:
-                            getKeyboard().type(account.getEmail());
-                            getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
-                            getKeyboard().type(getPassword(account));
-                            getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
+                            dreambotControlScript.getKeyboard().type(account.getEmail());
+                            dreambotControlScript.getKeyboard().type(getPassword(account));
+                            dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
+                            dreambotControlScript.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
                             break;
                     }
                 case 3:
                     // TODO: 8/13/2017 Wrong login
-                    getMouse().click(new Point(462, 290));
+                    dreambotControlScript.getMouse().click(new Point(462, 290));
                     break;
                 default:
-                    getMouse().click(new Point(462, 290));
+                    dreambotControlScript.getMouse().click(new Point(462, 290));
                     break;
             }
             return 1000;
@@ -69,15 +70,15 @@ public class LoginHandler extends AbstractScript {
     }
 
 	private void clearText() {
-		while (!getClient().getUsername().equals("")) {
-			getKeyboard().typeSpecialKey((char) KeyEvent.VK_BACK_SPACE);
+		while (!dreambotControlScript.getClient().getUsername().equals("")) {
+            dreambotControlScript.getKeyboard().typeSpecialKey((char) KeyEvent.VK_BACK_SPACE);
 		}
-		if (!getClient().getPassword().equals("")) {
-			getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
-			while (!getClient().getPassword().equals("")) {
-				getKeyboard().typeSpecialKey((char) KeyEvent.VK_BACK_SPACE);
+		if (!dreambotControlScript.getClient().getPassword().equals("")) {
+            dreambotControlScript.getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
+			while (!dreambotControlScript.getClient().getPassword().equals("")) {
+                dreambotControlScript.getKeyboard().typeSpecialKey((char) KeyEvent.VK_BACK_SPACE);
 			}
-			getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
+            dreambotControlScript.getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
 		}
 	}
 

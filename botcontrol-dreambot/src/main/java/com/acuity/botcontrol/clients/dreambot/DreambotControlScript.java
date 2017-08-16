@@ -16,14 +16,14 @@ import java.awt.*;
 public class DreambotControlScript extends AbstractScript implements PaintListener{
 
     private DreambotController dreambotController = new DreambotController(this);
-    //private LoginFrame loginFrame = new LoginFrame();
+    private LoginFrame loginFrame = new LoginFrame();
     private LoginHandler loginHandler = new LoginHandler(this);
     private BreakHandler breakHandler = new BreakHandler(dreambotController);
     private AbstractScript dreambotScript;
 
     @Override
     public void onStart() {
-     /*   loginFrame.getLoginButton().addActionListener(e -> {
+        loginFrame.getLoginButton().addActionListener(e -> {
             try {
                 dreambotController.stop();
                 dreambotController.start(loginFrame.getEmailField().getText(), loginFrame.getPasswordField().getText());
@@ -31,7 +31,7 @@ public class DreambotControlScript extends AbstractScript implements PaintListen
                 e1.printStackTrace();
             }
         });
-        loginFrame.setVisible(true);*/
+        loginFrame.setVisible(true);
     }
 
     public DreambotController getController() {
