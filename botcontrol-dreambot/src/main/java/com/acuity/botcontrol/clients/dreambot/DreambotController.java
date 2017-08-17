@@ -20,6 +20,7 @@ import org.dreambot.api.script.AbstractScript;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -142,7 +143,7 @@ public class DreambotController extends AbstractBotController {
         long timeMillis = System.currentTimeMillis();
         if (timeMillis - lastRSAccountStateSend > TimeUnit.SECONDS.toMillis(5)){
             RSAccountState rsAccountState = new RSAccountState();
-
+            rsAccountState.setSkillExperience(new HashMap<>());
             if (controlScript.getClient().isLoggedIn() && account != null){
                 for (Skill skill : Skill.values()) {
                     rsAccountState.getSkillExperience().put(skill.getName(), controlScript.getSkills().getExperience(skill));

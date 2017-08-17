@@ -1,10 +1,12 @@
 package com.acuity.control.client.machine;
 
-import com.acuity.db.domain.vertex.impl.machine.MachineState;
+
+import com.acuity.db.domain.vertex.impl.machine.MachineUpdate;
 import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.HashMap;
 
 /**
  * Created by Zachary Herridge on 8/14/2017.
@@ -12,10 +14,13 @@ import java.lang.management.RuntimeMXBean;
 public class MachineUtil {
 
 
-    public static MachineState buildMachineState(boolean full) {
-        MachineState machineState = new MachineState();
+    public static MachineUpdate buildMachineState() {
+        MachineUpdate machineUpdate = new MachineUpdate();
 
-        return machineState;
+        HashMap<String, Object> properties = new HashMap<>();
+        System.getProperties().keySet().forEach(key -> properties.put(String.valueOf(key), System.getProperty(String.valueOf(key))));
+
+        return machineUpdate;
     }
 
 

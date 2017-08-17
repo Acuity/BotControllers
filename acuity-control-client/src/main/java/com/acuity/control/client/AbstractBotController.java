@@ -86,7 +86,7 @@ public abstract class AbstractBotController {
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
         if (messagePackage.getMessageType() == MessagePackage.Type.GOOD_LOGIN){
-            sendMachineInfo(true);
+            sendMachineInfo();
             onGoodLogin();
         }
 
@@ -134,8 +134,8 @@ public abstract class AbstractBotController {
 
     public abstract void handleMessage(MessagePackage messagePackage);
 
-    private void sendMachineInfo(boolean full){
-        MessagePackage messagePackage = new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState(full));
+    private void sendMachineInfo(){
+        MessagePackage messagePackage = new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState());
         send(messagePackage);
     }
 
