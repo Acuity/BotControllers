@@ -155,7 +155,6 @@ public class DreambotController extends AbstractBotController {
 
                 send(new MessagePackage(MessagePackage.Type.ACCOUNT_STATE_UPDATE, MessagePackage.SERVER).setBody(rsAccountState));
             }
-
             lastRSAccountStateSend = timeMillis;
         }
     }

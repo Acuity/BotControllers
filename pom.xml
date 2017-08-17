@@ -16,5 +16,6 @@
 
     <modules>
         <module>botcontrol-dreambot</module>
+        <module>acuity-control-client</module>
     </modules>
 </project>
