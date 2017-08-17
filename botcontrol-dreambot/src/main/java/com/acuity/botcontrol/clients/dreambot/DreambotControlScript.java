@@ -7,6 +7,7 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.loader.NetworkLoader;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -55,10 +56,22 @@ public class DreambotControlScript extends AbstractScript {
 
     public static void printRepoScripts(){
         try {
-            Method getAllFreeScripts = NetworkLoader.class.getMethod("getAllFreeScripts");
+            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
             List list = (List) getAllFreeScripts.invoke(null);
             for (Object testObject : list) {
-                System.out.println(testObject);
+                try {
+                    System.out.println(testObject);
+                    for (Field field : testObject.getClass().getDeclaredFields()) {
+                        try {
+                            System.out.println(field + ": " + field.get(testObject));
+                        }
+                        catch (Exception ignored){
+                        }
+                    }
+                    System.out.println();
+                }
+                catch (Exception ignored){
+                }
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
