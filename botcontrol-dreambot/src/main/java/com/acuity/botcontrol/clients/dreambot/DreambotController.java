@@ -62,6 +62,7 @@ public class DreambotController extends AbstractBotController {
     }
 
     private void updateBreakProfile(BotClientConfig botClientConfig) {
+        DreambotControlScript.printRepoScripts();
         controlScript.getBreakHandler().setProfile(botClientConfig.getBreakProfile());
     }
 
