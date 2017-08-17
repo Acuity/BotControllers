@@ -20,6 +20,7 @@ import org.dreambot.api.script.AbstractScript;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,7 +35,7 @@ public class DreambotController extends AbstractBotController {
     private Proxy proxy;
 
     public DreambotController(DreambotControlScript controlScript) {
-        super("localhost", ClientType.DREAMBOT.getID());
+        super("www.acuitybotting.com", ClientType.DREAMBOT.getID());
         this.controlScript = controlScript;
     }
 
@@ -65,8 +66,7 @@ public class DreambotController extends AbstractBotController {
     }
 
     private void updateProxy(BotClientConfig botClientConfig){
-        boolean update = (proxy == null && botClientConfig.getProxy() != null) || (botClientConfig.getProxy() != null && !botClientConfig.getProxy().equals(proxy));
-        if (update){
+        if (!Objects.equals(botClientConfig.getProxy(), proxy)){
             proxy = botClientConfig.getProxy();
             ProxyUtil.setSocksProxy(proxy, this);
             try {
