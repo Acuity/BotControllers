@@ -65,7 +65,7 @@ public abstract class AbstractBotController {
         this.acuityEmail = email;
         this.acuityPassword = password;
         AcuityWSClient.getInstance().getEventBus().register(this);
-        AcuityWSClient.getInstance().start("ws://" + host + ":8015");
+        AcuityWSClient.getInstance().start("ws://" + host + ":2052");
     }
 
     public void stop(){

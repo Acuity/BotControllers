@@ -1,10 +1,10 @@
 package com.acuity.control.client.scripts;
 
-import com.acuity.control.client.util.AcuityDir;
 import com.acuity.control.client.util.Downloader;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
+import com.acuity.util.AcuityDir;
 
 import java.io.File;
 import java.io.IOException;

@@ -61,13 +61,31 @@ public class DreambotControlScript extends AbstractScript {
             for (Object testObject : list) {
                 try {
                     System.out.println(testObject);
-                    for (Field field : testObject.getClass().getDeclaredFields()) {
-                        try {
-                            System.out.println(field + ": " + field.get(testObject));
-                        }
-                        catch (Exception ignored){
+
+                    for (Method method : testObject.getClass().getDeclaredMethods()) {
+                        if (method.getReturnType().equals(Class.class)){
+                            System.out.println("FOUND METHOD1");
+                            method.setAccessible(true);
+                            Class invoke = (Class) method.invoke(testObject);
+                            System.out.println("Invoke: " + invoke);
+
+                            Object instance = invoke.newInstance();
+                            if (instance instanceof AbstractScript){
+
+                            }
+                            System.out.println("Instance: " + instance);
+
+                            for (Field field : instance.getClass().getDeclaredFields()) {
+                                System.out.println(field);
+                            }
+
+                            for (Method method1 : instance.getClass().getDeclaredMethods()) {
+                                System.out.println(method1);
+                            }
+
                         }
                     }
+
                     System.out.println();
                 }
                 catch (Exception ignored){
