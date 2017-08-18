@@ -1,16 +1,23 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.common.util.Pair;
 import com.acuity.control.client.AcuityWSClient;
 import com.acuity.control.client.breaks.BreakHandler;
+import org.dreambot.Boot;
+import org.dreambot.Loader;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
+import org.dreambot.api.script.ScriptManager;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.loader.NetworkLoader;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Zach on 8/12/2017.
@@ -54,46 +61,37 @@ public class DreambotControlScript extends AbstractScript {
         return dreambotScript != null ? dreambotScript.onLoop() : 750;
     }
 
-    public static void printRepoScripts(){
+    @SuppressWarnings("unchecked")
+    public static Map<String, Class<? extends AbstractScript>> getRepoScripts(){
+        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
         try {
             Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
             List list = (List) getAllFreeScripts.invoke(null);
+            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
+            list.addAll((List) getAllPremiumScripts.invoke(null));
             for (Object testObject : list) {
                 try {
-                    System.out.println(testObject);
-
                     for (Method method : testObject.getClass().getDeclaredMethods()) {
                         if (method.getReturnType().equals(Class.class)){
                             System.out.println("FOUND METHOD1");
                             method.setAccessible(true);
-                            Class invoke = (Class) method.invoke(testObject);
+                            Class<? extends AbstractScript> invoke = (Class<? extends AbstractScript>) method.invoke(testObject);
                             System.out.println("Invoke: " + invoke);
-
-                            Object instance = invoke.newInstance();
-                            if (instance instanceof AbstractScript){
-
+                            ScriptManifest annotation = invoke.getDeclaredAnnotation(ScriptManifest.class);
+                            if (annotation != null){
+                                results.put(annotation.name(), invoke);
                             }
-                            System.out.println("Instance: " + instance);
-
-                            for (Field field : instance.getClass().getDeclaredFields()) {
-                                System.out.println(field);
-                            }
-
-                            for (Method method1 : instance.getClass().getDeclaredMethods()) {
-                                System.out.println(method1);
-                            }
-
                         }
                     }
-
-                    System.out.println();
                 }
-                catch (Exception ignored){
+                catch (Exception e){
+                    e.printStackTrace();
                 }
             }
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        return results;
     }
 
     @Override
@@ -102,6 +100,7 @@ public class DreambotControlScript extends AbstractScript {
     }
 
     public static void main(String[] args) {
-        new DreambotControlScript().onStart();
+        new Boot();
+        Boot.main(new String[]{});
     }
 }
