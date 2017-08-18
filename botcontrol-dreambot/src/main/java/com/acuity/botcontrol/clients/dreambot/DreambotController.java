@@ -15,6 +15,7 @@ import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 
+import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import org.dreambot.api.methods.input.Keyboard;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.skills.Skill;
@@ -82,11 +83,13 @@ public class DreambotController extends AbstractBotController {
     }
 
     private void updateScript(BotClientConfig botClientConfig){
-      /*  if (botClientConfig.getScript() != null){
-            if (script == null || !script.getID().equals(botClientConfig.getAssignedScriptID())){
+        ScriptRunConfig scriptRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
+
+        if (scriptRunConfig != null){
+            if (script == null || !script.getID().equals(scriptRunConfig.getScriptID())){
                 script = botClientConfig.getScript();
                 try {
-                    ScriptInstance scriptInstance = Scripts.loadScript(script, ClientType.DREAMBOT);
+                    ScriptInstance scriptInstance = Scripts.loadScript(scriptRunConfig);
                     if (scriptInstance == null) return;
                     scriptInstance.loadJar();
                     Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
@@ -118,7 +121,7 @@ public class DreambotController extends AbstractBotController {
             AbstractScript abstractScript = controlScript.getDreambotScript();
             controlScript.setDreambotScript(null);
             if (abstractScript != null) abstractScript.onExit();
-        }*/
+        }
     }
 
 
