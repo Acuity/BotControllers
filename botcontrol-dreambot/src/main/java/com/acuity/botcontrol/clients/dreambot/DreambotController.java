@@ -1,5 +1,6 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.common.security.PasswordStore;
 import com.acuity.control.client.AbstractBotController;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
@@ -13,7 +14,8 @@ import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.security.PasswordStore;
+
+import org.dreambot.api.methods.input.Keyboard;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.script.AbstractScript;
@@ -80,7 +82,7 @@ public class DreambotController extends AbstractBotController {
     }
 
     private void updateScript(BotClientConfig botClientConfig){
-        if (botClientConfig.getScript() != null){
+      /*  if (botClientConfig.getScript() != null){
             if (script == null || !script.getID().equals(botClientConfig.getAssignedScriptID())){
                 script = botClientConfig.getScript();
                 try {
@@ -116,7 +118,7 @@ public class DreambotController extends AbstractBotController {
             AbstractScript abstractScript = controlScript.getDreambotScript();
             controlScript.setDreambotScript(null);
             if (abstractScript != null) abstractScript.onExit();
-        }
+        }*/
     }
 
 

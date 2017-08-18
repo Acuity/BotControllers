@@ -1,5 +1,7 @@
 package com.acuity.control.client;
 
+import com.acuity.common.security.PasswordStore;
+import com.acuity.common.ui.LoginFrame;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
@@ -9,8 +11,6 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.security.PasswordStore;
-import com.acuity.ui.LoginFrame;
 import com.google.common.eventbus.Subscribe;
 
 import java.util.Optional;
