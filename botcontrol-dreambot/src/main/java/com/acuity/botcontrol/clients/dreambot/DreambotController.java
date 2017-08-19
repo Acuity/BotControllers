@@ -5,6 +5,7 @@ import com.acuity.control.client.AbstractBotController;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
+
 import com.acuity.control.client.util.ProxyUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
