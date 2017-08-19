@@ -48,7 +48,7 @@ public class DreambotControlScript extends AbstractScript {
 
     @Override
     public int onLoop() {
-        if (!AcuityWSClient.getInstance().isConnected()) return 1000;
+        if (!dreambotController.isConnected()) return 1000;
 
         dreambotController.onLoop();
 

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractBotController {
 
+    private AcuityWSClient wsClient = new AcuityWSClient();
     private String host;
     private String acuityEmail;
     private String acuityPassword;
@@ -64,21 +65,21 @@ public abstract class AbstractBotController {
     public void start(String email, String password) throws Exception {
         this.acuityEmail = email;
         this.acuityPassword = password;
-        AcuityWSClient.getInstance().getEventBus().register(this);
-        AcuityWSClient.getInstance().start("ws://" + host + ":2052");
+        wsClient.getEventBus().register(this);
+        wsClient.start("ws://" + host + ":2052");
     }
 
     public void stop(){
         try {
-            AcuityWSClient.getInstance().getEventBus().unregister(this);
+            wsClient.getEventBus().unregister(this);
         }catch (IllegalArgumentException ignored){
         }
-        AcuityWSClient.getInstance().stop();
+        wsClient.stop();
     }
 
     @Subscribe
     public void onConnect(WClientEvent.Opened opened){
-        AcuityWSClient.getInstance().send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
+        wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
                 new LoginData(acuityEmail, acuityPassword, 1, botTypeID)
         ));
     }
@@ -111,8 +112,8 @@ public abstract class AbstractBotController {
     public MessageResponse send(MessagePackage messagePackage){
         MessageResponse response = new MessageResponse();
         messagePackage.setResponseKey(UUID.randomUUID().toString());
-        AcuityWSClient.getInstance().getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
-        AcuityWSClient.getInstance().send(messagePackage);
+        wsClient.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
+        wsClient.send(messagePackage);
         return response;
     }
 
@@ -137,6 +138,10 @@ public abstract class AbstractBotController {
     private void sendMachineInfo(){
         MessagePackage messagePackage = new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState());
         send(messagePackage);
+    }
+
+    public boolean isConnected(){
+        return wsClient.isConnected();
     }
 
     public static void main(String[] args) {

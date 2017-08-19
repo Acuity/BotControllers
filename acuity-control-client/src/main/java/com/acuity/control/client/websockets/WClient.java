@@ -17,43 +17,31 @@ import java.net.URISyntaxException;
 /**
  * Created by Zach on 8/5/2017.
  */
-public class WClient extends WebSocketClient implements SubscriberExceptionHandler{
+public abstract class WClient extends WebSocketClient implements SubscriberExceptionHandler{
 
     private static final Logger logger = LoggerFactory.getLogger(WClient.class);
-
-    private EventBus eventBus = new EventBus(this);
 
     public WClient(String serverURL, Draft draft) throws URISyntaxException {
         super(new URI(serverURL), draft);
     }
 
     @Override
-    public void onOpen(ServerHandshake serverHandshake) {
-        eventBus.post(new WClientEvent.Opened());
-    }
-
-    @Override
     public void onMessage(String message) {
         MessagePackage messagePackage = Json.GSON.fromJson(message, MessagePackage.class);
-        if (messagePackage != null) eventBus.post(messagePackage);
+        if (messagePackage != null) onMessagePackage(messagePackage);
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {
-        eventBus.post(new WClientEvent.Closed(code, reason, remote));
-    }
+    public abstract void onOpen(ServerHandshake serverHandshake);
+
+    public abstract void onMessagePackage(MessagePackage messagePackage);
 
     @Override
-    public void onError(Exception e) {
-        eventBus.post(new WClientEvent.Error(e, null));
-    }
+    public abstract void onClose(int code, String reason, boolean remote);
 
     @Override
-    public void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext) {
-        eventBus.post(new WClientEvent.Error(throwable, subscriberExceptionContext));
-    }
+    public abstract void onError(Exception e);
 
-    public EventBus getEventBus() {
-        return eventBus;
-    }
+    @Override
+    public abstract void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext);
 }

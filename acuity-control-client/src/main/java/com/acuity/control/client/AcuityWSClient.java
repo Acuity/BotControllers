@@ -7,8 +7,9 @@ import com.acuity.control.client.websockets.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.google.common.eventbus.SubscriberExceptionContext;
 import org.java_websocket.drafts.Draft_6455;
+import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,50 +23,30 @@ import java.util.concurrent.Executors;
 public class AcuityWSClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AcuityWSClient.class);
-    private static final AcuityWSClient INSTANCE = new AcuityWSClient();
 
-    public static AcuityWSClient getInstance() {
-        return INSTANCE;
-    }
-
-    private WClient wClient;
+    private EventBus eventBus = new EventBus();
 
     private ResponseTracker responseTracker = new ResponseTracker();
-    private EventBus eventBus = new EventBus();
-    private Executor reconnectExecutor = Executors.newSingleThreadExecutor();
+
     private Executor messageExecutor = Executors.newSingleThreadExecutor();
-    private boolean reconnect = true;
-    private long reconnectDelay = 3000;
+    private Executor reconnectExecutor = Executors.newSingleThreadExecutor();
+
+    private ReconnectEvent reconnect;
+
+    private WClient wClient;
     private String lastHost;
 
     public void start(String host) throws URISyntaxException {
         this.lastHost = host;
-        this.reconnect = true;
-        wClient = new WClient(this.lastHost, new Draft_6455());
+        this.reconnect = new ReconnectEvent();
+        wClient = createWClient();
         wClient.setConnectionLostTimeout(5);
-        wClient.getEventBus().register(this);
         wClient.connect();
     }
 
-    public void setReconnect(boolean reconnect){
-        this.reconnect = reconnect;
-    }
-
     public void stop(){
-        reconnect = false;
+        reconnect = null;
         if (wClient != null) wClient.close();
-    }
-
-    public void setReconnectDelay(long reconnectDelay) {
-        this.reconnectDelay = reconnectDelay;
-    }
-
-    public long getReconnectDelay() {
-        return reconnectDelay;
-    }
-
-    public boolean isReconnect() {
-        return reconnect;
     }
 
     public void send(MessagePackage messagePackage){
@@ -85,42 +66,54 @@ public class AcuityWSClient {
         return responseTracker;
     }
 
-    @Subscribe
-    public void onMessage(MessagePackage messagePackage){
-        logger.debug("onMessage: {}.", messagePackage);
-        if (messagePackage != null) {
-            try {
-                if (messagePackage.getResponseKey() != null){
-                    MessageResponse response = responseTracker.getCache().getIfPresent(messagePackage.getResponseKey());
-                    if (response != null) {
-                        response.setResponse(messagePackage);
-                        responseTracker.getCache().invalidate(messagePackage.getResponseKey());
+    private WClient createWClient() throws URISyntaxException {
+        return new WClient(this.lastHost, new Draft_6455()) {
+            @Override
+            public void onOpen(ServerHandshake serverHandshake) {
+                logger.info("Web socket opened.");
+                eventBus.post(new WClientEvent.Opened());
+            }
+
+            @Override
+            public void onMessagePackage(MessagePackage messagePackage) {
+                logger.debug("onMessage: {}.", messagePackage);
+                try {
+                    if (messagePackage.getResponseKey() != null){
+                        MessageResponse response = responseTracker.getCache().getIfPresent(messagePackage.getResponseKey());
+                        if (response != null) {
+                            response.setResponse(messagePackage);
+                            responseTracker.getCache().invalidate(messagePackage.getResponseKey());
+                        }
                     }
                 }
+                catch (Throwable e){
+                    logger.error("Error during response handling.", e);
+                }
+                messageExecutor.execute(() -> eventBus.post(messagePackage));
             }
-            catch (Throwable e){
-                logger.error("Error during response handling.", e);
+
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
+                logger.info("Web socket closed.");
+                if (reconnect != null) reconnectExecutor.execute(reconnect);
+                eventBus.post(new WClientEvent.Closed(code, reason, remote));
             }
-            messageExecutor.execute(() -> eventBus.post(messagePackage));
-        }
+
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext) {
+                throwable.printStackTrace();
+            }
+        };
     }
 
-    @Subscribe
-    public void onOpen(WClientEvent.Opened opened){
-        logger.info("Web socket opened.");
-        eventBus.post(opened);
-    }
+    private class ReconnectEvent implements Runnable{
 
-    @Subscribe
-    public void onClose(WClientEvent.Closed closed){
-        logger.info("Web socket closed.");
-        if (reconnect){
-            reconnectExecutor.execute(new Reconnect());
-        }
-        eventBus.post(closed);
-    }
-
-    private class Reconnect implements Runnable{
+        private long reconnectDelay = 3000;
 
         @Override
         public void run() {
