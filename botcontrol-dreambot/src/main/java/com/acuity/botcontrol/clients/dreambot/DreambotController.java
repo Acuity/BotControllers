@@ -87,6 +87,9 @@ public class DreambotController extends AbstractBotController {
         ScriptRunConfig scriptRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
         if (scriptRunConfig != null){
             if (script == null || !script.getID().equals(scriptRunConfig.getScriptID())){
+
+                String[] args = scriptRunConfig.getQuickStartArgs() == null ? new String[0] : scriptRunConfig.getQuickStartArgs().toArray(new String[scriptRunConfig.getQuickStartArgs().size()]);
+
                 if (scriptRunConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO){
                     script = botClientConfig.getScript();
                     try {
@@ -106,7 +109,7 @@ public class DreambotController extends AbstractBotController {
                                 AbstractScript abstractScript = (AbstractScript) result.newInstance();
                                 abstractScript.registerMethodContext(controlScript.getClient());
                                 abstractScript.registerContext(controlScript.getClient());
-                                abstractScript.onStart();
+                                abstractScript.onStart(args);
                                 controlScript.setDreambotScript(abstractScript);
                             } catch (InstantiationException | IllegalAccessException e) {
                                 e.printStackTrace();
@@ -124,7 +127,7 @@ public class DreambotController extends AbstractBotController {
                             AbstractScript abstractScript = aClass.newInstance();
                             abstractScript.registerMethodContext(controlScript.getClient());
                             abstractScript.registerContext(controlScript.getClient());
-                            abstractScript.onStart();
+                            abstractScript.onStart(args);
                             controlScript.setDreambotScript(abstractScript);
                         } catch (InstantiationException | IllegalAccessException e) {
                             e.printStackTrace();
