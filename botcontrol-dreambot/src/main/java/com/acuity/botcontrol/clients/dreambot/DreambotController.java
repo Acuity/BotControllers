@@ -3,6 +3,7 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.control.client.AbstractBotController;
 import com.acuity.control.client.machine.MachineUtil;
+import com.acuity.control.client.scripts.ScriptConditionEvaluator;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 
@@ -14,10 +15,8 @@ import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
+import com.acuity.db.domain.vertex.impl.scripts.*;
 
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import org.dreambot.api.methods.input.Keyboard;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.skills.Skill;
@@ -28,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,12 +37,13 @@ public class DreambotController extends AbstractBotController {
 
     private DreambotControlScript controlScript;
 
-    private Script script;
+    private ScriptControlProfile scriptControlProfile;
+    private ScriptRunConfig scriptRunConfig;
     private RSAccount account;
     private Proxy proxy;
 
     public DreambotController(DreambotControlScript controlScript) {
-        super("acuitybotting.com", ClientType.DREAMBOT.getID());
+        super("localhost", ClientType.DREAMBOT.getID());
         this.controlScript = controlScript;
     }
 
@@ -65,16 +66,25 @@ public class DreambotController extends AbstractBotController {
     public void updateConfig(BotClientConfig botClientConfig) {
         updateProxy(botClientConfig);
         updateBreakProfile(botClientConfig);
+        updateControlProfile(botClientConfig);
         updateScript(botClientConfig);
     }
 
+    private void updateControlProfile(BotClientConfig config){
+        ScriptControlProfile scriptControlProfile = config.getScriptControlProfile().orElse(null);
+        if (scriptControlProfile == null) this.scriptControlProfile = null;
+        else if (this.scriptControlProfile == null || this.scriptControlProfile.hashCode() != scriptControlProfile.hashCode()){
+            this.scriptControlProfile = scriptControlProfile;
+        }
+    }
+
     private void updateBreakProfile(BotClientConfig botClientConfig) {
-        controlScript.getBreakHandler().setProfile(botClientConfig.getBreakProfile());
+        controlScript.getBreakHandler().setProfile(botClientConfig.getBreakProfile().orElse(null));
     }
 
     private void updateProxy(BotClientConfig botClientConfig){
-        if (!Objects.equals(botClientConfig.getProxy(), proxy)){
-            proxy = botClientConfig.getProxy();
+        if (!Objects.equals(botClientConfig.getProxy().orElse(null), proxy)){
+            proxy = botClientConfig.getProxy().orElse(null);
             ProxyUtil.setSocksProxy(proxy, this);
             try {
                 controlScript.getClient().getSocketWrapper().getSocket().close();
@@ -86,13 +96,14 @@ public class DreambotController extends AbstractBotController {
 
     private void updateScript(BotClientConfig botClientConfig){
         ScriptRunConfig scriptRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
-        if (scriptRunConfig != null){
-            if (script == null || !script.getID().equals(scriptRunConfig.getScriptID())){
+        if (scriptRunConfig != null && (this.scriptRunConfig == null || this.scriptRunConfig.hashCode() != scriptRunConfig.hashCode())){
+            Script script = scriptRunConfig.getScript();
 
+            String s = Optional.ofNullable(this.scriptRunConfig).map(ScriptRunConfig::getScriptID).orElse(null);
+
+            if (script == null || !script.getID().equals(s)){
                 String[] args = scriptRunConfig.getQuickStartArgs() == null ? new String[0] : scriptRunConfig.getQuickStartArgs().toArray(new String[scriptRunConfig.getQuickStartArgs().size()]);
-
                 if (scriptRunConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO){
-                    script = botClientConfig.getScript();
                     try {
                         ScriptInstance scriptInstance = Scripts.loadScript(scriptRunConfig);
                         if (scriptInstance == null) return;
@@ -138,7 +149,7 @@ public class DreambotController extends AbstractBotController {
             }
         }
         else {
-            script = null;
+            this.scriptRunConfig = null;
             AbstractScript abstractScript = controlScript.getDreambotScript();
             controlScript.setDreambotScript(null);
             if (abstractScript != null) abstractScript.onExit();
@@ -149,6 +160,19 @@ public class DreambotController extends AbstractBotController {
     public void onLoop(){
         sendAccountUpdate();
         sendClientUpdate();
+
+        if (scriptControlProfile != null){
+            for (Map.Entry<ScriptRunCondition, ScriptRunConfig> entry : scriptControlProfile.getConditionalScriptMap().entrySet()) {
+                if (entry.getKey().getConditions().stream().allMatch(ScriptConditionEvaluator::evaluate)){
+                    ScriptRunConfig value = entry.getValue();
+                    if (this.scriptRunConfig == null || this.scriptRunConfig.hashCode() != value.hashCode()){
+                        getBotControl().requestScript(value);
+                    }
+                    break;
+                }
+            }
+        }
+
     }
 
     private long lastClientStateSend = 0;
@@ -196,10 +220,6 @@ public class DreambotController extends AbstractBotController {
                 System.exit(0);
             }
         }
-    }
-
-    public Script getScript() {
-        return script;
     }
 
     public RSAccount getAccount() {

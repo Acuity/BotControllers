@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractBotController {
 
     private AcuityWSClient wsClient = new AcuityWSClient();
+    private BotControl botControl = new BotControl(this);
     private String host;
     private String acuityEmail;
     private String acuityPassword;
@@ -33,6 +34,10 @@ public abstract class AbstractBotController {
         this.host = host;
         this.botTypeID = botTypeID;
         handleLogin();
+    }
+
+    public BotControl getBotControl() {
+        return botControl;
     }
 
     private void handleLogin(){
