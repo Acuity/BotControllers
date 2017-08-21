@@ -6,6 +6,8 @@ import com.acuity.control.client.BotControlEvent;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +16,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScriptManager {
 
+    private Object lock = new Object();
+    private Map<String, Pair<ScriptRunConfig, Object>> scriptInstances = new HashMap<>();
     private ScriptQueue scriptQueue = new ScriptQueue();
     private ScriptRunConfig currentRunConfig;
     private BotControl controller;
@@ -52,11 +56,29 @@ public class ScriptManager {
         }
     }
 
-    public void onScriptEnded() {
-        if (lastPair != null) {
-            scriptQueue.getConditionalScriptMap().remove(lastPair);
-            lastPair = null;
+    public Pair<ScriptRunConfig, Object> getScriptInstance(){
+        ScriptRunConfig currentRunConfig = this.currentRunConfig;
+        if (currentRunConfig != null) {
+            if (!scriptInstances.containsKey(currentRunConfig.getRunConfigID())) {
+                synchronized (lock){
+                    Object instanceOfScript = controller.createInstanceOfScript(currentRunConfig);
+                    if (instanceOfScript != null) {
+                        Pair<ScriptRunConfig, Object> pair = new Pair<>(currentRunConfig, instanceOfScript);
+                        scriptInstances.put(currentRunConfig.getRunConfigID(), pair);
+                        return pair;
+                    }
+                }
+            }
+            return scriptInstances.get(currentRunConfig.getRunConfigID());
+        }
+        return null;
+    }
+
+    public void onScriptEnded(Pair<ScriptRunConfig, Object> closeScript) {
+        synchronized (lock){
+            scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getValue().getRunConfigID().equals(closeScript.getKey().getRunConfigID()));
             controller.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
+            controller.destroyInstanceOfScript(closeScript.getValue());
         }
     }
 }

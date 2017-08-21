@@ -1,5 +1,6 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.scripts.ScriptInstance;
@@ -26,11 +27,19 @@ import java.util.Map;
 @ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
 public class DreambotControlScript extends AbstractScript {
 
-    private BotControl botControl = new BotControl("acuitybotting.com", ClientType.DREAMBOT);
+    private BotControl botControl = new BotControl("acuitybotting.com", ClientType.DREAMBOT) {
+        @Override
+        public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
+            return initDreambotScript(scriptRunConfig);
+        }
+
+        @Override
+        public void destroyInstanceOfScript(Object scriptInstance) {
+
+        }
+    };
 
     private LoginHandler loginHandler = new LoginHandler(this);
-
-    private AbstractScript dreambotScript;
 
     @Override
     public void onStart() {
@@ -49,10 +58,11 @@ public class DreambotControlScript extends AbstractScript {
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
+        Pair<ScriptRunConfig, Object> dreambotScript = getDreambotScript();
         if (dreambotScript != null){
-            int i = dreambotScript.onLoop();
+            int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
             if (i < 0){
-                botControl.getScriptManager().onScriptEnded();
+                botControl.getScriptManager().onScriptEnded(dreambotScript);
                 return 2000;
             }
             return i;
@@ -60,12 +70,8 @@ public class DreambotControlScript extends AbstractScript {
         return 1000;
     }
 
-    public void setDreambotScript(AbstractScript dreambotScript) {
-        this.dreambotScript = dreambotScript;
-    }
-
-    public AbstractScript getDreambotScript() {
-        return dreambotScript;
+    private Pair<ScriptRunConfig, Object> getDreambotScript(){
+        return botControl.getScriptManager().getScriptInstance();
     }
 
     @Override
@@ -117,14 +123,12 @@ public class DreambotControlScript extends AbstractScript {
         return results;
     }
 
-    @Subscribe
-    public void onScriptUpdate(BotControlEvent.ScriptUpdated event){
-        ScriptRunConfig currentRunConfig = event.getCurrentRunConfig();
-        if (currentRunConfig != null) {
-            String[] args = currentRunConfig.getQuickStartArgs() == null ? new String[0] : currentRunConfig.getQuickStartArgs().toArray(new String[currentRunConfig.getQuickStartArgs().size()]);
-            if (currentRunConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO) {
+    public AbstractScript initDreambotScript(ScriptRunConfig runConfig){
+        if (runConfig != null) {
+            String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
+            if (runConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO) {
                 try {
-                    ScriptInstance scriptInstance = Scripts.loadScript(currentRunConfig);
+                    ScriptInstance scriptInstance = Scripts.loadScript(runConfig);
                     scriptInstance.loadJar();
                     Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
                         Class superclass = aClass.getSuperclass();
@@ -140,7 +144,7 @@ public class DreambotControlScript extends AbstractScript {
                             abstractScript.registerMethodContext(getClient());
                             abstractScript.registerContext(getClient());
                             abstractScript.onStart(args);
-                            setDreambotScript(abstractScript);
+                            return abstractScript;
                         } catch (InstantiationException | IllegalAccessException e) {
                             e.printStackTrace();
                         }
@@ -150,24 +154,21 @@ public class DreambotControlScript extends AbstractScript {
                 }
             } else {
                 Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
-                Class<? extends AbstractScript> aClass = repoScripts.get(currentRunConfig.getScript().getTitle());
+                Class<? extends AbstractScript> aClass = repoScripts.get(runConfig.getScript().getTitle());
                 if (aClass != null) {
                     try {
                         AbstractScript abstractScript = aClass.newInstance();
                         abstractScript.registerMethodContext(getClient());
                         abstractScript.registerContext(getClient());
                         abstractScript.onStart(args);
-                        setDreambotScript(abstractScript);
+                        return abstractScript;
                     } catch (InstantiationException | IllegalAccessException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        } else {
-            AbstractScript abstractScript = getDreambotScript();
-            setDreambotScript(null);
-            if (abstractScript != null) abstractScript.onExit();
         }
+        return null;
     }
 
     public static void main(String[] args) {

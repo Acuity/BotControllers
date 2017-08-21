@@ -16,7 +16,7 @@ import com.google.common.eventbus.SubscriberExceptionHandler;
 /**
  * Created by Zach on 8/20/2017.
  */
-public class BotControl implements SubscriberExceptionHandler{
+public abstract class BotControl implements SubscriberExceptionHandler{
 
     private EventBus eventBus = new EventBus(this);
 
@@ -72,6 +72,10 @@ public class BotControl implements SubscriberExceptionHandler{
     public void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext) {
         throwable.printStackTrace();
     }
+
+    public abstract Object createInstanceOfScript(ScriptRunConfig scriptRunConfig);
+
+    public abstract void destroyInstanceOfScript(Object scriptInstance);
 
     public void onLoop() {
         scriptManager.onLoop();
