@@ -3,6 +3,7 @@ package com.acuity.control.client;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.control.client.machine.MachineUtil;
+import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -11,6 +12,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.google.common.eventbus.Subscribe;
 
 import java.util.Optional;
@@ -24,9 +26,11 @@ public abstract class AbstractBotController {
 
     private AcuityWSClient wsClient = new AcuityWSClient();
     private BotControl botControl = new BotControl(this);
+
     private String host;
     private String acuityEmail;
     private String acuityPassword;
+
     private int botTypeID;
     private LoginFrame loginFrame;
 
@@ -130,6 +134,8 @@ public abstract class AbstractBotController {
         return response.waitForResponse(15, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
     }
 
+    public abstract void onLoop();
+
     public abstract void onGoodLogin();
 
     public abstract void onBadLogin();
@@ -150,7 +156,20 @@ public abstract class AbstractBotController {
     }
 
     public static void main(String[] args) {
+
         AbstractBotController abstractBotController = new AbstractBotController("localhost", ClientType.DREAMBOT.getID()) {
+            ScriptManager scriptManager  = new ScriptManager(this) {
+                @Override
+                public void updateScript(ScriptRunConfig currentRunConfig) {
+                    System.out.println("Updating script: " + currentRunConfig);
+                }
+            };
+
+            @Override
+            public void onLoop() {
+                scriptManager.onLoop();
+            }
+
             @Override
             public void onGoodLogin() {
 
@@ -163,12 +182,12 @@ public abstract class AbstractBotController {
 
             @Override
             public void updateAccount(RSAccount rsAccount) {
-                if (rsAccount != null) System.out.println(decryptString(rsAccount.getPassword()));
+
             }
 
             @Override
             public void updateConfig(BotClientConfig config) {
-
+                scriptManager.onBotClientConfigUpdate(config);
             }
 
             @Override
@@ -181,6 +200,15 @@ public abstract class AbstractBotController {
             abstractBotController.start(PasswordStore.getAcuityEmail(), PasswordStore.getAcuityPassword());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        while (true){
+            abstractBotController.onLoop();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
