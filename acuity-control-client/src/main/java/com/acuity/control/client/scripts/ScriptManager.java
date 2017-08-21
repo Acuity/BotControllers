@@ -7,6 +7,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -16,6 +17,8 @@ public class ScriptManager {
     private ScriptQueue scriptQueue = new ScriptQueue();
     private ScriptRunConfig currentRunConfig;
     private BotControl controller;
+    private Pair<ScriptRunCondition, ScriptRunConfig> lastPair;
+
 
     public ScriptManager(BotControl botControl) {
         this.controller = botControl;
@@ -25,6 +28,7 @@ public class ScriptManager {
         for (Pair<ScriptRunCondition, ScriptRunConfig> pair : scriptQueue.getConditionalScriptMap()) {
             if (ScriptConditionEvaluator.evaluate(pair.getKey().getConditions())){
                 if (!isCurrentScriptRunConfig(pair.getValue())){
+                    lastPair = pair;
                     controller.requestScript(pair.getValue());
                 }
                 return;
@@ -49,6 +53,10 @@ public class ScriptManager {
     }
 
     public void onScriptEnded() {
-
+        if (lastPair != null) {
+            scriptQueue.getConditionalScriptMap().remove(lastPair);
+            lastPair = null;
+            controller.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
+        }
     }
 }

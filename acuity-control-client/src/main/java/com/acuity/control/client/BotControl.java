@@ -7,6 +7,7 @@ import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
@@ -52,6 +53,11 @@ public class BotControl implements SubscriberExceptionHandler{
 
     public MessageResponse requestScript(ScriptRunConfig runConfig){
         return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_CHANGE, MessagePackage.SERVER).setBody(runConfig));
+    }
+
+    public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
+        if (scriptQueue == null) return null;
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
     }
 
     public MessageResponse send(MessagePackage messagePackage){
