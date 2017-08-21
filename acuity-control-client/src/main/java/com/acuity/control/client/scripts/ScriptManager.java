@@ -7,16 +7,18 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
  */
 public class ScriptManager {
 
-    private Object lock = new Object();
+    private final Object lock = new Object();
     private Map<String, Pair<ScriptRunConfig, Object>> scriptInstances = new HashMap<>();
     private ScriptQueue scriptQueue = new ScriptQueue();
     private ScriptRunConfig currentRunConfig;
@@ -49,10 +51,14 @@ public class ScriptManager {
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig){
         if (scriptQueue.hashCode() != botClientConfig.getScriptQueue().hashCode()) {
             this.scriptQueue = botClientConfig.getScriptQueue();
+            synchronized (lock){
+                List<String> ids = scriptQueue.getConditionalScriptMap().stream().map(pair -> pair.getValue().getRunConfigID()).collect(Collectors.toList());
+                List<String> toRemove = scriptInstances.values().stream().filter(pair -> !ids.contains(pair.getKey().getRunConfigID())).map(pair -> pair.getKey().getRunConfigID()).collect(Collectors.toList());
+                toRemove.forEach(s -> scriptInstances.remove(s));
+            }
         }
         if (!isCurrentScriptRunConfig(botClientConfig.getScriptRunConfig().orElse(null))){
             this.currentRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
-            controller.getEventBus().post(new BotControlEvent.ScriptUpdated(this.currentRunConfig));
         }
     }
 
@@ -78,6 +84,7 @@ public class ScriptManager {
         synchronized (lock){
             scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getValue().getRunConfigID().equals(closeScript.getKey().getRunConfigID()));
             controller.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
+            scriptInstances.remove(closeScript.getKey().getRunConfigID());
             controller.destroyInstanceOfScript(closeScript.getValue());
         }
     }

@@ -7,20 +7,10 @@ import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
  */
 public class BotControlEvent {
 
-    public static class ProxyUpdated{
-
+    private BotControlEvent() {
     }
 
-    public static class ScriptUpdated{
+    public static class ProxyUpdated{
 
-        private ScriptRunConfig currentRunConfig;
-
-        public ScriptUpdated(ScriptRunConfig currentRunConfig) {
-            this.currentRunConfig = currentRunConfig;
-        }
-
-        public ScriptRunConfig getCurrentRunConfig() {
-            return currentRunConfig;
-        }
     }
 }

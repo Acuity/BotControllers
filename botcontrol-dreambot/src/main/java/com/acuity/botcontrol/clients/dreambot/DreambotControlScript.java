@@ -35,7 +35,7 @@ public class DreambotControlScript extends AbstractScript {
 
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {
-
+            ((AbstractScript) scriptInstance).onExit();
         }
     };
 
@@ -58,7 +58,7 @@ public class DreambotControlScript extends AbstractScript {
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<ScriptRunConfig, Object> dreambotScript = getDreambotScript();
+        Pair<ScriptRunConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance();
         if (dreambotScript != null){
             int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
             if (i < 0){
@@ -68,10 +68,6 @@ public class DreambotControlScript extends AbstractScript {
             return i;
         }
         return 1000;
-    }
-
-    private Pair<ScriptRunConfig, Object> getDreambotScript(){
-        return botControl.getScriptManager().getScriptInstance();
     }
 
     @Override
@@ -143,7 +139,8 @@ public class DreambotControlScript extends AbstractScript {
                             AbstractScript abstractScript = (AbstractScript) result.newInstance();
                             abstractScript.registerMethodContext(getClient());
                             abstractScript.registerContext(getClient());
-                            abstractScript.onStart(args);
+                            if (args.length > 0) abstractScript.onStart(args);
+                            else abstractScript.onStart();
                             return abstractScript;
                         } catch (InstantiationException | IllegalAccessException e) {
                             e.printStackTrace();
@@ -160,7 +157,8 @@ public class DreambotControlScript extends AbstractScript {
                         AbstractScript abstractScript = aClass.newInstance();
                         abstractScript.registerMethodContext(getClient());
                         abstractScript.registerContext(getClient());
-                        abstractScript.onStart(args);
+                        if (args.length > 0) abstractScript.onStart(args);
+                        else abstractScript.onStart();
                         return abstractScript;
                     } catch (InstantiationException | IllegalAccessException e) {
                         e.printStackTrace();
