@@ -22,6 +22,7 @@ public class TempMuleCode extends AbstractScript{
     private Map<Integer, Integer> itemsSet = new HashMap<>();
 
     private boolean banked = false;
+    private boolean tradeOpen = false;
 
     @Override
     public void onStart(String... strings) {
@@ -42,6 +43,9 @@ public class TempMuleCode extends AbstractScript{
 
     @Override
     public int onLoop() {
+        if (tradeOpen && !getTrade().isOpen()){
+            return -1;
+        }
         if (world != getClient().getCurrentWorld()){
             getWorldHopper().hopWorld(world);
         }
@@ -66,6 +70,7 @@ public class TempMuleCode extends AbstractScript{
             }
         }
         else if (getTrade().isOpen()){
+            tradeOpen = true;
             boolean contains = false;
             for (Map.Entry<Integer, Integer> item : itemsSet.entrySet()) {
                 if (getInventory().contains(item.getKey() + 1)){
