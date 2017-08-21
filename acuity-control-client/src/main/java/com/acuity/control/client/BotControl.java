@@ -51,8 +51,8 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         return proxyManager;
     }
 
-    public MessageResponse requestScript(ScriptRunConfig runConfig){
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_CHANGE, MessagePackage.SERVER).setBody(runConfig));
+    public MessageResponse updateCurrentScriptRunConfig(ScriptRunConfig runConfig){
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CURRENT_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(runConfig));
     }
 
     public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {

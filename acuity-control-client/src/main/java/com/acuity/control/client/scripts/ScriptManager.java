@@ -2,7 +2,6 @@ package com.acuity.control.client.scripts;
 
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.BotControlEvent;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
@@ -23,7 +22,6 @@ public class ScriptManager {
     private ScriptQueue scriptQueue = new ScriptQueue();
     private ScriptRunConfig currentRunConfig;
     private BotControl controller;
-    private Pair<ScriptRunCondition, ScriptRunConfig> lastPair;
 
 
     public ScriptManager(BotControl botControl) {
@@ -34,8 +32,8 @@ public class ScriptManager {
         for (Pair<ScriptRunCondition, ScriptRunConfig> pair : scriptQueue.getConditionalScriptMap()) {
             if (ScriptConditionEvaluator.evaluate(pair.getKey().getConditions())){
                 if (!isCurrentScriptRunConfig(pair.getValue())){
-                    lastPair = pair;
-                    controller.requestScript(pair.getValue());
+                    currentRunConfig = pair.getValue();
+                    controller.updateCurrentScriptRunConfig(pair.getValue());
                 }
                 return;
             }
@@ -56,9 +54,6 @@ public class ScriptManager {
                 List<String> toRemove = scriptInstances.values().stream().filter(pair -> !ids.contains(pair.getKey().getRunConfigID())).map(pair -> pair.getKey().getRunConfigID()).collect(Collectors.toList());
                 toRemove.forEach(s -> scriptInstances.remove(s));
             }
-        }
-        if (!isCurrentScriptRunConfig(botClientConfig.getScriptRunConfig().orElse(null))){
-            this.currentRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
         }
     }
 
