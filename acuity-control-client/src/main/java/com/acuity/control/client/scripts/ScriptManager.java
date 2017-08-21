@@ -1,7 +1,8 @@
 package com.acuity.control.client.scripts;
 
 import com.acuity.common.util.Pair;
-import com.acuity.control.client.AbstractBotController;
+import com.acuity.control.client.BotControl;
+import com.acuity.control.client.BotControlEvent;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
@@ -10,21 +11,21 @@ import java.util.Objects;
 /**
  * Created by Zachary Herridge on 8/21/2017.
  */
-public abstract class ScriptManager {
+public class ScriptManager {
 
     private ScriptQueue scriptQueue = new ScriptQueue();
     private ScriptRunConfig currentRunConfig;
-    private AbstractBotController controller;
+    private BotControl controller;
 
-    public ScriptManager(AbstractBotController controller) {
-        this.controller = controller;
+    public ScriptManager(BotControl botControl) {
+        this.controller = botControl;
     }
 
     public void onLoop(){
         for (Pair<ScriptRunCondition, ScriptRunConfig> pair : scriptQueue.getConditionalScriptMap()) {
             if (ScriptConditionEvaluator.evaluate(pair.getKey().getConditions())){
                 if (!isCurrentScriptRunConfig(pair.getValue())){
-                    controller.getBotControl().requestScript(pair.getValue());
+                    controller.requestScript(pair.getValue());
                 }
                 return;
             }
@@ -43,9 +44,11 @@ public abstract class ScriptManager {
         }
         if (!isCurrentScriptRunConfig(botClientConfig.getScriptRunConfig().orElse(null))){
             this.currentRunConfig = botClientConfig.getScriptRunConfig().orElse(null);
-            updateScript(currentRunConfig);
+            controller.getEventBus().post(new BotControlEvent.ScriptUpdated(this.currentRunConfig));
         }
     }
 
-    public abstract void updateScript(ScriptRunConfig currentRunConfig);
+    public void onScriptEnded() {
+
+    }
 }

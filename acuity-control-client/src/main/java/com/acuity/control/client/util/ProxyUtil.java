@@ -1,21 +1,17 @@
 package com.acuity.control.client.util;
 
-import com.acuity.control.client.AbstractBotController;
-import com.acuity.control.client.websockets.response.MessageResponse;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.proxy.Proxy;
-import com.acuity.db.util.SecuityUtil;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 8/15/2017.
  */
 public class ProxyUtil {
 
-    public static void setSocksProxy(Proxy proxy, AbstractBotController botController){
+    public static void setSocksProxy(Proxy proxy, BotControl botControl){
         System.clearProperty("socksProxyHost");
         System.clearProperty("socksProxyPort");
         System.clearProperty("java.net.socks.username");
@@ -32,7 +28,7 @@ public class ProxyUtil {
             }
 
             if (proxy.getPassword() != null) {
-                botController.decryptString(proxy.getPassword()).ifPresent(password -> {
+                botControl.getConnection().decryptString(proxy.getPassword()).ifPresent(password -> {
                     System.setProperty("java.net.socks.password", password);
                     Authenticator.setDefault(new ProxyAuth(proxy.getUsername(), password));
                 });

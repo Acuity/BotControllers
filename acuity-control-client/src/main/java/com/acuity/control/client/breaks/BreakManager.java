@@ -1,17 +1,19 @@
 package com.acuity.control.client.breaks;
 
-import com.acuity.control.client.AbstractBotController;
+import com.acuity.control.client.BotControl;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.profiles.BreakProfile;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by Zachary Herridge on 8/15/2017.
+ * Created by Zachary Herridge on 8/21/2017.
  */
-public class BreakHandler {
+public class BreakManager {
 
-    private AbstractBotController controller;
+    private BotControl botControl;
 
     private BreakProfile profile;
 
@@ -19,11 +21,11 @@ public class BreakHandler {
     private long nextBeakDuration;
     private long nextBreakEndTime;
 
-    public BreakHandler(AbstractBotController controller) {
-        this.controller = controller;
+    public BreakManager(BotControl botControl) {
+        this.botControl = botControl;
     }
 
-    public int loop(){
+    public int onloop(){
         if (profile == null) return -1;
 
         long time = System.currentTimeMillis();
@@ -43,7 +45,7 @@ public class BreakHandler {
         nextBreak = System.currentTimeMillis() + interval;
         nextBeakDuration = ThreadLocalRandom.current().nextLong(profile.getMinLength(), profile.getMaxLength());
         nextBreakEndTime = nextBreak + nextBeakDuration;
-        controller.send(new MessagePackage(MessagePackage.Type.BREAK_UPDATE, MessagePackage.SERVER)
+        botControl.send(new MessagePackage(MessagePackage.Type.BREAK_UPDATE, MessagePackage.SERVER)
                 .setBody(0, nextBreak)
                 .setBody(1, nextBeakDuration)
         );
@@ -64,5 +66,11 @@ public class BreakHandler {
 
     public BreakProfile getProfile() {
         return profile;
+    }
+
+    public void onBotClientConfigUpdate(BotClientConfig config) {
+        Integer hashCode = profile != null ? profile.hashCode() : null;
+        Integer otherHashCode = config.getBreakProfile().map(BreakProfile::hashCode).orElse(null);
+        if (!Objects.equals(hashCode, otherHashCode)) setProfile(config.getBreakProfile().orElse(null));
     }
 }

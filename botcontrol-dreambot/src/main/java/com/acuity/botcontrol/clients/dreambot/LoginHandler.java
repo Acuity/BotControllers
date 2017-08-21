@@ -22,7 +22,7 @@ public class LoginHandler {
 
     @Subscribe
 	public int onLoop() {
-        RSAccount account = dreambotControlScript.getController().getAccount();
+        RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
         if (account == null){
             if (dreambotControlScript.getClient().isLoggedIn()){
                 dreambotControlScript.getTabs().logout();
@@ -67,7 +67,7 @@ public class LoginHandler {
 	}
 
 	private String getPassword(RSAccount rsAccount){
-        return dreambotControlScript.getController().decryptString(rsAccount.getPassword()).orElse("");
+        return dreambotControlScript.getBotControl().getConnection().decryptString(rsAccount.getPassword()).orElse("");
     }
 
 	private void clearText() {
