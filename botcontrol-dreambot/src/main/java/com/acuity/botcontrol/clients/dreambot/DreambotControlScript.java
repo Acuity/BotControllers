@@ -32,12 +32,9 @@ public class DreambotControlScript extends AbstractScript {
 
     private AbstractScript dreambotScript;
 
-    public void setDreambotScript(AbstractScript dreambotScript) {
-        this.dreambotScript = dreambotScript;
-    }
-
-    public AbstractScript getDreambotScript() {
-        return dreambotScript;
+    @Override
+    public void onStart() {
+        botControl.getEventBus().register(this);
     }
 
     @Override
@@ -61,6 +58,32 @@ public class DreambotControlScript extends AbstractScript {
             return i;
         }
         return 1000;
+    }
+
+    public void setDreambotScript(AbstractScript dreambotScript) {
+        this.dreambotScript = dreambotScript;
+    }
+
+    public AbstractScript getDreambotScript() {
+        return dreambotScript;
+    }
+
+    @Override
+    public void onExit() {
+        botControl.stop();
+    }
+
+    public BotControl getBotControl() {
+        return botControl;
+    }
+
+    @Subscribe
+    public void onProxyChange(BotControlEvent.ProxyUpdated proxyUpdated){
+        try {
+            getClient().getSocketWrapper().getSocket().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -92,15 +115,6 @@ public class DreambotControlScript extends AbstractScript {
             e.printStackTrace();
         }
         return results;
-    }
-
-    @Override
-    public void onExit() {
-        botControl.stop();
-    }
-
-    public BotControl getBotControl() {
-        return botControl;
     }
 
     @Subscribe

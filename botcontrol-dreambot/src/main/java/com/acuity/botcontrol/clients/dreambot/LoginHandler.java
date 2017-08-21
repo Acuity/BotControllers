@@ -40,10 +40,10 @@ public class LoginHandler {
                             timer.reset();
                             break;
                         case DISABLED:
-                            // TODO: 8/13/2017 Banned Account
+                            dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount();
                             break;
                         case ACCOUNT_LOCKED:
-                            // TODO: 8/13/2017 Locked
+                            dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount();
                             break;
                         default:
                             dreambotControlScript.getKeyboard().type(account.getEmail());
@@ -53,7 +53,7 @@ public class LoginHandler {
                             break;
                     }
                 case 3:
-                    // TODO: 8/13/2017 Wrong login
+                    dreambotControlScript.getBotControl().getRsAccountManager().onWrongLogin();
                     dreambotControlScript.getMouse().click(new Point(462, 290));
                     break;
                 default:

@@ -23,4 +23,16 @@ public class RSAccountManager {
     public void onRSAccountAssignmentUpdate(RSAccount account) {
         this.rsAccount = account;
     }
+
+    public void onBannedAccount() {
+
+    }
+
+    public void onLockedAccount() {
+
+    }
+
+    public void onWrongLogin() {
+
+    }
 }
