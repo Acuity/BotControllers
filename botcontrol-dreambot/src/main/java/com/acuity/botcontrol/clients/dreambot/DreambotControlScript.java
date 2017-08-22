@@ -6,6 +6,7 @@ import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.google.common.eventbus.Subscribe;
@@ -58,7 +59,7 @@ public class DreambotControlScript extends AbstractScript {
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<ScriptRunConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance();
+        Pair<ScriptExecutionConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance();
         if (dreambotScript != null){
             int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
             if (i < 0){
