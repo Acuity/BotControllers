@@ -1,5 +1,7 @@
 package com.acuity.control.client.scripts;
 
+import com.acuity.db.domain.vertex.impl.scripts.ScriptRunCondition;
+
 import java.util.List;
 
 /**
@@ -7,7 +9,7 @@ import java.util.List;
  */
 public class ScriptConditionEvaluator {
 
-    public static boolean evaluate(List<String> condition){
+    public static boolean evaluate(ScriptRunCondition condition){
         return true;
     }
 

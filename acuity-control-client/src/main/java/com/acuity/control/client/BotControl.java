@@ -85,7 +85,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         scriptManager.onLoop();
     }
 
-    public synchronized void interceptSystemOut(){
+    private synchronized void interceptSystemOut(){
         PrintStream out = System.out;
         if (out instanceof RemotePrintStream) ((RemotePrintStream) out).setBotControl(this);
         else System.setOut(new RemotePrintStream(this, out));

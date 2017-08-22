@@ -29,14 +29,21 @@ public class ScriptManager {
     }
 
     public void onLoop(){
-        System.out.println("Script Queue: " + scriptQueue);
-        for (Pair<ScriptRunCondition, ScriptRunConfig> pair : scriptQueue.getConditionalScriptMap()) {
-            if (ScriptConditionEvaluator.evaluate(pair.getKey().getConditions())){
-                if (!isCurrentScriptRunConfig(pair.getValue())){
-                    currentRunConfig = pair.getValue();
-                    controller.updateCurrentScriptRunConfig(pair.getValue());
+        if (scriptQueue.getConditionalScriptMap().size() == 0){
+            if (currentRunConfig == null){
+                currentRunConfig = null;
+                controller.updateCurrentScriptRunConfig(null);
+            }
+        }
+        else {
+            for (ScriptExecutionConfig pair : scriptQueue.getConditionalScriptMap()) {
+                if (ScriptConditionEvaluator.evaluate(pair.getScriptRunCondition())){
+                    if (!isCurrentScriptRunConfig(pair.getScriptRunConfig())){
+                        currentRunConfig = pair.getScriptRunConfig();
+                        controller.updateCurrentScriptRunConfig(pair.getScriptRunConfig());
+                    }
+                    return;
                 }
-                return;
             }
         }
     }
@@ -51,7 +58,7 @@ public class ScriptManager {
         if (scriptQueue.hashCode() != botClientConfig.getScriptQueue().hashCode()) {
             this.scriptQueue = botClientConfig.getScriptQueue();
             synchronized (lock){
-                List<String> ids = scriptQueue.getConditionalScriptMap().stream().map(pair -> pair.getValue().getRunConfigID()).collect(Collectors.toList());
+                List<String> ids = scriptQueue.getConditionalScriptMap().stream().map(pair -> pair.getScriptRunConfig().getRunConfigID()).collect(Collectors.toList());
                 List<String> toRemove = scriptInstances.values().stream().filter(pair -> !ids.contains(pair.getKey().getRunConfigID())).map(pair -> pair.getKey().getRunConfigID()).collect(Collectors.toList());
                 toRemove.forEach(s -> scriptInstances.remove(s));
             }
@@ -76,12 +83,12 @@ public class ScriptManager {
         return null;
     }
 
-    public void onScriptEnded(Pair<ScriptRunConfig, Object> closeScript) {
+    public void onScriptEnded(Pair<ScriptRunConfig, Object> closedScript) {
         synchronized (lock){
-            scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getValue().getRunConfigID().equals(closeScript.getKey().getRunConfigID()));
+            scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getScriptRunConfig().getRunConfigID().equals(closedScript.getKey().getRunConfigID()));
             controller.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
-            scriptInstances.remove(closeScript.getKey().getRunConfigID());
-            controller.destroyInstanceOfScript(closeScript.getValue());
+            scriptInstances.remove(closedScript.getKey().getRunConfigID());
+            controller.destroyInstanceOfScript(closedScript.getValue());
         }
     }
 }
