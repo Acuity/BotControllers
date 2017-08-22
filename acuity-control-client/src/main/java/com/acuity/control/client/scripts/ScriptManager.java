@@ -23,7 +23,6 @@ public class ScriptManager {
     private ScriptRunConfig currentRunConfig;
     private BotControl controller;
 
-
     public ScriptManager(BotControl botControl) {
         this.controller = botControl;
     }
@@ -48,7 +47,7 @@ public class ScriptManager {
         }
     }
 
-    public boolean isCurrentScriptRunConfig(ScriptRunConfig config){
+    private boolean isCurrentScriptRunConfig(ScriptRunConfig config){
         Integer currentConfigHashCode = currentRunConfig != null ? currentRunConfig.hashCode() : null;
         Integer otherConfigHashCode = config != null ? config.hashCode() : null;
         return Objects.equals(currentConfigHashCode, otherConfigHashCode);
