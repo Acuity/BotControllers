@@ -27,7 +27,7 @@ import java.util.Map;
 @ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
 public class DreambotControlScript extends AbstractScript {
 
-    private BotControl botControl = new BotControl("acuitybotting.com", ClientType.DREAMBOT) {
+    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
             return initDreambotScript(scriptRunConfig);

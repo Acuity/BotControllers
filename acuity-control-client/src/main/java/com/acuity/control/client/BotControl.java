@@ -33,7 +33,6 @@ public abstract class BotControl implements SubscriberExceptionHandler{
 
     public BotControl(String host, ClientType clientType) {
         this.connection = new BotControlConnection(this, host, clientType);
-        interceptSystemOut();
     }
 
     public EventBus getEventBus() {

@@ -29,6 +29,7 @@ public class ScriptManager {
     }
 
     public void onLoop(){
+        System.out.println("Script Queue: " + scriptQueue);
         for (Pair<ScriptRunCondition, ScriptRunConfig> pair : scriptQueue.getConditionalScriptMap()) {
             if (ScriptConditionEvaluator.evaluate(pair.getKey().getConditions())){
                 if (!isCurrentScriptRunConfig(pair.getValue())){
