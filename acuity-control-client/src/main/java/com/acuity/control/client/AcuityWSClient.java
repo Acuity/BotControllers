@@ -50,7 +50,7 @@ public class AcuityWSClient {
     }
 
     public void send(MessagePackage messagePackage){
-        wClient.send(Json.GSON.toJson(messagePackage));
+        if (isConnected()) wClient.send(Json.GSON.toJson(messagePackage));
     }
 
     public EventBus getEventBus(){
