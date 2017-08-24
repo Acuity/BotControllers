@@ -15,9 +15,12 @@ import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.loader.NetworkLoader;
+import org.dreambot.server.net.datatype.ScriptData;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,20 +101,26 @@ public class DreambotControlScript extends AbstractScript {
             Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
             list.addAll((List) getAllPremiumScripts.invoke(null));
             for (Object testObject : list) {
-                try {
+                ScriptData scriptData = Arrays.stream(testObject.getClass().getDeclaredFields())
+                        .filter(field -> field.getType().equals(ScriptData.class))
+                        .findAny().map(field -> {
+                            try {
+                                field.setAccessible(true);
+                                return (ScriptData) field.get(testObject);
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        }).orElse(null);
+
+                if (scriptData != null){
                     for (Method method : testObject.getClass().getDeclaredMethods()) {
                         if (method.getReturnType().equals(Class.class)){
                             method.setAccessible(true);
                             Class<? extends AbstractScript> invoke = (Class<? extends AbstractScript>) method.invoke(testObject);
-                            ScriptManifest annotation = invoke.getDeclaredAnnotation(ScriptManifest.class);
-                            if (annotation != null){
-                                results.put(annotation.name(), invoke);
-                            }
+                            results.put(scriptData.name, invoke);
                         }
                     }
-                }
-                catch (Exception e){
-                    e.printStackTrace();
                 }
             }
         } catch (Exception e) {
