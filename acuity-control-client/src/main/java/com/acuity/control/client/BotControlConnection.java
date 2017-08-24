@@ -2,6 +2,7 @@ package com.acuity.control.client;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
+import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -107,8 +108,7 @@ public class BotControlConnection {
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
         if (messagePackage.getMessageType() == MessagePackage.Type.GOOD_LOGIN){
-            //sendMachineInfo();
-            //onGoodLogin();
+            wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.BAD_LOGIN){
             handleLogin();
