@@ -100,6 +100,7 @@ public class DreambotControlScript extends AbstractScript {
             List list = (List) getAllFreeScripts.invoke(null);
             Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
             list.addAll((List) getAllPremiumScripts.invoke(null));
+
             for (Object testObject : list) {
                 ScriptData scriptData = Arrays.stream(testObject.getClass().getDeclaredFields())
                         .filter(field -> field.getType().equals(ScriptData.class))
@@ -113,15 +114,8 @@ public class DreambotControlScript extends AbstractScript {
                             return null;
                         }).orElse(null);
 
-                if (scriptData != null){
-                    for (Method method : testObject.getClass().getDeclaredMethods()) {
-                        if (method.getReturnType().equals(Class.class)){
-                            method.setAccessible(true);
-                            Class<? extends AbstractScript> invoke = (Class<? extends AbstractScript>) method.invoke(testObject);
-                            results.put(scriptData.name, invoke);
-                        }
-                    }
-                }
+                Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
+                if (remoteClass != null) results.put(scriptData.name, remoteClass);
             }
         } catch (Exception e) {
             e.printStackTrace();
