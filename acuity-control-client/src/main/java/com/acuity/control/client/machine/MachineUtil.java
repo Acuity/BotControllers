@@ -6,6 +6,10 @@ import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 /**
@@ -19,8 +23,24 @@ public class MachineUtil {
 
         HashMap<String, Object> properties = new HashMap<>();
         System.getProperties().keySet().forEach(key -> properties.put(String.valueOf(key), System.getProperty(String.valueOf(key))));
+        machineUpdate.setMacAddress(getMacAddress());
 
         return machineUpdate;
+    }
+
+    public static String getMacAddress(){
+        try {
+            InetAddress localIP = InetAddress.getLocalHost();
+            NetworkInterface network = NetworkInterface.getByInetAddress(localIP);
+            byte[] macAddress = network.getHardwareAddress();
+            StringBuilder macAddressStringBuilder = new StringBuilder();
+            for (int i = 0; i < macAddress.length; i++) {
+                macAddressStringBuilder.append(String.format("%02X%s", macAddress[i], (i < macAddress.length - 1) ? "-" : ""));
+            }
+            return macAddressStringBuilder.toString();
+        } catch (Throwable ignored) {
+        }
+        return "Unknown";
     }
 
 
