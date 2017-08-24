@@ -149,16 +149,7 @@ public class DreambotControlScript extends AbstractScript {
                     }).findAny().orElse(null);
 
                     if (result != null) {
-                        try {
-                            AbstractScript abstractScript = (AbstractScript) result.newInstance();
-                            abstractScript.registerMethodContext(getClient());
-                            abstractScript.registerContext(getClient());
-                            if (args.length > 0) abstractScript.onStart(args);
-                            else abstractScript.onStart();
-                            return abstractScript;
-                        } catch (InstantiationException | IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
+                        return startScript(result, args);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -167,21 +158,28 @@ public class DreambotControlScript extends AbstractScript {
                 Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
                 Class<? extends AbstractScript> aClass = repoScripts.get(runConfig.getScript().getTitle());
                 if (aClass != null) {
-                    try {
-                        AbstractScript abstractScript = aClass.newInstance();
-                        abstractScript.registerMethodContext(getClient());
-                        abstractScript.registerContext(getClient());
-                        if (args.length > 0) abstractScript.onStart(args);
-                        else abstractScript.onStart();
-                        return abstractScript;
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    return startScript(aClass, args);
                 }
             }
         }
         return null;
     }
+
+
+    private AbstractScript startScript(Class clazz, String[] args){
+        try {
+            AbstractScript abstractScript = (AbstractScript) clazz.newInstance();
+            abstractScript.registerMethodContext(getClient());
+            abstractScript.registerContext(getClient());
+            if (args.length > 0) abstractScript.onStart(args);
+            else abstractScript.onStart();
+            return abstractScript;
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public static void main(String[] args) {
         new Boot();
