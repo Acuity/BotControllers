@@ -34,7 +34,7 @@ public class LoginHandler {
                 case 2:
                     switch (dreambotControlScript.getClient().getLoginResponse()) {
                         case TOO_MANY_ATTEMPTS:
-                            dreambotControlScript.log("Too many login attempts! Sleeping for 2 minutes.");
+                            MethodProvider.log("Too many login attempts! Sleeping for 2 minutes.");
                             clearText();
                             timer.setRunTime(120000);
                             timer.reset();
@@ -82,5 +82,4 @@ public class LoginHandler {
             dreambotControlScript.getKeyboard().typeSpecialKey((char) KeyEvent.VK_TAB);
 		}
 	}
-
 }

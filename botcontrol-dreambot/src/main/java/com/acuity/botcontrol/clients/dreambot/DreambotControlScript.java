@@ -17,6 +17,7 @@ import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.loader.NetworkLoader;
 import org.dreambot.server.net.datatype.ScriptData;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -72,6 +73,13 @@ public class DreambotControlScript extends AbstractScript {
             return i;
         }
         return 1000;
+    }
+
+    @Override
+    public void onPaint(Graphics graphics) {
+        super.onPaint(graphics);
+        Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
+        if (scriptInstance != null) ((AbstractScript) scriptInstance.getValue()).onPaint(graphics);
     }
 
     @Override

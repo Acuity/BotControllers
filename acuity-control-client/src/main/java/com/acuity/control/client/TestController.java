@@ -20,7 +20,6 @@ public class TestController {
         }
     };
 
-
     public static void main(String[] args) {
         TestController testController = new TestController();
         while (true){
