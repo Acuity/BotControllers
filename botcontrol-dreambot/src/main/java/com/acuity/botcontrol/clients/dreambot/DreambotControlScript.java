@@ -102,20 +102,22 @@ public class DreambotControlScript extends AbstractScript {
             list.addAll((List) getAllPremiumScripts.invoke(null));
 
             for (Object testObject : list) {
-                ScriptData scriptData = Arrays.stream(testObject.getClass().getDeclaredFields())
-                        .filter(field -> field.getType().equals(ScriptData.class))
-                        .findAny().map(field -> {
-                            try {
-                                field.setAccessible(true);
-                                return (ScriptData) field.get(testObject);
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        }).orElse(null);
+                try {
+                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
+                            .filter(field -> field.getType().equals(ScriptData.class))
+                            .findAny().orElse(null);
 
-                Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
-                if (remoteClass != null) results.put(scriptData.name, remoteClass);
+                    if (scriptDataField != null){
+                        scriptDataField.setAccessible(true);
+                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
+
+                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
+                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
+                    }
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
