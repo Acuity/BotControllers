@@ -23,6 +23,7 @@ public class MachineUtil {
 
         HashMap<String, Object> properties = new HashMap<>();
         System.getProperties().keySet().forEach(key -> properties.put(String.valueOf(key), System.getProperty(String.valueOf(key))));
+        machineUpdate.setProperties(properties);
         machineUpdate.setMacAddress(getMacAddress());
 
         return machineUpdate;
