@@ -82,7 +82,11 @@ public abstract class BotControl implements SubscriberExceptionHandler{
     }
 
     public boolean isAccountAssigned(RSAccount rsAccount){
-        return false;
+        return send(new MessagePackage(MessagePackage.Type.CHECK_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(rsAccount.getID()))
+                .waitForResponse(10, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                .orElse(true);
     }
 
     public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
