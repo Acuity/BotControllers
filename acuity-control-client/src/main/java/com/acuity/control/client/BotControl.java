@@ -8,6 +8,7 @@ import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.google.common.eventbus.EventBus;
@@ -16,6 +17,9 @@ import com.google.common.eventbus.SubscriberExceptionHandler;
 import org.omg.PortableInterceptor.Interceptor;
 
 import java.io.PrintStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zach on 8/20/2017.
@@ -59,6 +63,27 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CURRENT_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(runConfig));
     }
 
+    public boolean requestAccountAssignment(RSAccount account) {
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(account.getID()))
+                .waitForResponse(10, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                .orElse(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<RSAccount> getRSAccounts(){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
+                .waitForResponse(10, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(List.class))
+                .orElse(Collections.EMPTY_LIST);
+    }
+
+    public boolean isAccountAssigned(RSAccount rsAccount){
+        return false;
+    }
+
     public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
         if (scriptQueue == null) return null;
         return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
@@ -83,6 +108,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
 
     public void onLoop() {
         scriptManager.onLoop();
+        rsAccountManager.onLoop();
     }
 
     private synchronized void interceptSystemOut(){
