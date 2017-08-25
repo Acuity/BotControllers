@@ -17,6 +17,7 @@ import com.google.common.eventbus.SubscriberExceptionHandler;
 import org.omg.PortableInterceptor.Interceptor;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +77,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
                 .waitForResponse(10, TimeUnit.SECONDS)
                 .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(List.class))
+                .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(RSAccount[].class)))
                 .orElse(Collections.EMPTY_LIST);
     }
 
@@ -107,8 +108,18 @@ public abstract class BotControl implements SubscriberExceptionHandler{
     public abstract void destroyInstanceOfScript(Object scriptInstance);
 
     public void onLoop() {
-        scriptManager.onLoop();
-        rsAccountManager.onLoop();
+        try {
+            scriptManager.onLoop();
+        }
+        catch (Throwable e){
+            e.printStackTrace();
+        }
+        try {
+            rsAccountManager.onLoop();
+        }
+        catch (Throwable e){
+            e.printStackTrace();
+        }
     }
 
     private synchronized void interceptSystemOut(){

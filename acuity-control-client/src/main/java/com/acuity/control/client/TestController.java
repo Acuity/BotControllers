@@ -16,7 +16,6 @@ public class TestController {
 
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {
-
         }
     };
 
@@ -24,6 +23,7 @@ public class TestController {
         TestController testController = new TestController();
         while (true){
             testController.botControl.onLoop();
+            System.out.println(testController.botControl.getRsAccountManager().getRsAccount());
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
