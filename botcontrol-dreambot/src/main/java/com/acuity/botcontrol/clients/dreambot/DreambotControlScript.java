@@ -165,10 +165,19 @@ public class DreambotControlScript extends AbstractScript {
         return null;
     }
 
-
     private AbstractScript startScript(Class clazz, String[] args){
         try {
             AbstractScript abstractScript = (AbstractScript) clazz.newInstance();
+            Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.getType().equals(BotControl.class)).forEach(field -> {
+                boolean accessible = field.isAccessible();
+                if (!accessible) field.setAccessible(true);
+                try {
+                    field.set(abstractScript, botControl);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                if (!accessible) field.setAccessible(false);
+            });
             abstractScript.registerMethodContext(getClient());
             abstractScript.registerContext(getClient());
             if (args.length > 0) abstractScript.onStart(args);
@@ -179,7 +188,6 @@ public class DreambotControlScript extends AbstractScript {
         }
         return null;
     }
-
 
     public static void main(String[] args) {
         new Boot();
