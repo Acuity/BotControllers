@@ -7,6 +7,7 @@ import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
@@ -15,12 +16,12 @@ import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
-import org.omg.PortableInterceptor.Interceptor;
 
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -90,12 +91,27 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(true);
     }
 
-    public boolean requestRemoteScriptStart(String destinationID, ScriptStartRequest startRequest){
-        return send(new MessagePackage(MessagePackage.Type.DIRECT, destinationID).setBody(startRequest))
+    public List<BotClient> requestBotClients(){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_BOT_CLIENTS, MessagePackage.SERVER))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(BotClient[].class)))
+                .orElse(Collections.emptyList());
+    }
+
+    public boolean requestRemoteScriptStart(String destinationKey, ScriptStartRequest startRequest){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE, destinationKey).setBody(startRequest))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                 .orElse(false);
+    }
+
+    public Optional<ScriptRunConfig> requestScriptRunConfig(String scriptID, String scriptVersion){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(new String[]{scriptID, scriptVersion}))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(ScriptRunConfig.class));
     }
 
     public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
@@ -108,7 +124,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
     }
 
     public void respond(MessagePackage init, MessagePackage response) {
-        response.setResponseKey(init.getResponseKey());
+        response.setResponseToKey(init.getResponseKey());
         send(response);
     }
 

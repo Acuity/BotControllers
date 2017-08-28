@@ -1,7 +1,11 @@
 package com.acuity.control.client;
 
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
+import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
+import com.acuity.db.domain.vertex.impl.scripts.*;
+
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -19,8 +23,22 @@ public class TestController {
         }
     };
 
+    private void runTest(){
+        Optional<ScriptRunConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
+        for (BotClient botClient : botControl.requestBotClients()) {
+            scriptRunConfig.ifPresent(config -> {
+                config.setPullAccountsFromTagID("Tag/3087498");
+                ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new ScriptRunCondition(), config);
+                ScriptStartRequest request = new ScriptStartRequest(executionConfig, true);
+                boolean b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
+                System.out.println(b);
+            });
+        }
+    }
+
     public static void main(String[] args) {
         TestController testController = new TestController();
+        testController.runTest();
         while (true){
             testController.botControl.onLoop();
             System.out.println(testController.botControl.getRsAccountManager().getRsAccount());

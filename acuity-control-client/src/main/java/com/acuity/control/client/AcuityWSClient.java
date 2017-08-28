@@ -77,11 +77,11 @@ public class AcuityWSClient {
             public void onMessagePackage(MessagePackage messagePackage) {
                 logger.debug("onMessage: {}.", messagePackage);
                 try {
-                    if (messagePackage.getResponseKey() != null){
-                        MessageResponse response = responseTracker.getCache().getIfPresent(messagePackage.getResponseKey());
+                    if (messagePackage.getResponseToKey() != null){
+                        MessageResponse response = responseTracker.getCache().getIfPresent(messagePackage.getResponseToKey());
                         if (response != null) {
                             response.setResponse(messagePackage);
-                            responseTracker.getCache().invalidate(messagePackage.getResponseKey());
+                            responseTracker.getCache().invalidate(messagePackage.getResponseToKey());
                         }
                     }
                 }

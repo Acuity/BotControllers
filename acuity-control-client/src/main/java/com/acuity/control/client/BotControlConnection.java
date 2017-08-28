@@ -101,6 +101,7 @@ public class BotControlConnection {
     public MessageResponse send(MessagePackage messagePackage){
         MessageResponse response = new MessageResponse();
         messagePackage.setResponseKey(UUID.randomUUID().toString());
+        System.out.println("RK: " + messagePackage.getResponseKey());
         wsClient.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
         wsClient.send(messagePackage);
         return response;
