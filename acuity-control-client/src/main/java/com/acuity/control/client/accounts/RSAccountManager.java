@@ -24,15 +24,19 @@ public class RSAccountManager {
     public void onLoop(){
         Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
         if (rsAccount == null && scriptInstance != null && scriptInstance.getKey().getScriptRunConfig().getPullAccountsFromTagID() != null){
-            String pullID = scriptInstance.getKey().getScriptRunConfig().getPullAccountsFromTagID();
-            List<RSAccount> rsAccounts = botControl.getRSAccounts();
-            Collections.shuffle(rsAccounts);
-            for (RSAccount account : rsAccounts) {
-                if (account.getTagIDs().contains(pullID) && !botControl.isAccountAssigned(account)){
-                    botControl.requestAccountAssignment(account);
-                }
+            requestAccountFromTag(scriptInstance.getKey().getScriptRunConfig().getPullAccountsFromTagID());
+        }
+    }
+
+    public boolean requestAccountFromTag(String pullID){
+        List<RSAccount> rsAccounts = botControl.getRSAccounts();
+        Collections.shuffle(rsAccounts);
+        for (RSAccount account : rsAccounts) {
+            if (account.getTagIDs().contains(pullID) && !botControl.isAccountAssigned(account)){
+                if (botControl.requestAccountAssignment(account)) return true;
             }
         }
+        return false;
     }
 
     public RSAccount getRsAccount() {

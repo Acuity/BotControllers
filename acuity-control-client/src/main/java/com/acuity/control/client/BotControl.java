@@ -8,6 +8,7 @@ import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
@@ -89,6 +90,14 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(true);
     }
 
+    public boolean requestRemoteScriptStart(String destinationID, ScriptStartRequest startRequest){
+        return send(new MessagePackage(MessagePackage.Type.DIRECT, destinationID).setBody(startRequest))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                .orElse(false);
+    }
+
     public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
         if (scriptQueue == null) return null;
         return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
@@ -96,6 +105,11 @@ public abstract class BotControl implements SubscriberExceptionHandler{
 
     public MessageResponse send(MessagePackage messagePackage){
         return connection.send(messagePackage);
+    }
+
+    public void respond(MessagePackage init, MessagePackage response) {
+        response.setResponseKey(init.getResponseKey());
+        send(response);
     }
 
     public BotControlConnection getConnection() {

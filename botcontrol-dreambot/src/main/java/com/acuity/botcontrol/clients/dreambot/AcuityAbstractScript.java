@@ -14,4 +14,8 @@ public abstract class AcuityAbstractScript extends AbstractScript {
     public BotControl getBotControl() {
         return botControl;
     }
+
+    public boolean isAcceptingScriptStarts(){
+        return true;
+    }
 }

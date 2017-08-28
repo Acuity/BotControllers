@@ -50,6 +50,15 @@ public class ScriptManager {
         }
     }
 
+    public boolean queueStart(ScriptExecutionConfig executionConfig) {
+        scriptQueue.getConditionalScriptMap().add(0, executionConfig);
+        return controller.updateScriptQueue(scriptQueue)
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                .orElse(false);
+    }
+
     private boolean isCurrentScriptExecutionConfig(ScriptExecutionConfig config){
         ScriptExecutionConfig currentExecutionConfig = currentScriptExecution != null ? currentScriptExecution.getKey() : null;
         Integer currentConfigHashCode = currentExecutionConfig != null ? currentExecutionConfig.hashCode() : null;

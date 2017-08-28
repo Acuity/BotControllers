@@ -10,7 +10,9 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
+import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
 
 import java.util.Optional;
@@ -122,6 +124,25 @@ public class BotControlConnection {
         else if (messagePackage.getMessageType() == MessagePackage.Type.ACCOUNT_ASSIGNMENT_CHANGE){
             RSAccount account = messagePackage.getBodyAs(RSAccount.class);
             botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
+        }
+        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE){
+            ScriptStartRequest scriptStartRequest = messagePackage.getBodyAs(ScriptStartRequest.class);
+            ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
+            boolean result = false;
+            if (scriptStartRequest.isConditionalOnAccountAssignment()){
+                if (botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID())){
+                    result = true;
+                }
+            }
+            else {
+                result = true;
+            }
+
+            if (result){
+                result = botControl.getScriptManager().queueStart(executionConfig);
+            }
+
+            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
         else {
             botControl.getEventBus().post(messagePackage);
