@@ -68,8 +68,9 @@ public class ScriptManager {
     private void handleAccountTransition(ScriptExecutionConfig executionConfig){
         RSAccount currentAccount = botControl.getRsAccountManager().getRsAccount();
         if (executionConfig.getLastAccount() != null && (currentAccount == null || !executionConfig.getLastAccount().getID().equals(currentAccount.getID()))){
-            botControl.requestAccountAssignment(executionConfig.getLastAccount(), true);
-            return;
+            if (!botControl.requestAccountAssignment(executionConfig.getLastAccount(), false)){
+                botControl.requestAccountAssignment(null, true);
+            }
         }
         if (currentAccount != null && executionConfig.getScriptRunConfig().getPullAccountsFromTagID() != null && !currentAccount.getTagIDs().contains(executionConfig.getScriptRunConfig().getPullAccountsFromTagID())){
             botControl.requestAccountAssignment(null, true);
