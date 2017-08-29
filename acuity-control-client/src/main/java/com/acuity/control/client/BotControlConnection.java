@@ -2,10 +2,12 @@ package com.acuity.control.client;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
+import com.acuity.common.util.Pair;
 import com.acuity.control.client.AcuityWSClient;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.breaks.BreakManager;
 import com.acuity.control.client.machine.MachineUtil;
+import com.acuity.control.client.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.security.AcuitySecurityManager;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
@@ -141,6 +143,14 @@ public class BotControlConnection {
             botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE){
+            Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
+            if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
+                if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){
+                    botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(false));
+                    return;
+                }
+            }
+
             ScriptStartRequest scriptStartRequest = messagePackage.getBodyAs(ScriptStartRequest.class);
             ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
             boolean result = false;
