@@ -4,6 +4,7 @@ import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.scripts.*;
+import com.acuity.db.domain.vertex.impl.scripts.conditions.ScriptRunCondition;
 
 import java.util.Optional;
 
@@ -20,6 +21,11 @@ public class TestController {
 
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {
+        }
+
+        @Override
+        public boolean evaluate(Object evaluator) {
+            return true;
         }
     };
 

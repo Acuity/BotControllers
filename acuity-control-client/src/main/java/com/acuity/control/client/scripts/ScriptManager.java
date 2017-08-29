@@ -45,7 +45,7 @@ public class ScriptManager {
 
 
 
-                if (ScriptConditionEvaluator.evaluate(executionConfig.getScriptRunCondition())){
+                if (ScriptConditionEvaluator.evaluate(botControl, executionConfig.getScriptRunCondition())){
                     if (!isCurrentScriptExecutionConfig(executionConfig)){
                         Object scriptInstance = getScriptInstanceOf(executionConfig);
                         if (scriptInstance != null){
