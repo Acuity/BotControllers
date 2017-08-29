@@ -23,19 +23,19 @@ public class ScriptManager {
     private Map<ScriptExecutionConfig, Object> scriptInstances = new HashMap<>();
     private ScriptQueue scriptQueue = new ScriptQueue();
     private Pair<ScriptExecutionConfig, Object>  currentScriptExecution;
-    private BotControl controller;
+    private BotControl botControl;
 
     public ScriptManager(BotControl botControl) {
-        this.controller = botControl;
+        this.botControl = botControl;
     }
 
     public void onLoop(){
-        if (currentScriptExecution != null) currentScriptExecution.getKey().setLastAccount(controller.getRsAccountManager().getRsAccount());
+        if (currentScriptExecution != null) currentScriptExecution.getKey().setLastAccount(botControl.getRsAccountManager().getRsAccount());
 
         if (scriptQueue.getConditionalScriptMap().size() == 0){
             if (currentScriptExecution != null){
                 currentScriptExecution = null;
-                controller.updateCurrentScriptRunConfig(null);
+                botControl.updateCurrentScriptRunConfig(null);
             }
         }
         else {
@@ -49,7 +49,7 @@ public class ScriptManager {
                         if (scriptInstance != null){
                             handleAccountTransition(executionConfig);
                             currentScriptExecution = new Pair<>(executionConfig, scriptInstance);
-                            controller.updateCurrentScriptRunConfig(executionConfig.getScriptRunConfig());
+                            botControl.updateCurrentScriptRunConfig(executionConfig.getScriptRunConfig());
                         }
                     }
                     break;
@@ -66,19 +66,19 @@ public class ScriptManager {
     }
 
     private void handleAccountTransition(ScriptExecutionConfig executionConfig){
-        RSAccount currentAccount = controller.getRsAccountManager().getRsAccount();
+        RSAccount currentAccount = botControl.getRsAccountManager().getRsAccount();
         if (executionConfig.getLastAccount() != null && (currentAccount == null || !executionConfig.getLastAccount().getID().equals(currentAccount.getID()))){
-            controller.requestAccountAssignment(executionConfig.getLastAccount(), true);
+            botControl.requestAccountAssignment(executionConfig.getLastAccount(), true);
             return;
         }
         if (currentAccount != null && executionConfig.getScriptRunConfig().getPullAccountsFromTagID() != null && !currentAccount.getTagIDs().contains(executionConfig.getScriptRunConfig().getPullAccountsFromTagID())){
-            controller.requestAccountAssignment(null, true);
+            botControl.requestAccountAssignment(null, true);
         }
     }
 
     public boolean queueStart(ScriptExecutionConfig executionConfig) {
         scriptQueue.getConditionalScriptMap().add(0, executionConfig);
-        return controller.updateScriptQueue(scriptQueue)
+        return botControl.updateScriptQueue(scriptQueue)
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
@@ -107,7 +107,7 @@ public class ScriptManager {
         if (executionConfig != null) {
             if (!scriptInstances.containsKey(executionConfig)) {
                 synchronized (lock){
-                    Object instanceOfScript = controller.createInstanceOfScript(executionConfig.getScriptRunConfig());
+                    Object instanceOfScript = botControl.createInstanceOfScript(executionConfig.getScriptRunConfig());
                     if (instanceOfScript != null) {
                         scriptInstances.put(executionConfig, instanceOfScript);
                         return instanceOfScript;
@@ -127,9 +127,9 @@ public class ScriptManager {
         synchronized (lock){
             if (closedScript.getKey().isRemoveOnEnd()){
                 scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getScriptRunConfig().getRunConfigID().equals(closedScript.getKey().getScriptRunConfig().getRunConfigID()));
-                controller.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
+                botControl.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
                 scriptInstances.remove(closedScript.getKey());
-                controller.destroyInstanceOfScript(closedScript.getValue());
+                botControl.destroyInstanceOfScript(closedScript.getValue());
             }
         }
     }

@@ -27,7 +27,7 @@ public class BotControlConnection {
     private BotControl botControl;
     private String host;
     private String acuityEmail;
-    private String acuityPassword;
+    private char[] acuityPassword;
     private int botTypeID;
 
     private LoginFrame loginFrame;
@@ -70,7 +70,7 @@ public class BotControlConnection {
 
     public void start(String email, String password) throws Exception {
         this.acuityEmail = email;
-        this.acuityPassword = password;
+        this.acuityPassword = password.toCharArray();
         wsClient.getEventBus().register(this);
         wsClient.start("ws://" + host + ":2052");
     }
@@ -86,27 +86,31 @@ public class BotControlConnection {
     @Subscribe
     public void onConnect(WClientEvent.Opened opened){
         wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
-                new LoginData(acuityEmail, acuityPassword, 1, botTypeID)
+                new LoginData(acuityEmail, new String(acuityPassword), 1, botTypeID)
         ));
     }
 
     public Optional<String> decryptString(EncryptedString string){
         MessageResponse response = send(new MessagePackage(MessagePackage.Type.DECRYPT_STING, MessagePackage.SERVER)
                 .setBody(0, string)
-                .setBody(1, acuityPassword)
+                .setBody(1, new String(acuityPassword))
         );
         return response.waitForResponse(15, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
+    }
+
+    public MessageResponse sendWithCreds(MessagePackage messagePackage){
+        messagePackage.setBody(0, acuityEmail);
+        messagePackage.setBody(1, acuityPassword);
+        return send(messagePackage);
     }
 
     public MessageResponse send(MessagePackage messagePackage){
         MessageResponse response = new MessageResponse();
         messagePackage.setResponseKey(UUID.randomUUID().toString());
-        System.out.println("RK: " + messagePackage.getResponseKey());
         wsClient.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
         wsClient.send(messagePackage);
         return response;
     }
-
 
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
