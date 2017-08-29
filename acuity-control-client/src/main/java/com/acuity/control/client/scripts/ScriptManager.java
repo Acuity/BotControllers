@@ -6,6 +6,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +49,15 @@ public class ScriptManager {
                             controller.updateCurrentScriptRunConfig(executionConfig.getScriptRunConfig());
                         }
                     }
-                    return;
+                    break;
                 }
+            }
+        }
+
+        if (currentScriptExecution != null){
+            LocalDateTime endTime = currentScriptExecution.getKey().getScriptRunConfig().getEndTime().orElse(null);
+            if (LocalDateTime.now().isAfter(endTime)){
+                onScriptEnded(currentScriptExecution);
             }
         }
     }
