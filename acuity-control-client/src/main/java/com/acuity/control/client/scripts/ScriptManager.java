@@ -43,6 +43,8 @@ public class ScriptManager {
                 LocalDateTime endTime = executionConfig.getScriptRunConfig().getEndTime().orElse(null);
                 if (LocalDateTime.now().isAfter(endTime)) continue;
 
+
+
                 if (ScriptConditionEvaluator.evaluate(executionConfig.getScriptRunCondition())){
                     if (!isCurrentScriptExecutionConfig(executionConfig)){
                         Object scriptInstance = getScriptInstanceOf(executionConfig);

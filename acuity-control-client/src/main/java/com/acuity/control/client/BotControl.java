@@ -144,6 +144,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract void destroyInstanceOfScript(Object scriptInstance);
 
+    public abstract boolean evaluate(Object evaluator);
+
     public void onLoop() {
         try {
             scriptManager.onLoop();

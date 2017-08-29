@@ -42,6 +42,11 @@ public class DreambotControlScript extends AbstractScript {
         public void destroyInstanceOfScript(Object scriptInstance) {
             ((AbstractScript) scriptInstance).onExit();
         }
+
+        @Override
+        public boolean evaluate(Object evaluator) {
+            return new DreambotEvaluator(DreambotControlScript.this).evaluate(evaluator);
+        }
     };
 
     private LoginHandler loginHandler = new LoginHandler(this);
