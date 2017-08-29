@@ -23,13 +23,7 @@ public class LoginHandler {
     @Subscribe
 	public int onLoop() {
         RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
-        if (account == null){
-            if (dreambotControlScript.getClient().isLoggedIn()){
-                dreambotControlScript.getTabs().logout();
-                return 1000;
-            }
-        }
-        else if (dreambotControlScript.getClient().getGameStateID() < 25){
+        if (account != null && dreambotControlScript.getClient().getGameStateID() < 25){
             switch (dreambotControlScript.getClient().getLoginIndex()) {
                 case 2:
                     switch (dreambotControlScript.getClient().getLoginResponse()) {
@@ -62,8 +56,16 @@ public class LoginHandler {
             }
             return 1000;
         }
-
-		return 0;
+        else {
+            if (account == null || !account.getEmail().equals(dreambotControlScript.getClient().getUsername())){
+                if (dreambotControlScript.getClient().isLoggedIn()){
+                    dreambotControlScript.getMap().interact(dreambotControlScript.getLocalPlayer().getTile());
+                    dreambotControlScript.getTabs().logout();
+                    return 1000;
+                }
+            }
+        }
+        return 0;
 	}
 
 	private String getPassword(RSAccount rsAccount){

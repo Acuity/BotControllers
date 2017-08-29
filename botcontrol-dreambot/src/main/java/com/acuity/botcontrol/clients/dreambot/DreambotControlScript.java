@@ -35,7 +35,7 @@ import java.util.Map;
 @ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
 public class DreambotControlScript extends AbstractScript {
 
-    private BotControl botControl = new BotControl("acuitybotting.com", ClientType.DREAMBOT) {
+    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
             BotClientState clientState = new BotClientState();
@@ -156,14 +156,7 @@ public class DreambotControlScript extends AbstractScript {
                 try {
                     ScriptInstance scriptInstance = Scripts.loadScript(runConfig);
                     scriptInstance.loadJar();
-                    Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(aClass -> {
-                        Class superclass = aClass.getSuperclass();
-                        if (superclass != null && superclass.equals(AbstractScript.class)) {
-                            return true;
-                        }
-                        return false;
-                    }).findAny().orElse(null);
-
+                    Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
                     if (result != null) {
                         return startScript(result, args);
                     }
@@ -181,19 +174,25 @@ public class DreambotControlScript extends AbstractScript {
         return null;
     }
 
+    private void setBotControl(Class clazz, Object object){
+        Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.getType().equals(BotControl.class)).forEach(field -> {
+            boolean accessible = field.isAccessible();
+            if (!accessible) field.setAccessible(true);
+            try {
+                field.set(object, botControl);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            if (!accessible) field.setAccessible(false);
+        });
+    }
+
+
     private AbstractScript startScript(Class clazz, String[] args){
         try {
             AbstractScript abstractScript = (AbstractScript) clazz.newInstance();
-            Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.getType().equals(BotControl.class)).forEach(field -> {
-                boolean accessible = field.isAccessible();
-                if (!accessible) field.setAccessible(true);
-                try {
-                    field.set(abstractScript, botControl);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                if (!accessible) field.setAccessible(false);
-            });
+            setBotControl(clazz, abstractScript);
+            setBotControl(clazz.getSuperclass(), abstractScript);
             abstractScript.registerMethodContext(getClient());
             abstractScript.registerContext(getClient());
             if (args.length > 0) abstractScript.onStart(args);

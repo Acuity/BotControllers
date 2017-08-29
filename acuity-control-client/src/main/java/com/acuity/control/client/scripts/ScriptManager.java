@@ -41,9 +41,7 @@ public class ScriptManager {
         else {
             for (ScriptExecutionConfig executionConfig : scriptQueue.getConditionalScriptMap()) {
                 LocalDateTime endTime = executionConfig.getScriptRunConfig().getEndTime().orElse(null);
-                if (LocalDateTime.now().isAfter(endTime)) continue;
-
-
+                if (endTime != null && LocalDateTime.now().isAfter(endTime)) continue;
 
                 if (ScriptConditionEvaluator.evaluate(botControl, executionConfig.getScriptRunCondition())){
                     if (!isCurrentScriptExecutionConfig(executionConfig)){
@@ -61,7 +59,7 @@ public class ScriptManager {
 
         if (currentScriptExecution != null){
             LocalDateTime endTime = currentScriptExecution.getKey().getScriptRunConfig().getEndTime().orElse(null);
-            if (LocalDateTime.now().isAfter(endTime)){
+            if (endTime != null && LocalDateTime.now().isAfter(endTime)){
                 onScriptEnded(currentScriptExecution);
             }
         }

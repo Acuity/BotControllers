@@ -102,7 +102,7 @@ public class BotControlConnection {
     }
 
     public Optional<String> decryptString(EncryptedString string){
-        System.getSecurityManager().checkPermission(DECRYPT_STRING_PERMISSION);
+        Optional.ofNullable(System.getSecurityManager()).ifPresent(securityManager -> securityManager.checkPermission(DECRYPT_STRING_PERMISSION));
         MessageResponse response = send(new MessagePackage(MessagePackage.Type.DECRYPT_STING, MessagePackage.SERVER)
                 .setBody(0, string)
                 .setBody(1, new String(acuityPassword))
