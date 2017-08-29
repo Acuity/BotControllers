@@ -3,9 +3,12 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
+import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
@@ -33,6 +36,14 @@ import java.util.Map;
 public class DreambotControlScript extends AbstractScript {
 
     private BotControl botControl = new BotControl("acuitybotting.com", ClientType.DREAMBOT) {
+        @Override
+        public void sendClientState() {
+            BotClientState clientState = new BotClientState();
+            clientState.setCpuUsage(MachineUtil.getCPUUsage());
+            clientState.setGameState(getClient().getGameStateID());
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+        }
+
         @Override
         public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
             return initDreambotScript(scriptRunConfig);

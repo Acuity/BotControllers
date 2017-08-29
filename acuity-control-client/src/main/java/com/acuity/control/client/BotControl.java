@@ -18,10 +18,14 @@ import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,11 +39,23 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private BreakManager breakManager = new BreakManager(this);
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
     private ProxyManager proxyManager = new ProxyManager(this);
+    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
     private BotControlConnection connection;
 
     public BotControl(String host, ClientType clientType) {
         this.connection = new BotControlConnection(this, host, clientType);
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            if (connection.isConnected()) {
+                try {
+                    sendClientState();
+                }
+                catch (Throwable e){
+                    e.printStackTrace();
+                }
+            }
+        }, 5, 5, TimeUnit.SECONDS);
     }
 
     public EventBus getEventBus() {
@@ -140,6 +156,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         throwable.printStackTrace();
     }
 
+    public abstract void sendClientState();
+
     public abstract Object createInstanceOfScript(ScriptRunConfig scriptRunConfig);
 
     public abstract void destroyInstanceOfScript(Object scriptInstance);
@@ -170,6 +188,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     public void stop() {
+        scheduledExecutorService.shutdownNow();
         connection.stop();
     }
 }

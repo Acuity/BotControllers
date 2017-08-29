@@ -1,7 +1,10 @@
 package com.acuity.control.client;
 
+import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.ScriptRunCondition;
@@ -14,6 +17,14 @@ import java.util.Optional;
 public class TestController {
 
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
+        @Override
+        public void sendClientState() {
+            BotClientState clientState = new BotClientState();
+            clientState.setCpuUsage(MachineUtil.getCPUUsage());
+            clientState.setGameState(0);
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+        }
+
         @Override
         public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
             return new Object();
