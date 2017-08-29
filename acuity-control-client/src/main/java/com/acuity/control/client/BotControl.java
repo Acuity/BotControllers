@@ -13,6 +13,7 @@ import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
+import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
@@ -89,6 +90,23 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(RSAccount[].class)))
                 .orElse(Collections.EMPTY_LIST);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Tag> getTags(String title){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_TAGS, MessagePackage.SERVER).setBody(title))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(Tag[].class)))
+                .orElse(Collections.EMPTY_LIST);
+    }
+
+    public boolean requestTagAccount(RSAccount account, Tag tag){
+        return send(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT_TAG, MessagePackage.SERVER)
+                .setBody(0, true)
+                .setBody(1, account)
+                .setBody(2, tag)
+        ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     public boolean requestAccountAssignment(RSAccount account, boolean force) {

@@ -59,14 +59,14 @@ public class RSAccountManager {
     }
 
     public void onBannedAccount() {
-
+        botControl.getTags("Banned").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
     }
 
     public void onLockedAccount() {
-
+        botControl.getTags("Locked").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
     }
 
     public void onWrongLogin() {
-
+        botControl.getTags("Incorrect Login").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
     }
 }
