@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Zach on 8/20/2017.
  */
-public abstract class BotControl implements SubscriberExceptionHandler{
+public abstract class BotControl implements SubscriberExceptionHandler {
 
     private EventBus eventBus = new EventBus(this);
 
@@ -62,20 +62,12 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         return proxyManager;
     }
 
-    public MessageResponse updateCurrentScriptRunConfig(ScriptRunConfig runConfig){
+    public MessageResponse updateCurrentScriptRunConfig(ScriptRunConfig runConfig) {
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CURRENT_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(runConfig));
     }
 
-    public boolean requestAccountAssignment(RSAccount account) {
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(account.getID()))
-                .waitForResponse(10, TimeUnit.SECONDS)
-                .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
-                .orElse(false);
-    }
-
     @SuppressWarnings("unchecked")
-    public List<RSAccount> getRSAccounts(){
+    public List<RSAccount> getRSAccounts() {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
                 .waitForResponse(10, TimeUnit.SECONDS)
                 .getResponse()
@@ -83,7 +75,18 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(Collections.EMPTY_LIST);
     }
 
-    public boolean isAccountAssigned(RSAccount rsAccount){
+    public boolean requestAccountAssignment(RSAccount account, boolean force) {
+        return send(
+                new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER)
+                        .setBody(0, account.getID())
+                        .setBody(1, force))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                .orElse(false);
+    }
+
+    public boolean isAccountAssigned(RSAccount rsAccount) {
         return send(new MessagePackage(MessagePackage.Type.CHECK_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(rsAccount.getID()))
                 .waitForResponse(10, TimeUnit.SECONDS)
                 .getResponse()
@@ -91,7 +94,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(true);
     }
 
-    public List<BotClient> requestBotClients(){
+    public List<BotClient> requestBotClients() {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_BOT_CLIENTS, MessagePackage.SERVER))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
@@ -99,7 +102,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(Collections.emptyList());
     }
 
-    public boolean requestRemoteScriptStart(String destinationKey, ScriptStartRequest startRequest){
+    public boolean requestRemoteScriptStart(String destinationKey, ScriptStartRequest startRequest) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE, destinationKey).setBody(startRequest))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
@@ -107,7 +110,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
                 .orElse(false);
     }
 
-    public Optional<ScriptRunConfig> requestScriptRunConfig(String scriptID, String scriptVersion){
+    public Optional<ScriptRunConfig> requestScriptRunConfig(String scriptID, String scriptVersion) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(new String[]{scriptID, scriptVersion}))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
@@ -119,7 +122,7 @@ public abstract class BotControl implements SubscriberExceptionHandler{
         return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
     }
 
-    public MessageResponse send(MessagePackage messagePackage){
+    public MessageResponse send(MessagePackage messagePackage) {
         return connection.send(messagePackage);
     }
 
@@ -144,19 +147,17 @@ public abstract class BotControl implements SubscriberExceptionHandler{
     public void onLoop() {
         try {
             scriptManager.onLoop();
-        }
-        catch (Throwable e){
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         try {
             rsAccountManager.onLoop();
-        }
-        catch (Throwable e){
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    private synchronized void interceptSystemOut(){
+    private synchronized void interceptSystemOut() {
         PrintStream out = System.out;
         if (out instanceof RemotePrintStream) ((RemotePrintStream) out).setBotControl(this);
         else System.setOut(new RemotePrintStream(this, out));

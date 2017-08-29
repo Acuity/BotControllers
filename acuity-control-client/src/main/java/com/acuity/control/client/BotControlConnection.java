@@ -131,7 +131,7 @@ public class BotControlConnection {
             ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
             boolean result = false;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
-                if (botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID())){
+                if (botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID(), false)){
                     result = true;
                 }
             }
