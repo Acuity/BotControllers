@@ -3,6 +3,7 @@ package com.acuity.control.client.scripts;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 
 import java.util.HashMap;
@@ -28,6 +29,8 @@ public class ScriptManager {
     }
 
     public void onLoop(){
+        if (currentScriptExecution != null) currentScriptExecution.getKey().setLastAccount(controller.getRsAccountManager().getRsAccount());
+
         if (scriptQueue.getConditionalScriptMap().size() == 0){
             if (currentScriptExecution != null){
                 currentScriptExecution = null;
@@ -40,6 +43,7 @@ public class ScriptManager {
                     if (!isCurrentScriptExecutionConfig(executionConfig)){
                         Object scriptInstance = getScriptInstanceOf(executionConfig);
                         if (scriptInstance != null){
+                            handleAccountTransition(executionConfig);
                             currentScriptExecution = new Pair<>(executionConfig, scriptInstance);
                             controller.updateCurrentScriptRunConfig(executionConfig.getScriptRunConfig());
                         }
@@ -47,6 +51,17 @@ public class ScriptManager {
                     return;
                 }
             }
+        }
+    }
+
+    private void handleAccountTransition(ScriptExecutionConfig executionConfig){
+        RSAccount currentAccount = controller.getRsAccountManager().getRsAccount();
+        if (executionConfig.getLastAccount() != null && (currentAccount == null || !executionConfig.getLastAccount().getID().equals(currentAccount.getID()))){
+            controller.requestAccountAssignment(executionConfig.getLastAccount(), true);
+            return;
+        }
+        if (currentAccount != null && executionConfig.getScriptRunConfig().getPullAccountsFromTagID() != null && !currentAccount.getTagIDs().contains(executionConfig.getScriptRunConfig().getPullAccountsFromTagID())){
+            controller.requestAccountAssignment(null, true);
         }
     }
 

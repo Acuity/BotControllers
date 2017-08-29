@@ -78,7 +78,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     public boolean requestAccountAssignment(RSAccount account, boolean force) {
         return send(
                 new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER)
-                        .setBody(0, account.getID())
+                        .setBody(0, account == null ? null : account.getID())
                         .setBody(1, force))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()

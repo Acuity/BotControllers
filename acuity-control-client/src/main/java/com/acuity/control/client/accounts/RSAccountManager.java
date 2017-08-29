@@ -14,8 +14,9 @@ import java.util.List;
 public class RSAccountManager {
 
     private BotControl botControl;
-
     private RSAccount rsAccount;
+
+
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
