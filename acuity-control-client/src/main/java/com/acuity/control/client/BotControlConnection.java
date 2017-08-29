@@ -2,7 +2,11 @@ package com.acuity.control.client;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
+import com.acuity.control.client.AcuityWSClient;
+import com.acuity.control.client.BotControl;
+import com.acuity.control.client.breaks.BreakManager;
 import com.acuity.control.client.machine.MachineUtil;
+import com.acuity.control.client.security.AcuitySecurityManager;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -15,6 +19,9 @@ import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
 
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.Permission;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +30,8 @@ import java.util.concurrent.TimeUnit;
  * Created by Zachary Herridge on 8/21/2017.
  */
 public class BotControlConnection {
+
+    private static final Permission DECRYPT_STRING_PERMISSION = new RuntimePermission("decryptString");
 
     private BotControl botControl;
     private String host;
@@ -91,6 +100,7 @@ public class BotControlConnection {
     }
 
     public Optional<String> decryptString(EncryptedString string){
+        System.getSecurityManager().checkPermission(DECRYPT_STRING_PERMISSION);
         MessageResponse response = send(new MessagePackage(MessagePackage.Type.DECRYPT_STING, MessagePackage.SERVER)
                 .setBody(0, string)
                 .setBody(1, new String(acuityPassword))
