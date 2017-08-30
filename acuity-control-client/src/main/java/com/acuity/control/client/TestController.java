@@ -9,6 +9,8 @@ import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.ScriptRunCondition;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.Optional;
 
 /**
@@ -55,9 +57,24 @@ public class TestController {
 
     public static void main(String[] args) {
         TestController testController = new TestController();
+
+        new Thread(() -> {
+            try {
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                while (true) {
+                    String input = br.readLine();
+                    if (input.equals("kill-script")) {
+                        testController.botControl.getScriptManager().onScriptEnded(testController.botControl.getScriptManager().getScriptInstance());
+                    }
+                }
+            }
+            catch (Throwable e){
+                e.printStackTrace();
+            }
+        }).start();
+
         while (true){
             testController.botControl.onLoop();
-            System.out.println(testController.botControl.getRsAccountManager().getRsAccount());
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
