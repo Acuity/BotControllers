@@ -9,7 +9,7 @@ import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
@@ -19,8 +19,6 @@ import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
 import java.io.PrintStream;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -86,7 +84,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     @SuppressWarnings("unchecked")
     public List<RSAccount> getRSAccounts() {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
-                .waitForResponse(10, TimeUnit.SECONDS)
+                .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(RSAccount[].class)))
                 .orElse(Collections.EMPTY_LIST);
@@ -122,7 +120,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public boolean isAccountAssigned(RSAccount rsAccount) {
         return send(new MessagePackage(MessagePackage.Type.CHECK_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(rsAccount.getID()))
-                .waitForResponse(10, TimeUnit.SECONDS)
+                .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                 .orElse(true);
@@ -136,12 +134,12 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .orElse(Collections.emptyList());
     }
 
-    public boolean requestRemoteScriptStart(String destinationKey, ScriptStartRequest startRequest) {
+    public RemoteScript.StartResponse requestRemoteScriptStart(String destinationKey, RemoteScript.StartRequest startRequest) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE, destinationKey).setBody(startRequest))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
-                .orElse(false);
+                .map(messagePackage -> messagePackage.getBodyAs(RemoteScript.StartResponse.class))
+                .orElse(null);
     }
 
     public Optional<ScriptRunConfig> requestScriptRunConfig(String scriptID, String scriptVersion) {

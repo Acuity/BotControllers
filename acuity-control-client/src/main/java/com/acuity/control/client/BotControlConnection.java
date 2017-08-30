@@ -3,12 +3,8 @@ package com.acuity.control.client;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.Pair;
-import com.acuity.control.client.AcuityWSClient;
-import com.acuity.control.client.BotControl;
-import com.acuity.control.client.breaks.BreakManager;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.RemoteScriptStartCheck;
-import com.acuity.control.client.security.AcuitySecurityManager;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -16,13 +12,12 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
-import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
 import java.security.Permission;
 import java.util.Optional;
 import java.util.UUID;
@@ -151,20 +146,18 @@ public class BotControlConnection {
                 }
             }
 
-            ScriptStartRequest scriptStartRequest = messagePackage.getBodyAs(ScriptStartRequest.class);
+            RemoteScript.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScript.StartRequest.class);
             ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
-            boolean result = false;
+            RSAccount rsAccount = null;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
-                if (botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID(), false)){
-                    result = true;
-                }
-            }
-            else {
-                result = true;
+                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID(), false);
             }
 
-            if (result){
-                result = botControl.getScriptManager().queueStart(executionConfig);
+            RemoteScriptRequest.StartResponse result = new RemoteScriptRequest.StartResponse();
+            result.setAccount(rsAccount);
+            if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
+                result.setScriptStarted(botControl.getScriptManager().queueStart(executionConfig));
+                if (!result.isScriptStarted()) botControl.requestAccountAssignment(null, true);
             }
 
             botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));

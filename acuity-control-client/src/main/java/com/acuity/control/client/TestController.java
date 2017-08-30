@@ -5,7 +5,7 @@ import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.ScriptStartRequest;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.ScriptRunCondition;
 
@@ -46,8 +46,8 @@ public class TestController {
             scriptRunConfig.ifPresent(config -> {
                 config.setPullAccountsFromTagID("Tag/3087498");
                 ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new ScriptRunCondition(), config);
-                ScriptStartRequest request = new ScriptStartRequest(executionConfig, true);
-                boolean b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
+                RemoteScript.StartRequest request = new RemoteScript.StartRequest(executionConfig, true);
+                RemoteScript.StartResponse b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
                 System.out.println(b);
             });
         }
@@ -55,7 +55,6 @@ public class TestController {
 
     public static void main(String[] args) {
         TestController testController = new TestController();
-        testController.runTest();
         while (true){
             testController.botControl.onLoop();
             System.out.println(testController.botControl.getRsAccountManager().getRsAccount());

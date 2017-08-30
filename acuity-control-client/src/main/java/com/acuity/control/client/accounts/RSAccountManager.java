@@ -39,15 +39,15 @@ public class RSAccountManager {
         ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
     }
 
-    public boolean requestAccountFromTag(String pullID, boolean force){
+    public RSAccount requestAccountFromTag(String pullID, boolean force){
         List<RSAccount> rsAccounts = botControl.getRSAccounts();
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
             if (account.getTagIDs().contains(pullID) && !botControl.isAccountAssigned(account)){
-                if (botControl.requestAccountAssignment(account, force)) return true;
+                if (botControl.requestAccountAssignment(account, force)) return account;
             }
         }
-        return false;
+        return null;
     }
 
     public RSAccount getRsAccount() {
