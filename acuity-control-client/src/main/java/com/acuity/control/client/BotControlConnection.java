@@ -13,7 +13,6 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptRequest;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
@@ -153,7 +152,7 @@ public class BotControlConnection {
                 rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID(), false);
             }
 
-            RemoteScriptRequest.StartResponse result = new RemoteScriptRequest.StartResponse();
+            RemoteScript.StartResponse result = new RemoteScript.StartResponse();
             result.setAccount(rsAccount);
             if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
                 result.setScriptStarted(botControl.getScriptManager().queueStart(executionConfig));
