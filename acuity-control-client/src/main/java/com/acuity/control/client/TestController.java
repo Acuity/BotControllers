@@ -43,7 +43,7 @@ public class TestController {
     };
 
     private void runTest(){
-        Optional<ScriptStartupConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
+       /* Optional<ScriptStartupConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
         for (BotClient botClient : botControl.requestBotClients()) {
             scriptRunConfig.ifPresent(config -> {
                 config.setPullAccountsFromTagID("Tag/3087498");
@@ -52,7 +52,7 @@ public class TestController {
                 RemoteScript.StartResponse b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
                 System.out.println(b);
             });
-        }
+        }*/
     }
 
     public static void main(String[] args) {

@@ -19,9 +19,4 @@ public class Scripts {
     public static ScriptInstance loadScript(String key, String title, int clientType, int rev, String jarURL) throws IOException {
         return new ScriptInstance(key, title, downloadScript(key, clientType, rev, jarURL));
     }
-
-    public static ScriptInstance loadScript(ScriptStartupConfig script) throws IOException {
-        if (script == null) return null;
-        return loadScript(script.getScript().getKey(), script.getScript().getTitle(), script.getScriptVersion().getClientID(), script.getScriptVersion().getRevision(), script.getScriptVersion().getJarURL());
-    }
 }

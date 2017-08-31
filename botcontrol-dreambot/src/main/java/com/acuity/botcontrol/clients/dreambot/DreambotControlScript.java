@@ -9,9 +9,11 @@ import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
+import com.acuity.db.util.ArangoDBUtil;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.Boot;
 import org.dreambot.api.script.AbstractScript;
@@ -62,6 +64,43 @@ public class DreambotControlScript extends AbstractScript {
 
     private LoginHandler loginHandler = new LoginHandler(this);
 
+    @SuppressWarnings("unchecked")
+    public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
+        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
+        try {
+            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
+            List list = (List) getAllFreeScripts.invoke(null);
+            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
+            list.addAll((List) getAllPremiumScripts.invoke(null));
+
+            for (Object testObject : list) {
+                try {
+                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
+                            .filter(field -> field.getType().equals(ScriptData.class))
+                            .findAny().orElse(null);
+
+                    if (scriptDataField != null) {
+                        scriptDataField.setAccessible(true);
+                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
+
+                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
+                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    public static void main(String[] args) {
+        new Boot();
+        Boot.main(new String[]{});
+    }
+
     @Override
     public void onStart() {
         botControl.getEventBus().register(this);
@@ -80,9 +119,9 @@ public class DreambotControlScript extends AbstractScript {
         if (result > 0) return result;
 
         Pair<ScriptExecutionConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance();
-        if (dreambotScript != null){
+        if (dreambotScript != null) {
             int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
-            if (i < 0){
+            if (i < 0) {
                 botControl.getScriptManager().onScriptEnded(dreambotScript);
                 return 2000;
             }
@@ -108,7 +147,7 @@ public class DreambotControlScript extends AbstractScript {
     }
 
     @Subscribe
-    public void onProxyChange(BotControlEvent.ProxyUpdated proxyUpdated){
+    public void onProxyChange(BotControlEvent.ProxyUpdated proxyUpdated) {
         try {
             getClient().getSocketWrapper().getSocket().close();
         } catch (IOException e) {
@@ -116,65 +155,44 @@ public class DreambotControlScript extends AbstractScript {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Class<? extends AbstractScript>> getRepoScripts(){
-        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
-        try {
-            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
-            List list = (List) getAllFreeScripts.invoke(null);
-            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
-            list.addAll((List) getAllPremiumScripts.invoke(null));
-
-            for (Object testObject : list) {
-                try {
-                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
-                            .filter(field -> field.getType().equals(ScriptData.class))
-                            .findAny().orElse(null);
-
-                    if (scriptDataField != null){
-                        scriptDataField.setAccessible(true);
-                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
-
-                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
-                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
-                    }
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return results;
-    }
-
-    public AbstractScript initDreambotScript(ScriptStartupConfig runConfig){
+    public AbstractScript initDreambotScript(ScriptStartupConfig runConfig) {
         if (runConfig != null) {
-            String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
-            if (runConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO) {
-                try {
-                    ScriptInstance scriptInstance = Scripts.loadScript(runConfig);
-                    scriptInstance.loadJar();
-                    Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
-                    if (result != null) {
-                        return startScript(result, args);
+            ScriptVersion scriptVersion = botControl.requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
+            if (scriptVersion != null) {
+                String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
+                if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
+                    try {
+                        ScriptInstance scriptInstance = Scripts.loadScript(
+                                ArangoDBUtil.keyFromID(runConfig.getScriptID()),
+                                ArangoDBUtil.keyFromID(runConfig.getScriptID()),
+                                ClientType.DREAMBOT.getID(),
+                                scriptVersion.getRevision(),
+                                scriptVersion.getJarURL()
+                                );
+                        scriptInstance.loadJar();
+                        Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
+                        if (result != null) {
+                            return startScript(result, args);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
-                Class<? extends AbstractScript> aClass = repoScripts.get(runConfig.getScript().getTitle());
-                if (aClass != null) {
-                    return startScript(aClass, args);
+                } else {
+                    Script script = botControl.requestScript(scriptVersion.getScriptID()).orElse(null);
+                    if (script != null){
+                        Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
+                        Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
+                        if (aClass != null) {
+                            return startScript(aClass, args);
+                        }
+                    }
                 }
             }
         }
         return null;
     }
 
-    private void setBotControl(Class clazz, Object object){
+    private void setBotControl(Class clazz, Object object) {
         Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.getType().equals(BotControl.class)).forEach(field -> {
             boolean accessible = field.isAccessible();
             if (!accessible) field.setAccessible(true);
@@ -187,8 +205,7 @@ public class DreambotControlScript extends AbstractScript {
         });
     }
 
-
-    private AbstractScript startScript(Class clazz, String[] args){
+    private AbstractScript startScript(Class clazz, String[] args) {
         try {
             AbstractScript abstractScript = (AbstractScript) clazz.newInstance();
             setBotControl(clazz, abstractScript);
@@ -202,10 +219,5 @@ public class DreambotControlScript extends AbstractScript {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        new Boot();
-        Boot.main(new String[]{});
     }
 }

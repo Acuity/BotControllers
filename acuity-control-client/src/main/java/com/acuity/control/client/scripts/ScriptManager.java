@@ -127,7 +127,7 @@ public class ScriptManager {
     public void onScriptEnded(Pair<ScriptExecutionConfig, Object> closedScript) {
         synchronized (lock){
             if (closedScript.getKey().isRemoveOnEnd()){
-                scriptQueue.getConditionalScriptMap().removeIf(pair -> pair.getScriptStartupConfig().getRunConfigID().equals(closedScript.getKey().getScriptStartupConfig().getRunConfigID()));
+                scriptQueue.getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
                 botControl.updateScriptQueue(scriptQueue).waitForResponse(15, TimeUnit.SECONDS);
                 scriptInstances.remove(closedScript.getKey());
                 botControl.destroyInstanceOfScript(closedScript.getValue());

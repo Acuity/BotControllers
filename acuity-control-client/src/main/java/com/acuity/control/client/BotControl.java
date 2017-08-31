@@ -11,8 +11,10 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRoutine;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
@@ -49,8 +51,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
             if (connection.isConnected()) {
                 try {
                     sendClientState();
-                }
-                catch (Throwable e){
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
@@ -91,7 +92,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Tag> getTags(String title){
+    public List<Tag> getTags(String title) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_TAGS, MessagePackage.SERVER).setBody(title))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
@@ -99,7 +100,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .orElse(Collections.EMPTY_LIST);
     }
 
-    public boolean requestTagAccount(RSAccount account, Tag tag){
+    public boolean requestTagAccount(RSAccount account, Tag tag) {
         return send(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT_TAG, MessagePackage.SERVER)
                 .setBody(0, true)
                 .setBody(1, account)
@@ -142,11 +143,21 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .orElse(null);
     }
 
-    public Optional<ScriptStartupConfig> requestScriptRunConfig(String scriptID, String scriptVersion) {
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(new String[]{scriptID, scriptVersion}))
+    public Optional<Script> requestScript(String scriptID) {
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT, MessagePackage.SERVER).setBody(scriptID))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(ScriptStartupConfig.class));
+                .map(messagePackage -> messagePackage.getBodyAs(Script.class));
+    }
+
+    public Optional<ScriptVersion> requestScriptVersion(String scriptID, String scriptVersionID) {
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT, MessagePackage.SERVER)
+                .setBody(0,scriptID)
+                .setBody(1, scriptVersionID)
+        )
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(ScriptVersion.class));
     }
 
     public MessageResponse updateScriptQueue(ScriptRoutine scriptQueue) {
