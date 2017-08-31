@@ -148,7 +148,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public Optional<ScriptVersion> requestScriptVersion(String scriptID, String scriptVersionID) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT, MessagePackage.SERVER)
-                .setBody(0,scriptID)
+                .setBody(0, scriptID)
                 .setBody(1, scriptVersionID)
         )
                 .waitForResponse(30, TimeUnit.SECONDS)
@@ -156,7 +156,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .map(messagePackage -> messagePackage.getBodyAs(ScriptVersion.class));
     }
 
-    public MessageResponse updateScriptQueue(ScriptRoutine scriptQueue) {
+    public MessageResponse updateScriptRoutine(ScriptRoutine scriptQueue) {
         if (scriptQueue == null) return null;
         return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
     }
