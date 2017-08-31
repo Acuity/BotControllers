@@ -35,7 +35,6 @@ public class ScriptManager {
         if (scriptQueue.getConditionalScriptMap().size() == 0){
             if (currentScriptExecution != null){
                 currentScriptExecution = null;
-                botControl.updateCurrentScriptRunConfig(null);
             }
         }
         else {
@@ -49,7 +48,6 @@ public class ScriptManager {
                         if (scriptInstance != null){
                             handleAccountTransition(executionConfig);
                             currentScriptExecution = new Pair<>(executionConfig, scriptInstance);
-                            botControl.updateCurrentScriptRunConfig(executionConfig.getScriptStartupConfig());
                         }
                     }
                     break;

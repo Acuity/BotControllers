@@ -78,10 +78,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return proxyManager;
     }
 
-    public MessageResponse updateCurrentScriptRunConfig(ScriptStartupConfig runConfig) {
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_CURRENT_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(runConfig));
-    }
-
     @SuppressWarnings("unchecked")
     public List<RSAccount> getRSAccounts() {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
