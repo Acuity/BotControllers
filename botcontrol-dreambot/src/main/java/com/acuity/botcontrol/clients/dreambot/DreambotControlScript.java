@@ -10,7 +10,7 @@ import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.Boot;
@@ -45,7 +45,7 @@ public class DreambotControlScript extends AbstractScript {
         }
 
         @Override
-        public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
+        public Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig) {
             return initDreambotScript(scriptRunConfig);
         }
 
@@ -149,7 +149,7 @@ public class DreambotControlScript extends AbstractScript {
         return results;
     }
 
-    public AbstractScript initDreambotScript(ScriptRunConfig runConfig){
+    public AbstractScript initDreambotScript(ScriptStartupConfig runConfig){
         if (runConfig != null) {
             String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
             if (runConfig.getScriptVersion().getType() == ScriptVersion.Type.ACUITY_REPO) {

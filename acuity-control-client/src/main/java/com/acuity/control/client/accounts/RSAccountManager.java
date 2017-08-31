@@ -25,8 +25,8 @@ public class RSAccountManager {
 
     public void onLoop(){
         Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
-        if (rsAccount == null && scriptInstance != null && scriptInstance.getKey().getScriptRunConfig().getPullAccountsFromTagID() != null){
-            requestAccountFromTag(scriptInstance.getKey().getScriptRunConfig().getPullAccountsFromTagID(), false);
+        if (rsAccount == null && scriptInstance != null && scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID() != null){
+            requestAccountFromTag(scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID(), false);
         }
     }
 

@@ -7,7 +7,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.scripts.*;
-import com.acuity.db.domain.vertex.impl.scripts.conditions.ScriptRunCondition;
+import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -28,7 +28,7 @@ public class TestController {
         }
 
         @Override
-        public Object createInstanceOfScript(ScriptRunConfig scriptRunConfig) {
+        public Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig) {
             return new Object();
         }
 
@@ -43,11 +43,11 @@ public class TestController {
     };
 
     private void runTest(){
-        Optional<ScriptRunConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
+        Optional<ScriptStartupConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
         for (BotClient botClient : botControl.requestBotClients()) {
             scriptRunConfig.ifPresent(config -> {
                 config.setPullAccountsFromTagID("Tag/3087498");
-                ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new ScriptRunCondition(), config);
+                ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new EndCondition(), config);
                 RemoteScript.StartRequest request = new RemoteScript.StartRequest(executionConfig, true);
                 RemoteScript.StartResponse b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
                 System.out.println(b);

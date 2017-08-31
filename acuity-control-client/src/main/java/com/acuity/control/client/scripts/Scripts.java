@@ -2,11 +2,7 @@ package com.acuity.control.client.scripts;
 
 import com.acuity.common.util.AcuityDir;
 import com.acuity.control.client.util.Downloader;
-import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
-
+import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +20,7 @@ public class Scripts {
         return new ScriptInstance(key, title, downloadScript(key, clientType, rev, jarURL));
     }
 
-    public static ScriptInstance loadScript(ScriptRunConfig script) throws IOException {
+    public static ScriptInstance loadScript(ScriptStartupConfig script) throws IOException {
         if (script == null) return null;
         return loadScript(script.getScript().getKey(), script.getScript().getTitle(), script.getScriptVersion().getClientID(), script.getScriptVersion().getRevision(), script.getScriptVersion().getJarURL());
     }

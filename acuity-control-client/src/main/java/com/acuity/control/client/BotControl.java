@@ -11,8 +11,8 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptQueue;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRunConfig;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptRoutine;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
@@ -77,7 +77,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return proxyManager;
     }
 
-    public MessageResponse updateCurrentScriptRunConfig(ScriptRunConfig runConfig) {
+    public MessageResponse updateCurrentScriptRunConfig(ScriptStartupConfig runConfig) {
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CURRENT_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(runConfig));
     }
 
@@ -142,14 +142,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .orElse(null);
     }
 
-    public Optional<ScriptRunConfig> requestScriptRunConfig(String scriptID, String scriptVersion) {
+    public Optional<ScriptStartupConfig> requestScriptRunConfig(String scriptID, String scriptVersion) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_RUN_CONFIG, MessagePackage.SERVER).setBody(new String[]{scriptID, scriptVersion}))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(ScriptRunConfig.class));
+                .map(messagePackage -> messagePackage.getBodyAs(ScriptStartupConfig.class));
     }
 
-    public MessageResponse updateScriptQueue(ScriptQueue scriptQueue) {
+    public MessageResponse updateScriptQueue(ScriptRoutine scriptQueue) {
         if (scriptQueue == null) return null;
         return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
     }
@@ -174,7 +174,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract void sendClientState();
 
-    public abstract Object createInstanceOfScript(ScriptRunConfig scriptRunConfig);
+    public abstract Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig);
 
     public abstract void destroyInstanceOfScript(Object scriptInstance);
 

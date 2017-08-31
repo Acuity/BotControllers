@@ -150,7 +150,7 @@ public class BotControlConnection {
             ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
             RSAccount rsAccount = null;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
-                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptRunConfig().getPullAccountsFromTagID(), false);
+                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), false);
             }
 
             RemoteScript.StartResponse result = new RemoteScript.StartResponse();
