@@ -27,10 +27,10 @@ public class TestController {
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
-            BotClientState clientState = new BotClientState();
+/*            BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(MachineUtil.getCPUUsage());
             clientState.setGameState(0);
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));*/
         }
 
         @Override
@@ -88,10 +88,15 @@ public class TestController {
         }).start();
 
         while (true){
-            testController.botControl.onLoop();
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
+                testController.botControl.onLoop();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            catch (Exception e){
                 e.printStackTrace();
             }
         }

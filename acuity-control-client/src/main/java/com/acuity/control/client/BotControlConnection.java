@@ -3,6 +3,7 @@ package com.acuity.control.client;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.Pair;
+import com.acuity.control.client.accounts.RSAccountManager;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.websockets.WClientEvent;
@@ -16,6 +17,8 @@ import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Permission;
 import java.util.Optional;
@@ -27,6 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BotControlConnection {
 
+    private static final Logger logger = LoggerFactory.getLogger(BotControlConnection.class);
     private static final Permission DECRYPT_STRING_PERMISSION = new RuntimePermission("decryptString");
 
     private BotControl botControl;
@@ -111,10 +115,11 @@ public class BotControlConnection {
     }
 
     public MessageResponse send(MessagePackage messagePackage){
-        MessageResponse response = new MessageResponse();
         messagePackage.setResponseKey(UUID.randomUUID().toString());
+        MessageResponse response = new MessageResponse(messagePackage.getResponseKey());
         wsClient.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
         wsClient.send(messagePackage);
+        logger.debug("Sent - {}.", messagePackage);
         return response;
     }
 

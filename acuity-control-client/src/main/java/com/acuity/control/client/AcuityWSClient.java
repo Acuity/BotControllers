@@ -75,7 +75,6 @@ public class AcuityWSClient {
 
             @Override
             public void onMessagePackage(MessagePackage messagePackage) {
-                logger.debug("onMessage: {}.", messagePackage);
                 try {
                     if (messagePackage.getResponseToKey() != null){
                         MessageResponse response = responseTracker.getCache().getIfPresent(messagePackage.getResponseToKey());

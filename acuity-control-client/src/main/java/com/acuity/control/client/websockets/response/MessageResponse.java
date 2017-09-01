@@ -1,6 +1,9 @@
 package com.acuity.control.client.websockets.response;
 
+import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +14,14 @@ import java.util.function.Consumer;
  */
 public class MessageResponse {
 
+    private static final Logger logger = LoggerFactory.getLogger(MessageResponse.class);
+
     private volatile MessagePackage response;
+    private String responseKey;
+
+    public MessageResponse(String responseKey) {
+        this.responseKey = responseKey;
+    }
 
     public void setResponse(MessagePackage response) {
         this.response = response;
@@ -33,6 +43,9 @@ public class MessageResponse {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        if (response == null) {
+            logger.warn("Timed out - {}.", responseKey);
         }
         return this;
     }
