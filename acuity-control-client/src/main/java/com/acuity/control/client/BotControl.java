@@ -141,7 +141,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     public Optional<ScriptVersion> requestScriptVersion(String scriptID, String scriptVersionID) {
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT, MessagePackage.SERVER)
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT_VERSION, MessagePackage.SERVER)
                 .setBody(0, scriptID)
                 .setBody(1, scriptVersionID)
         )

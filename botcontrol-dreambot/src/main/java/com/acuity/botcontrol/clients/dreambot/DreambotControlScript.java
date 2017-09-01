@@ -21,6 +21,8 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.loader.NetworkLoader;
 import org.dreambot.server.net.datatype.ScriptData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -36,6 +38,8 @@ import java.util.Map;
  */
 @ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
 public class DreambotControlScript extends AbstractScript {
+
+    private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
     private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
@@ -96,11 +100,6 @@ public class DreambotControlScript extends AbstractScript {
         return results;
     }
 
-    public static void main(String[] args) {
-        new Boot();
-        Boot.main(new String[]{});
-    }
-
     @Override
     public void onStart() {
         botControl.getEventBus().register(this);
@@ -157,10 +156,12 @@ public class DreambotControlScript extends AbstractScript {
 
     public AbstractScript initDreambotScript(ScriptStartupConfig runConfig) {
         if (runConfig != null) {
+            logger.debug("initDreambotScript - initing off ScriptStartupConfig. {}", runConfig);
             ScriptVersion scriptVersion = botControl.requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
             if (scriptVersion != null) {
                 String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
+                    logger.debug("initDreambotScript - loading verion off Acuity-Repo.", scriptVersion);
                     try {
                         ScriptInstance scriptInstance = Scripts.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
@@ -178,8 +179,9 @@ public class DreambotControlScript extends AbstractScript {
                         e.printStackTrace();
                     }
                 } else {
-                    Script script = botControl.requestScript(scriptVersion.getScriptID()).orElse(null);
+                    Script script = botControl.requestScript(runConfig.getScriptID()).orElse(null);
                     if (script != null){
+                        logger.debug("initDreambotScript - loading verion off Dreambot-Repo.", script);
                         Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
                         Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
                         if (aClass != null) {
@@ -219,5 +221,12 @@ public class DreambotControlScript extends AbstractScript {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void main(String[] args) {
+        Boot boot = new Boot();
+        Boot.main(new String[]{});
+
+
     }
 }
