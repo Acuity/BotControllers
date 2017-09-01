@@ -6,7 +6,6 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptRoutine;
-import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,8 +33,8 @@ public class ScriptManager {
     public void onLoop() {
         if (botClientConfig == null) return;
 
-        if (botClientConfig.getTasks().size() > 0){
-            ScriptExecutionConfig executionConfig = botClientConfig.getTasks().get(0);
+        if (botClientConfig.getTaskRoutine().getConditionalScriptMap().size() > 0){
+            ScriptExecutionConfig executionConfig = botClientConfig.getTaskRoutine().getConditionalScriptMap().get(0);
             if (!isCurrentScriptExecutionConfig(executionConfig)){
                 Object scriptInstanceOf = getScriptInstanceOf(executionConfig);
                 if (scriptInstanceOf != null) {
@@ -81,8 +80,8 @@ public class ScriptManager {
     }
 
     public boolean queueTask(int index, ScriptExecutionConfig executionConfig) {
-        botClientConfig.getTasks().add(index, executionConfig);
-        return botControl.updateScriptTasks(botClientConfig.getTasks())
+        botClientConfig.getTaskRoutine().getConditionalScriptMap().add(index, executionConfig);
+        return botControl.updateTaskRoutine(botClientConfig.getTaskRoutine())
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
@@ -97,14 +96,14 @@ public class ScriptManager {
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
-        boolean update = this.botClientConfig == null || (this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() || this.botClientConfig.getTasks().hashCode() != botClientConfig.getTasks().hashCode());
+        boolean update = this.botClientConfig == null || (this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() || this.botClientConfig.getTaskRoutine().hashCode() != botClientConfig.getTaskRoutine().hashCode());
         this.botClientConfig = botClientConfig;
         if (update) cleanUpScriptInstances();
     }
 
     private void cleanUpScriptInstances(){
         synchronized (lock) {
-            List<ScriptExecutionConfig> allScriptExecutions = botClientConfig.getTasks();
+            List<ScriptExecutionConfig> allScriptExecutions = botClientConfig.getTaskRoutine().getConditionalScriptMap();
             allScriptExecutions.addAll(botClientConfig.getScriptRoutine().getConditionalScriptMap());
             List<ScriptExecutionConfig> toRemove = scriptInstances.keySet().stream().filter(executionConfig -> !allScriptExecutions.contains(executionConfig)).collect(Collectors.toList());
             toRemove.forEach(s -> {
@@ -138,9 +137,9 @@ public class ScriptManager {
     public void onScriptEnded(Pair<ScriptExecutionConfig, Object> closedScript) {
         synchronized (lock) {
             if (closedScript.getKey().isRemoveOnEnd()) {
-                boolean wasTask = botClientConfig.getTasks().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
+                boolean wasTask = botClientConfig.getTaskRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
                 if (wasTask){
-                    botControl.updateScriptTasks(botClientConfig.getTasks()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
+                    botControl.updateTaskRoutine(botClientConfig.getTaskRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
                         scriptInstances.remove(closedScript.getKey());
                         botControl.destroyInstanceOfScript(closedScript.getValue());
                         onLoop();

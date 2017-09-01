@@ -151,9 +151,9 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
 
-    public MessageResponse updateScriptTasks(List<ScriptExecutionConfig> tasks) {
+    public MessageResponse updateTaskRoutine(ScriptRoutine tasks) {
         if (tasks == null) return null;
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_TASKS, MessagePackage.SERVER).setBody(tasks));
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_TASK_ROUTINE, MessagePackage.SERVER).setBody(tasks));
     }
 
     public MessageResponse updateScriptRoutine(ScriptRoutine scriptRoutine) {
