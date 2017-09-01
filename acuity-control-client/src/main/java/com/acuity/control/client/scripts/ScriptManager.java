@@ -78,8 +78,8 @@ public class ScriptManager {
         }
     }
 
-    public boolean queueStart(ScriptExecutionConfig executionConfig) {
-        botClientConfig.getTasks().add(0, executionConfig);
+    public boolean queueTask(int index, ScriptExecutionConfig executionConfig) {
+        botClientConfig.getTasks().add(index, executionConfig);
         return botControl.updateScriptTasks(botClientConfig.getTasks())
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()

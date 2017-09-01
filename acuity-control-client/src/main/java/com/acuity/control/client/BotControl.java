@@ -9,7 +9,7 @@ import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.*;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
@@ -125,11 +125,11 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .orElse(Collections.emptyList());
     }
 
-    public RemoteScript.StartResponse requestRemoteScriptStart(String destinationKey, RemoteScript.StartRequest startRequest) {
+    public RemoteScriptTask.StartResponse requestRemoteTaskStart(String destinationKey, RemoteScriptTask.StartRequest startRequest) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE, destinationKey).setBody(startRequest))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(RemoteScript.StartResponse.class))
+                .map(messagePackage -> messagePackage.getBodyAs(RemoteScriptTask.StartResponse.class))
                 .orElse(null);
     }
 

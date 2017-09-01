@@ -2,16 +2,12 @@ package com.acuity.control.client;
 
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
-import com.acuity.db.domain.vertex.impl.scripts.*;
-import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.

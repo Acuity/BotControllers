@@ -12,7 +12,7 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
@@ -141,22 +141,22 @@ public class BotControlConnection {
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
                 if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){
                     botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
-                            .setBody(new RemoteScript.StartResponse()));
+                            .setBody(new RemoteScriptTask.StartResponse()));
                     return;
                 }
             }
 
-            RemoteScript.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScript.StartRequest.class);
+            RemoteScriptTask.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScriptTask.StartRequest.class);
             ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
             RSAccount rsAccount = null;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
                 rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), false);
             }
 
-            RemoteScript.StartResponse result = new RemoteScript.StartResponse();
+            RemoteScriptTask.StartResponse result = new RemoteScriptTask.StartResponse();
             result.setAccount(rsAccount);
             if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
-                result.setScriptStarted(botControl.getScriptManager().queueStart(executionConfig));
+                result.setScriptStarted(botControl.getScriptManager().queueTask(0, executionConfig));
                 if (!result.isScriptStarted()) botControl.requestAccountAssignment(null, true);
             }
 
