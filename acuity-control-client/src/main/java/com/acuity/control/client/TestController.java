@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -43,22 +44,9 @@ public class TestController {
 
         @Override
         public boolean evaluate(Object evaluator) {
-            return true;
+            return false;
         }
     };
-
-    private void runTest(){
-       /* Optional<ScriptStartupConfig> scriptRunConfig = botControl.requestScriptRunConfig("Script/1857691", "ScriptVersion/2:1:1857691");
-        for (BotClient botClient : botControl.requestBotClients()) {
-            scriptRunConfig.ifPresent(config -> {
-                config.setPullAccountsFromTagID("Tag/3087498");
-                ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new EndCondition(), config);
-                RemoteScript.StartRequest request = new RemoteScript.StartRequest(executionConfig, true);
-                RemoteScript.StartResponse b = botControl.requestRemoteScriptStart(botClient.getKey(), request);
-                System.out.println(b);
-            });
-        }*/
-    }
 
     public static void main(String[] args) {
         TestController testController = new TestController();
@@ -79,7 +67,10 @@ public class TestController {
                             scriptStartupConfig.setScriptVersionID("ScriptVersion/2:1:1857691");
                             scriptStartupConfig.setPullAccountsFromTagID("Tag/3087498");
                             scriptStartupConfig.setEndTime(LocalDateTime.now().plus(10, ChronoUnit.MINUTES));
-                            RemoteScriptTask.StartRequest startRequest = new RemoteScriptTask.StartRequest(new ScriptExecutionConfig(new EndCondition(), scriptStartupConfig), true);
+                            scriptStartupConfig.setQuickStartArgs(Collections.emptyList());
+                            ScriptExecutionConfig executionConfig = new ScriptExecutionConfig(new EndCondition(), scriptStartupConfig);
+                            executionConfig.setRemoveOnEnd(true);
+                            RemoteScriptTask.StartRequest startRequest = new RemoteScriptTask.StartRequest(executionConfig, true);
 
                             RemoteScriptTask.StartResponse startResponse = testController.botControl.requestRemoteTaskStart(botClient.getKey(), startRequest);
                             if (startResponse != null){

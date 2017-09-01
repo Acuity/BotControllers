@@ -136,7 +136,7 @@ public class BotControlConnection {
             RSAccount account = messagePackage.getBodyAs(RSAccount.class);
             botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
         }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_SCRIPT_QUEUE){
+        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_TASK_START){
             Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
                 if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){

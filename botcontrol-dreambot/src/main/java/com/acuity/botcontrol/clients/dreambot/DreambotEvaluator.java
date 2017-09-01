@@ -25,6 +25,6 @@ public class DreambotEvaluator {
 
             return count >= amount;
         }
-        return true;
+        return false;
     }
 }

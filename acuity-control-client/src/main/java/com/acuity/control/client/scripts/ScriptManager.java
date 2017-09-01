@@ -136,23 +136,21 @@ public class ScriptManager {
 
     public void onScriptEnded(Pair<ScriptExecutionConfig, Object> closedScript) {
         synchronized (lock) {
-            if (closedScript.getKey().isRemoveOnEnd()) {
-                boolean wasTask = botClientConfig.getTaskRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-                if (wasTask){
-                    botControl.updateTaskRoutine(botClientConfig.getTaskRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
-                        scriptInstances.remove(closedScript.getKey());
-                        botControl.destroyInstanceOfScript(closedScript.getValue());
-                        onLoop();
-                    });
-                }
-                else {
-                    botClientConfig.getScriptRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
-                        scriptInstances.remove(closedScript.getKey());
-                        botControl.destroyInstanceOfScript(closedScript.getValue());
-                        onLoop();
-                    });
-                }
+            boolean wasTask = botClientConfig.getTaskRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
+            if (wasTask){
+                botControl.updateTaskRoutine(botClientConfig.getTaskRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
+                    scriptInstances.remove(closedScript.getKey());
+                    botControl.destroyInstanceOfScript(closedScript.getValue());
+                    onLoop();
+                });
+            }
+            else if (closedScript.getKey().isRemoveOnEnd()) {
+                botClientConfig.getScriptRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
+                botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
+                    scriptInstances.remove(closedScript.getKey());
+                    botControl.destroyInstanceOfScript(closedScript.getValue());
+                    onLoop();
+                });
             }
         }
     }
