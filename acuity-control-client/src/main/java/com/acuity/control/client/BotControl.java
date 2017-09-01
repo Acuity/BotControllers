@@ -11,20 +11,14 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScript;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptRoutine;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
+import com.acuity.db.domain.vertex.impl.scripts.*;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -156,9 +150,15 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .map(messagePackage -> messagePackage.getBodyAs(ScriptVersion.class));
     }
 
-    public MessageResponse updateScriptRoutine(ScriptRoutine scriptQueue) {
-        if (scriptQueue == null) return null;
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_QUEUE, MessagePackage.SERVER).setBody(scriptQueue));
+
+    public MessageResponse updateScriptTasks(List<ScriptExecutionConfig> tasks) {
+        if (tasks == null) return null;
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_TASKS, MessagePackage.SERVER).setBody(tasks));
+    }
+
+    public MessageResponse updateScriptRoutine(ScriptRoutine scriptRoutine) {
+        if (scriptRoutine == null) return null;
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_ROUTINE, MessagePackage.SERVER).setBody(scriptRoutine));
     }
 
     public MessageResponse send(MessagePackage messagePackage) {

@@ -9,10 +9,7 @@ import com.acuity.db.domain.vertex.impl.scripts.ScriptRoutine;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -22,48 +19,50 @@ import java.util.stream.Collectors;
 public class ScriptManager {
 
     private final Object lock = new Object();
-    private Map<ScriptExecutionConfig, Object> scriptInstances = new HashMap<>();
-    private ScriptRoutine scriptRoutine = new ScriptRoutine();
-    private Pair<ScriptExecutionConfig, Object> currentScriptExecution;
+
     private BotControl botControl;
+    private Map<ScriptExecutionConfig, Object> scriptInstances = new HashMap<>();
+
+    private BotClientConfig botClientConfig;
+
+    private Pair<ScriptExecutionConfig, Object> currentScriptExecution;
 
     public ScriptManager(BotControl botControl) {
         this.botControl = botControl;
     }
 
     public void onLoop() {
+        if (botClientConfig.getTasks().size() > 0){
+            ScriptExecutionConfig executionConfig = botClientConfig.getTasks().get(0);
+            if (!isCurrentScriptExecutionConfig(executionConfig)){
+                Object scriptInstanceOf = getScriptInstanceOf(executionConfig);
+                if (scriptInstanceOf != null) {
+                    currentScriptExecution = new Pair<>(executionConfig, scriptInstanceOf);
+                    handleAccountTransition(executionConfig);
+                }
+                return;
+            }
+        }
+
         if (currentScriptExecution != null) {
-            if (scriptRoutine.getConditionalScriptMap().size() == 0) currentScriptExecution = null;
+            boolean endConditionMet = botControl.evaluate(currentScriptExecution.getKey().getEndCondition());
+            if (endConditionMet) {
+                onScriptEnded(currentScriptExecution);
+            }
             else {
                 currentScriptExecution.getKey().setLastAccount(botControl.getRsAccountManager().getRsAccount());
-
                 LocalDateTime endTime = currentScriptExecution.getKey().getScriptStartupConfig().getEndTime().orElse(null);
                 if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
                     onScriptEnded(currentScriptExecution);
                 }
-                else {
-                    EndCondition endCondition = currentScriptExecution.getKey().getEndCondition();
-                    if (ScriptConditionEvaluator.evaluate(botControl, endCondition)) {
-
-                    }
-                }
             }
         }
-
-        for (ScriptExecutionConfig executionConfig : scriptRoutine.getConditionalScriptMap()) {
-            LocalDateTime endTime = executionConfig.getScriptStartupConfig().getEndTime().orElse(null);
-            if (endTime != null && LocalDateTime.now().isAfter(endTime)) continue;
-
-            if (ScriptConditionEvaluator.evaluate(botControl, executionConfig.getEndCondition())) {
-                if (!isCurrentScriptExecutionConfig(executionConfig)) {
-                    Object scriptInstance = getScriptInstanceOf(executionConfig);
-                    if (scriptInstance != null) {
-                        handleAccountTransition(executionConfig);
-                        currentScriptExecution = new Pair<>(executionConfig, scriptInstance);
-                    }
-                }
-                break;
-            }
+        else {
+            ScriptRoutine scriptRoutine = botClientConfig.getScriptRoutine();
+            int nextIndex = scriptRoutine.getCurrentIndex() + 1;
+            if (nextIndex >= scriptRoutine.getConditionalScriptMap().size()) nextIndex = 0;
+            scriptRoutine.setCurrentIndex(nextIndex);
+            botControl.updateScriptRoutine(scriptRoutine).waitForResponse(15, TimeUnit.SECONDS);
         }
     }
 
@@ -80,8 +79,8 @@ public class ScriptManager {
     }
 
     public boolean queueStart(ScriptExecutionConfig executionConfig) {
-        scriptRoutine.getConditionalScriptMap().add(0, executionConfig);
-        return botControl.updateScriptRoutine(scriptRoutine)
+        botClientConfig.getTasks().add(0, executionConfig);
+        return botControl.updateScriptTasks(botClientConfig.getTasks())
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
@@ -96,17 +95,22 @@ public class ScriptManager {
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
-        if (scriptRoutine.hashCode() != botClientConfig.getScriptRoutine().hashCode()) {
-            synchronized (lock) {
-                this.scriptRoutine = botClientConfig.getScriptRoutine();
-                List<ScriptExecutionConfig> conditionalScriptMap = scriptRoutine.getConditionalScriptMap();
-                List<ScriptExecutionConfig> toRemove = scriptInstances.keySet().stream().filter(executionConfig -> !conditionalScriptMap.contains(executionConfig)).collect(Collectors.toList());
-                toRemove.forEach(s -> {
-                    Object instance = scriptInstances.get(s);
-                    if (instance != null) botControl.destroyInstanceOfScript(instance);
-                    scriptInstances.remove(s);
-                });
-            }
+        boolean update = this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() ||
+                this.botClientConfig.getTasks().hashCode() != botClientConfig.getTasks().hashCode();
+        this.botClientConfig = botClientConfig;
+        if (update) cleanUpScriptInstances();
+    }
+
+    private void cleanUpScriptInstances(){
+        synchronized (lock) {
+            List<ScriptExecutionConfig> allScriptExecutions = botClientConfig.getTasks();
+            allScriptExecutions.addAll(botClientConfig.getScriptRoutine().getConditionalScriptMap());
+            List<ScriptExecutionConfig> toRemove = scriptInstances.keySet().stream().filter(executionConfig -> !allScriptExecutions.contains(executionConfig)).collect(Collectors.toList());
+            toRemove.forEach(s -> {
+                Object instance = scriptInstances.get(s);
+                if (instance != null) botControl.destroyInstanceOfScript(instance);
+                scriptInstances.remove(s);
+            });
         }
     }
 
@@ -133,12 +137,22 @@ public class ScriptManager {
     public void onScriptEnded(Pair<ScriptExecutionConfig, Object> closedScript) {
         synchronized (lock) {
             if (closedScript.getKey().isRemoveOnEnd()) {
-                scriptRoutine.getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-                botControl.updateScriptRoutine(scriptRoutine).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
-                    scriptInstances.remove(closedScript.getKey());
-                    botControl.destroyInstanceOfScript(closedScript.getValue());
-                    onLoop();
-                });
+                boolean wasTask = botClientConfig.getTasks().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
+                if (wasTask){
+                    botControl.updateScriptTasks(botClientConfig.getTasks()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
+                        scriptInstances.remove(closedScript.getKey());
+                        botControl.destroyInstanceOfScript(closedScript.getValue());
+                        onLoop();
+                    });
+                }
+                else {
+                    botClientConfig.getScriptRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
+                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
+                        scriptInstances.remove(closedScript.getKey());
+                        botControl.destroyInstanceOfScript(closedScript.getValue());
+                        onLoop();
+                    });
+                }
             }
         }
     }
