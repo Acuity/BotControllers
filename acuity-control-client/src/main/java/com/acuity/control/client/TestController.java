@@ -2,12 +2,21 @@ package com.acuity.control.client;
 
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
+import com.acuity.db.domain.vertex.impl.scripts.Script;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
+import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -62,6 +71,24 @@ public class TestController {
                     if (input.equals("kill-script")) {
                         testController.botControl.getScriptManager().onScriptEnded(testController.botControl.getScriptManager().getScriptInstance());
                     }
+
+                    if (input.equals("task-request")){
+                        for (BotClient botClient : testController.botControl.requestBotClients()) {
+                            ScriptStartupConfig scriptStartupConfig = new ScriptStartupConfig();
+                            scriptStartupConfig.setScriptID("Script/1857691");
+                            scriptStartupConfig.setScriptVersionID("ScriptVersion/2:1:1857691");
+                            scriptStartupConfig.setPullAccountsFromTagID("Tag/3087498");
+                            scriptStartupConfig.setEndTime(LocalDateTime.now().plus(10, ChronoUnit.MINUTES));
+                            RemoteScriptTask.StartRequest startRequest = new RemoteScriptTask.StartRequest(new ScriptExecutionConfig(new EndCondition(), scriptStartupConfig), true);
+
+                            RemoteScriptTask.StartResponse startResponse = testController.botControl.requestRemoteTaskStart(botClient.getKey(), startRequest);
+                            if (startResponse != null){
+                                System.out.println(startResponse);
+                                break;
+                            }
+                        }
+                    }
+
                 }
             }
             catch (Throwable e){

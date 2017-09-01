@@ -32,6 +32,8 @@ public class ScriptManager {
     }
 
     public void onLoop() {
+        if (botClientConfig == null) return;
+
         if (botClientConfig.getTasks().size() > 0){
             ScriptExecutionConfig executionConfig = botClientConfig.getTasks().get(0);
             if (!isCurrentScriptExecutionConfig(executionConfig)){
@@ -95,8 +97,7 @@ public class ScriptManager {
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
-        boolean update = this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() ||
-                this.botClientConfig.getTasks().hashCode() != botClientConfig.getTasks().hashCode();
+        boolean update = this.botClientConfig == null || (this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() || this.botClientConfig.getTasks().hashCode() != botClientConfig.getTasks().hashCode());
         this.botClientConfig = botClientConfig;
         if (update) cleanUpScriptInstances();
     }
