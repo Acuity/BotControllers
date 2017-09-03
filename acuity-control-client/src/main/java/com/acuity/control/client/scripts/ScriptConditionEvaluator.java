@@ -20,7 +20,7 @@ public class ScriptConditionEvaluator {
                 return botControl.evaluate(evaluator);
             }
         }
-        return true;
+        return false;
     }
 
 }

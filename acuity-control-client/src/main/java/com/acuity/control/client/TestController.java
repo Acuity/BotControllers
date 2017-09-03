@@ -57,7 +57,7 @@ public class TestController {
                 while (true) {
                     String input = br.readLine();
                     if (input.equals("kill-script")) {
-                        testController.botControl.getScriptManager().onScriptEnded(testController.botControl.getScriptManager().getScriptInstance());
+                        testController.botControl.getScriptManager().onScriptEnded(testController.botControl.getScriptManager().getScriptInstance().orElse(null));
                     }
 
                     if (input.equals("task-request")){

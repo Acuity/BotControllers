@@ -44,10 +44,10 @@ public class DreambotControlScript extends AbstractScript {
     private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
-            BotClientState clientState = new BotClientState();
+/*            BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(MachineUtil.getCPUUsage());
             clientState.setGameState(getClient().getGameStateID());
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));*/
         }
 
         @Override
@@ -117,7 +117,7 @@ public class DreambotControlScript extends AbstractScript {
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<ScriptExecutionConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance();
+        Pair<ScriptExecutionConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (dreambotScript != null) {
             int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
             if (i < 0) {
@@ -132,7 +132,7 @@ public class DreambotControlScript extends AbstractScript {
     @Override
     public void onPaint(Graphics graphics) {
         super.onPaint(graphics);
-        Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance();
+        Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (scriptInstance != null) ((AbstractScript) scriptInstance.getValue()).onPaint(graphics);
     }
 

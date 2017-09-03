@@ -51,7 +51,7 @@ public class ScriptLoader {
             } catch (ClassNotFoundException | NoClassDefFoundError e) {
                 logger.trace("Failed to find class", e);
             }
-            logger.debug("Loaded class {}.", className);
+            logger.trace("Loaded class {}.", className);
         }
         logger.debug("Loading {} complete.", jarLocation);
     }
