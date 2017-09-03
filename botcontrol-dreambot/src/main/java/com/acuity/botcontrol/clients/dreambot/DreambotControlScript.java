@@ -9,6 +9,7 @@ import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
@@ -63,6 +64,11 @@ public class DreambotControlScript extends AbstractScript {
         @Override
         public boolean evaluate(Object evaluator) {
             return new DreambotEvaluator(DreambotControlScript.this).evaluate(evaluator);
+        }
+
+        @Override
+        public boolean isSignedIn(RSAccount rsAccount) {
+            return getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(getClient().getUsername());
         }
     };
 

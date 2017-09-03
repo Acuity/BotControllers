@@ -27,7 +27,7 @@ public class ScriptManager {
     private final Object lock = new Object();
 
     private BotControl botControl;
-    private Map<ScriptExecutionConfig, Object> scriptInstances = new ConcurrentHashMap<>();
+    private Map<String, Object> scriptInstances = new ConcurrentHashMap<>();
 
     private BotClientConfig botClientConfig;
 
@@ -46,17 +46,27 @@ public class ScriptManager {
             Pair<ScriptExecutionConfig, Object> currentScriptExecution = getScriptInstance().orElse(null);
 
             if (currentScriptExecution != null) {
-                boolean endConditionMet = ScriptConditionEvaluator.evaluate(botControl, currentScriptExecution.getKey().getEndCondition());
-                if (endConditionMet) {
-                    logger.debug("onLoop - end condition met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
-                    onScriptEnded(currentScriptExecution);
-                } else {
-                    currentScriptExecution.getKey().setLastAccount(botControl.getRsAccountManager().getRsAccount());
-                    LocalDateTime endTime = currentScriptExecution.getKey().getScriptStartupConfig().getEndTime().orElse(null);
-                    if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
-                        logger.debug("onLoop - end time met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
-                        onScriptEnded(currentScriptExecution);
+                try {
+                    RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
+                    if (rsAccount != null && botControl.isSignedIn(rsAccount)){
+                        boolean endConditionMet = ScriptConditionEvaluator.evaluate(botControl, currentScriptExecution.getKey().getEndCondition());
+                        if (endConditionMet) {
+                            logger.debug("onLoop - end condition met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
+                            onScriptEnded(currentScriptExecution);
+                            return;
+                        }
                     }
+                }
+                catch (Throwable e){
+                    logger.error("Error during end condition check.", e);
+                }
+
+                currentScriptExecution.getKey().setLastAccount(botControl.getRsAccountManager().getRsAccount());
+                LocalDateTime endTime = currentScriptExecution.getKey().getScriptStartupConfig().getEndTime().orElse(null);
+                if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
+                    logger.debug("onLoop - end time met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
+                    onScriptEnded(currentScriptExecution);
+                    return;
                 }
             }
         }
@@ -65,6 +75,7 @@ public class ScriptManager {
     private void handleAccountTransition(ScriptExecutionConfig executionConfig) {
         if (executionConfig == null) {
             logger.debug("Handling Account Transition - no next script.");
+            botControl.getRsAccountManager().clearRSAccount();
             botControl.requestAccountAssignment(null, true);
             return;
         }
@@ -73,10 +84,12 @@ public class ScriptManager {
         RSAccount currentAccount = botControl.getRsAccountManager().getRsAccount();
         if (executionConfig.getLastAccount() != null && (currentAccount == null || !executionConfig.getLastAccount().getID().equals(currentAccount.getID()))) {
             if (!botControl.requestAccountAssignment(executionConfig.getLastAccount(), false)) {
+                botControl.getRsAccountManager().clearRSAccount();
                 botControl.requestAccountAssignment(null, true);
             }
         }
         if (currentAccount != null && executionConfig.getScriptStartupConfig().getPullAccountsFromTagID() != null && !currentAccount.getTagIDs().contains(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID())) {
+            botControl.getRsAccountManager().clearRSAccount();
             botControl.requestAccountAssignment(null, true);
         }
     }
@@ -105,14 +118,6 @@ public class ScriptManager {
     private void cleanUpScriptInstances() {
         synchronized (lock) {
             logger.debug("Cleaning Up Script Instances.");
-            List<ScriptExecutionConfig> allScriptExecutions = new ArrayList<>(botClientConfig.getTaskRoutine().getConditionalScriptMap());
-            allScriptExecutions.addAll(botClientConfig.getScriptRoutine().getConditionalScriptMap());
-            List<ScriptExecutionConfig> toRemove = scriptInstances.keySet().stream().filter(executionConfig -> !allScriptExecutions.contains(executionConfig)).collect(Collectors.toList());
-            toRemove.forEach(s -> {
-                Object instance = scriptInstances.get(s);
-                if (instance != null) destroyInstance(instance);
-                scriptInstances.remove(s);
-            });
         }
     }
 
@@ -125,19 +130,21 @@ public class ScriptManager {
     }
 
 
+    private static final Object lock2 = new Object();
     private Object getScriptInstanceOf(ScriptExecutionConfig executionConfig) {
-        synchronized (lock) {
+        synchronized (lock2) {
             if (executionConfig != null) {
-                if (!scriptInstances.containsKey(executionConfig)) {
+                if (!scriptInstances.containsKey(executionConfig.getUID())) {
                     logger.debug("Creating Script Instance - {}.", executionConfig.getUID());
                     Object instanceOfScript = botControl.createInstanceOfScript(executionConfig.getScriptStartupConfig());
+                    logger.debug("Creation of {} complete. {}", instanceOfScript);
                     if (instanceOfScript != null) {
-                        scriptInstances.put(executionConfig, instanceOfScript);
+                        scriptInstances.put(executionConfig.getUID(), instanceOfScript);
                         return instanceOfScript;
                     }
 
                 }
-                return scriptInstances.get(executionConfig);
+                return scriptInstances.get(executionConfig.getUID());
             }
         }
         return null;
@@ -175,15 +182,18 @@ public class ScriptManager {
                 if (closedScript.getKey().isRemoveOnEnd()) {
                     logger.debug("Removing Script - {}.", closedScript.getKey().getUID());
                     botClientConfig.getScriptRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
-                        scriptInstances.remove(closedScript.getKey());
-                        destroyInstance(closedScript.getValue());
-                    });
+                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS);
                 } else {
                     logger.debug("Moving Script to end - {}.", closedScript.getKey().getUID());
                     List<ScriptExecutionConfig> conditionalScriptMap = botClientConfig.getScriptRoutine().getConditionalScriptMap();
                     conditionalScriptMap.add(conditionalScriptMap.size() - 1, conditionalScriptMap.remove(0));
                     botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS);
+                }
+
+                if (closedScript.getKey().isDestroyInstnaceOnEnd()){
+                    logger.debug("Destroying instance of script. {}", closedScript.getKey().getUID());
+                    scriptInstances.remove(closedScript.getKey().getUID());
+                    destroyInstance(closedScript.getValue());
                 }
             }
 

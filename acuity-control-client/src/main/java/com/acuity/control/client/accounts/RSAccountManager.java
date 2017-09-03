@@ -44,6 +44,10 @@ public class RSAccountManager {
         ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
     }
 
+    public void clearRSAccount(){
+        this.rsAccount = null;
+    }
+
     public RSAccount requestAccountFromTag(String pullID, boolean force){
         logger.debug("Requesting account - {}, {}.", pullID, force);
         List<RSAccount> rsAccounts = botControl.getRSAccounts();

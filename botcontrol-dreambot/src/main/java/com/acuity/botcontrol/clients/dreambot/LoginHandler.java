@@ -59,7 +59,7 @@ public class LoginHandler {
         else {
             if (account == null || !account.getEmail().equals(dreambotControlScript.getClient().getUsername())){
                 if (dreambotControlScript.getClient().isLoggedIn()){
-                    dreambotControlScript.getMap().interact(dreambotControlScript.getLocalPlayer().getTile());
+                    dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
                     dreambotControlScript.getTabs().logout();
                     return 1000;
                 }

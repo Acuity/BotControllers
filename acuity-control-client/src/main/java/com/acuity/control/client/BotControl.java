@@ -187,6 +187,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract boolean evaluate(Object evaluator);
 
+    public abstract boolean isSignedIn(RSAccount rsAccount);
+
     public void onLoop() {
         try {
             scriptManager.onLoop();

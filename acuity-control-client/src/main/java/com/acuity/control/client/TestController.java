@@ -6,6 +6,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
@@ -45,6 +46,11 @@ public class TestController {
         @Override
         public boolean evaluate(Object evaluator) {
             return false;
+        }
+
+        @Override
+        public boolean isSignedIn(RSAccount rsAccount) {
+            return true;
         }
     };
 
