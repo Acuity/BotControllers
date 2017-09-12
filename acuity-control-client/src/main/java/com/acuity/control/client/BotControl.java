@@ -73,8 +73,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public List<RSAccount> requestRSAccounts() {
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER))
+    public List<RSAccount> requestRSAccounts(boolean filterUnassignable) {
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER).setBody(filterUnassignable))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(RSAccount[].class)))
@@ -144,6 +144,16 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_TAG, MessagePackage.SERVER).setBody(tagID))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(Tag.class));
+    }
+
+    public void requestStatusSet(String key, String status){
+        send(new MessagePackage(MessagePackage.Type.REQUEST_STATUS_SET, MessagePackage.SERVER)
+                .setBody(0, key)
+                .setBody(1, status));
+    }
+
+    public void requestStatusClear(){
+        send(new MessagePackage(MessagePackage.Type.REQUEST_CLEAR_STATUS, MessagePackage.SERVER));
     }
 
     public Optional<ScriptVersion> requestScriptVersion(String scriptID, String scriptVersionID) {

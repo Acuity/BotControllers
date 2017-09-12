@@ -12,9 +12,7 @@ import com.acuity.db.domain.vertex.impl.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +34,12 @@ public class RSAccountManager {
     public void onLoop(){
         Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (scriptInstance != null && rsAccount == null && scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID() != null){
-            requestAccountFromTag(scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID(), false, scriptInstance.getKey().isAccountRegistrationEnabled());
+            requestAccountFromTag(
+                    scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID(),
+                    true,
+                    false,
+                    scriptInstance.getKey().isAccountRegistrationEnabled()
+            );
         }
 
     }
@@ -65,9 +68,9 @@ public class RSAccountManager {
         this.rsAccount = null;
     }
 
-    public RSAccount requestAccountFromTag(String tagID, boolean force, boolean registerNewOnFail){
+    public RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail){
         logger.debug("Requesting account - {}, {}.", tagID, force);
-        List<RSAccount> rsAccounts = botControl.requestRSAccounts();
+        List<RSAccount> rsAccounts = botControl.requestRSAccounts(filterUnassignable);
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
             if (account.getTagIDs().contains(tagID) && botControl.requestAccountAssignment(account, force)){
@@ -91,7 +94,7 @@ public class RSAccountManager {
                             .run();
                     if (result){
                         boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, MachineUtil.getIP().orElse(null), tagID).isPresent();
-                        if (added) return requestAccountFromTag(tagID, force, registerNewOnFail);
+                        if (added) return requestAccountFromTag(tagID, filterUnassignable, force, registerNewOnFail);
                     }
                 } catch (Exception e) {
                     logger.error("Error during account creation.", e);
