@@ -3,9 +3,12 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
+import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
@@ -17,7 +20,11 @@ import org.dreambot.Boot;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.script.listener.InventoryListener;
 import org.dreambot.api.script.loader.NetworkLoader;
+import org.dreambot.api.wrappers.items.Item;
+import org.dreambot.core.Instance;
+import org.dreambot.core.InstancePool;
 import org.dreambot.server.net.datatype.ScriptData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +41,18 @@ import java.util.Map;
 /**
  * Created by Zach on 8/12/2017.
  */
-@ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 1)
-public class DreambotControlScript extends AbstractScript {
+@ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
+public class DreambotControlScript extends AbstractScript implements InventoryListener{
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
     private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
-/*            BotClientState clientState = new BotClientState();
+            BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(MachineUtil.getCPUUsage());
             clientState.setGameState(getClient().getGameStateID());
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));*/
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
         }
 
         @Override
@@ -70,6 +77,7 @@ public class DreambotControlScript extends AbstractScript {
     };
 
     private LoginHandler loginHandler = new LoginHandler(this);
+    private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
 
     @SuppressWarnings("unchecked")
     public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
@@ -226,10 +234,30 @@ public class DreambotControlScript extends AbstractScript {
         return null;
     }
 
+
+    @Override
+    public void onItemChange(Item[] items) {
+        for (Item item : items) {
+            itemTracker.onChange(item);
+        }
+    }
+
     public static void main(String[] args) {
-        Boot boot = new Boot();
         Boot.main(new String[]{});
 
+        while (InstancePool.getAll().size() == 0) {
+            sleep(1000);
+        }
 
+        Instance instance = InstancePool.getAll().stream().findFirst().orElse(null);
+        DreambotControlScript dreambotControlScript = new DreambotControlScript();
+        dreambotControlScript.registerContext(instance.getClient());
+        dreambotControlScript.registerMethodContext(instance.getClient());
+        dreambotControlScript.onStart();
+
+        while (true){
+            int i = dreambotControlScript.onLoop();
+            sleep(i);
+        }
     }
 }
