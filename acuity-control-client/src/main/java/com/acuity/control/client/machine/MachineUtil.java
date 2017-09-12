@@ -4,13 +4,14 @@ package com.acuity.control.client.machine;
 import com.acuity.db.domain.vertex.impl.machine.MachineUpdate;
 import com.sun.management.OperatingSystemMXBean;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/14/2017.
@@ -44,6 +45,18 @@ public class MachineUtil {
         return "Unknown";
     }
 
+    public static Optional<String> getIP() {
+        try {
+            URL url = new URL("http://checkip.amazonaws.com");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))){
+                return Optional.ofNullable(reader.readLine());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return Optional.empty();
+    }
 
     public static float getCPUUsage() {
         OperatingSystemMXBean operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();

@@ -3,7 +3,6 @@ package com.acuity.control.client;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.Pair;
-import com.acuity.control.client.accounts.RSAccountManager;
 import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.websockets.WClientEvent;
@@ -158,7 +157,7 @@ public class BotControlConnection {
             RSAccount rsAccount = null;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
                 logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), false);
+                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), false, scriptInstance.getKey().isAccountRegistrationEnabled());
                 logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
             }
 
