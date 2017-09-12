@@ -3,12 +3,9 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
-import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
@@ -37,7 +34,7 @@ import java.util.Map;
 /**
  * Created by Zach on 8/12/2017.
  */
-@ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
+@ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 1)
 public class DreambotControlScript extends AbstractScript {
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
