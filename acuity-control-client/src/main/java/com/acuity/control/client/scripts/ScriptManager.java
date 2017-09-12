@@ -190,7 +190,7 @@ public class ScriptManager {
                     botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS);
                 }
 
-                if (closedScript.getKey().isDestroyInstnaceOnEnd()){
+                if (closedScript.getKey().isDestroyInstanceOnEnd()){
                     logger.debug("Destroying instance of script. {}", closedScript.getKey().getUID());
                     scriptInstances.remove(closedScript.getKey().getUID());
                     destroyInstance(closedScript.getValue());
