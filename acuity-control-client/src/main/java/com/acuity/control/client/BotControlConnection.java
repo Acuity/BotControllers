@@ -107,7 +107,7 @@ public class BotControlConnection {
         return response.waitForResponse(15, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
     }
 
-    public MessageResponse sendWithCreds(MessagePackage messagePackage){
+    public MessageResponse sendWithCredentials(MessagePackage messagePackage){
         messagePackage.setBody(0, acuityEmail);
         messagePackage.setBody(1, acuityPassword);
         return send(messagePackage);

@@ -8,7 +8,6 @@ import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
-import com.acuity.db.domain.vertex.impl.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public class RSAccountManager {
     }
 
     public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID){
-        return botControl.getConnection().sendWithCreds(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
+        return botControl.getConnection().sendWithCredentials(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
                 .setBody(2, email)
                 .setBody(3, ign)
                 .setBody(4, password)
@@ -120,15 +119,15 @@ public class RSAccountManager {
         this.rsAccount = account;
     }
 
-    public void onBannedAccount() {
-        botControl.requestTags("Banned").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
+    public void onBannedAccount(RSAccount account) {
+        botControl.requestTags("Banned").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 
-    public void onLockedAccount() {
-        botControl.requestTags("Locked").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
+    public void onLockedAccount(RSAccount account) {
+        botControl.requestTags("Locked").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 
-    public void onWrongLogin() {
-        botControl.requestTags("Incorrect Login").forEach(tag -> botControl.requestTagAccount(rsAccount, tag));
+    public void onWrongLogin(RSAccount account) {
+        botControl.requestTags("Incorrect Login").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 }
