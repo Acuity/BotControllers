@@ -1,6 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.db.domain.vertex.impl.scripts.conditions.evaluators.ItemCountEvaluator;
+import com.acuity.db.domain.vertex.impl.scripts.conditions.evaluators.VarpEvaluator;
 
 /**
  * Created by Zachary Herridge on 8/29/2017.
@@ -25,6 +26,12 @@ public class DreambotEvaluator {
 
             return count >= amount;
         }
+
+        if (evaluator instanceof VarpEvaluator){
+            int config = controlScript.getPlayerSettings().getConfig(((VarpEvaluator) evaluator).getVarpID());
+            return config == ((VarpEvaluator) evaluator).getVarp();
+        }
+
         return false;
     }
 }

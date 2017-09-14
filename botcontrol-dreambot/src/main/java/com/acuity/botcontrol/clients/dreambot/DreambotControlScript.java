@@ -172,7 +172,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             if (scriptVersion != null) {
                 String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
-                    logger.debug("initDreambotScript - loading verion off Acuity-Repo.", scriptVersion);
+                    logger.debug("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {
                         ScriptInstance scriptInstance = Scripts.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
@@ -192,7 +192,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 } else {
                     Script script = botControl.requestScript(runConfig.getScriptID()).orElse(null);
                     if (script != null){
-                        logger.debug("initDreambotScript - loading verion off Dreambot-Repo.", script);
+                        logger.debug("initDreambotScript - loading version off Dreambot-Repo.", script);
                         Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
                         Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
                         if (aClass != null) {
