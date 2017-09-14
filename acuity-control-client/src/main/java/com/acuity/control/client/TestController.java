@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -28,10 +29,10 @@ public class TestController {
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
-/*            BotClientState clientState = new BotClientState();
-            clientState.setCpuUsage(MachineUtil.getCPUUsage());
+            BotClientState clientState = new BotClientState();
+            clientState.setCpuUsage(ThreadLocalRandom.current().nextDouble(1, 100));
             clientState.setGameState(0);
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));*/
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
         }
 
         @Override
@@ -57,7 +58,7 @@ public class TestController {
     public static void main(String[] args) {
         TestController testController = new TestController();
 
-        new Thread(() -> {
+      /*  new Thread(() -> {
             try {
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 while (true) {
@@ -91,7 +92,7 @@ public class TestController {
             catch (Throwable e){
                 e.printStackTrace();
             }
-        }).start();
+        }).start();*/
 
         while (true){
             try {

@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class ResponseTracker {
 
     private Cache<String, MessageResponse> cache = CacheBuilder.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .expireAfterWrite(2, TimeUnit.MINUTES)
             .build();
 
     public Cache<String, MessageResponse> getCache() {
