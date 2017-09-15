@@ -193,13 +193,13 @@ public class BotControlConnection {
         }
     }
 
-    public void sendScreenCapture(Integer size) {
+    public void sendScreenCapture(Integer scale) {
         BufferedImage screenCapture = botControl.getScreenCapture();
 
-        if(size != 0){
+        if(scale != 0){
             try {
                 screenCapture = Thumbnails.of(screenCapture)
-                        .size(screenCapture.getWidth() / (2 * size), screenCapture.getHeight() / (2 * size))
+                        .size(screenCapture.getWidth() / (2 * scale), screenCapture.getHeight() / (2 * scale))
                         .outputFormat("jpg")
                         .asBufferedImage();
             } catch (IOException e) {

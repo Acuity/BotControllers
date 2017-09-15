@@ -251,6 +251,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onItemChange(Item[] items) {
+        itemTracker.onUpdate();
         for (Item item : items) {
             itemTracker.onChange(item);
         }
