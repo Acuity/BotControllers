@@ -45,19 +45,6 @@ public class MachineUtil {
         return "Unknown";
     }
 
-    public static Optional<String> getIP() {
-        try {
-            URL url = new URL("http://checkip.amazonaws.com");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))){
-                return Optional.ofNullable(reader.readLine());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return Optional.empty();
-    }
-
     public static float getCPUUsage() {
         OperatingSystemMXBean operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();

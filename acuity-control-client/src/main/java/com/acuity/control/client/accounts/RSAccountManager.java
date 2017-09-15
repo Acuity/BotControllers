@@ -2,6 +2,7 @@ package com.acuity.control.client.accounts;
 
 import com.acuity.common.account_creator.AccountCreationJobV2;
 import com.acuity.common.account_creator.AccountInfoGenerator;
+import com.acuity.common.util.IPUtil;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.machine.MachineUtil;
@@ -92,7 +93,7 @@ public class RSAccountManager {
                             .withAccountInfo(randomEmail, randomDisplayName, randomAge, randomPassword)
                             .run();
                     if (result){
-                        boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, MachineUtil.getIP().orElse(null), tagID).isPresent();
+                        boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
                         if (added) return requestAccountFromTag(tagID, filterUnassignable, force, registerNewOnFail);
                     }
                 } catch (Exception e) {
