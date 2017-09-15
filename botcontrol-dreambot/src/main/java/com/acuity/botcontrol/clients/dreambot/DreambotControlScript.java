@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -73,6 +74,11 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         @Override
         public boolean isSignedIn(RSAccount rsAccount) {
             return getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(getClient().getUsername());
+        }
+
+        @Override
+        public BufferedImage getScreenCapture() {
+            return getClient().getCanvasImage();
         }
     };
 

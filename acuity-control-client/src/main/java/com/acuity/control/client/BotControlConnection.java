@@ -19,6 +19,10 @@ import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.Permission;
 import java.util.Optional;
 import java.util.UUID;
@@ -176,8 +180,26 @@ public class BotControlConnection {
             logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
             botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
+        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_SCREEN_CAP){
+            sendScreenCapture(messagePackage.getBodyAs(Integer.class));
+        }
         else {
             botControl.getEventBus().post(messagePackage);
+        }
+    }
+
+    private void sendScreenCapture(Integer size) {
+        BufferedImage screenCapture = botControl.getScreenCapture();
+        if (screenCapture != null){
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()){
+                ImageIO.write(screenCapture, "jpg", baos );
+                baos.flush();
+                byte[] imageBytes = baos.toByteArray();
+                send(new MessagePackage(MessagePackage.Type.REQUEST_SCREEN_CAP, MessagePackage.SERVER).setBody(imageBytes));
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

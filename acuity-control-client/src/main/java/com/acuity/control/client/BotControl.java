@@ -17,6 +17,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
+import java.awt.image.BufferedImage;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -204,6 +205,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     public abstract boolean evaluate(Object evaluator);
 
     public abstract boolean isSignedIn(RSAccount rsAccount);
+
+    public abstract BufferedImage getScreenCapture();
 
     public void onLoop() {
         try {

@@ -13,11 +13,13 @@ import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -53,10 +55,29 @@ public class TestController {
         public boolean isSignedIn(RSAccount rsAccount) {
             return true;
         }
+
+        @Override
+        public BufferedImage getScreenCapture() {
+            return null;
+        }
     };
 
     public static void main(String[] args) {
         TestController testController = new TestController();
+
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        List<RSAccount> rsAccounts = testController.botControl.requestRSAccounts(true);
+        for (RSAccount rsAccount : rsAccounts) {
+            if (testController.botControl.requestAccountAssignment(rsAccount, false)){
+                System.out.println("Got account!");
+            }
+        }
 
       /*  new Thread(() -> {
             try {
