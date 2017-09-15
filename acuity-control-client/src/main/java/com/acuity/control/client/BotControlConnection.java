@@ -183,6 +183,9 @@ public class BotControlConnection {
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_SCREEN_CAP){
             sendScreenCapture(messagePackage.getBodyAs(Integer.class));
         }
+        else if (messagePackage.getMessageType() == MessagePackage.Type.SEND_IN_GAME_MESSAGE){
+            botControl.sendInGameMessage(messagePackage.getBodyAs(String.class));
+        }
         else {
             botControl.getEventBus().post(messagePackage);
         }

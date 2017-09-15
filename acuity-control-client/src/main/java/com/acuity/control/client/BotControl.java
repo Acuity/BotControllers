@@ -206,6 +206,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract boolean isSignedIn(RSAccount rsAccount);
 
+    public abstract void sendInGameMessage(String messagePackageBodyAs);
+
     public abstract BufferedImage getScreenCapture();
 
     public void onLoop() {

@@ -20,9 +20,12 @@ import org.dreambot.Boot;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.script.listener.AdvancedMessageListener;
 import org.dreambot.api.script.listener.InventoryListener;
+import org.dreambot.api.script.listener.MessageListener;
 import org.dreambot.api.script.loader.NetworkLoader;
 import org.dreambot.api.wrappers.items.Item;
+import org.dreambot.api.wrappers.widgets.message.Message;
 import org.dreambot.core.Instance;
 import org.dreambot.core.InstancePool;
 import org.dreambot.server.net.datatype.ScriptData;
@@ -43,7 +46,7 @@ import java.util.Map;
  * Created by Zach on 8/12/2017.
  */
 @ScriptManifest(name = "Acuity Bot Controller", author = "AcuityBotting", category = Category.MISC, description = "Connects your clients to AcuityBotting.com and allows remote control/monitoring.", version = 0)
-public class DreambotControlScript extends AbstractScript implements InventoryListener{
+public class DreambotControlScript extends AbstractScript implements InventoryListener, AdvancedMessageListener{
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
@@ -74,6 +77,11 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         @Override
         public boolean isSignedIn(RSAccount rsAccount) {
             return getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(getClient().getUsername());
+        }
+
+        @Override
+        public void sendInGameMessage(String message) {
+            getKeyboard().type(message);
         }
 
         @Override
@@ -265,5 +273,52 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             int i = dreambotControlScript.onLoop();
             sleep(i);
         }
+    }
+
+    @Override
+    public void onAutoMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onPrivateInfoMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onClanMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onGameMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onPlayerMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onTradeMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onPrivateInMessage(Message message) {
+        sendInGameMessage(message);
+    }
+
+    @Override
+    public void onPrivateOutMessage(Message message) {
+
+    }
+
+    private void sendInGameMessage(Message message){
+        botControl.send(new MessagePackage(MessagePackage.Type.IN_GAME_MESSAGE, MessagePackage.SERVER)
+                .setBody(0, message.getMessage())
+                .setBody(1, message.getTypeID())
+        );
     }
 }
