@@ -32,10 +32,10 @@ public class TestController {
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
         @Override
         public void sendClientState() {
-            BotClientState clientState = new BotClientState();
+           /* BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(ThreadLocalRandom.current().nextDouble(1, 100));
             clientState.setGameState(0);
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));*/
         }
 
         @Override
@@ -51,7 +51,6 @@ public class TestController {
         public boolean evaluate(Object evaluator) {
             return false;
         }
-
         @Override
         public boolean isSignedIn(RSAccount rsAccount) {
             return true;

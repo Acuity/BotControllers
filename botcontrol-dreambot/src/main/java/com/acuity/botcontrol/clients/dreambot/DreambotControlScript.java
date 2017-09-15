@@ -265,15 +265,12 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
 
         Instance instance = InstancePool.getAll().stream().findFirst().orElse(null);
-        DreambotControlScript dreambotControlScript = new DreambotControlScript();
-        dreambotControlScript.registerContext(instance.getClient());
-        dreambotControlScript.registerMethodContext(instance.getClient());
-        dreambotControlScript.onStart();
 
-        while (true){
-            int i = dreambotControlScript.onLoop();
-            sleep(i);
+        while (instance.getClient().getGameStateID() < 10){
+            sleep(1000);
         }
+
+        instance.getScriptManager().start(DreambotControlScript.class);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSItem;
 import org.dreambot.api.wrappers.items.Item;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -28,7 +29,16 @@ public class DreambotItemTracker {
         long time = System.currentTimeMillis();
         if (time - lastSend < TimeUnit.SECONDS.toMillis(10)) return;
 
-        Set<RSItem> inv = controlScript.getInventory().all().stream().map(item -> new RSItem(item.getID(), item.getName(), item.getAmount(), item.isNoted())).collect(Collectors.toSet());
+        Set<RSItem> inv = controlScript.getInventory().stream()
+                .filter(Objects::nonNull)
+                .map(item -> new RSItem(item.getID(), item.getName(), item.getAmount(), item.isNoted()))
+                .distinct()
+                .map(rsItem -> {
+                    rsItem.setQuantity(controlScript.getInventory().count(rsItem.getId()));
+                    return rsItem;
+                })
+                .collect(Collectors.toSet());
+
         controlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.RS_ITEM_UPDATE, MessagePackage.SERVER)
                 .setBody(0, inv)
                 .setBody(1, 0)

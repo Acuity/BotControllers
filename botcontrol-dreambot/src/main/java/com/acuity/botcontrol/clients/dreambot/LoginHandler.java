@@ -1,12 +1,16 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.google.common.base.Strings;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.api.methods.MethodProvider;
 import org.dreambot.api.utilities.Timer;
+import org.dreambot.api.wrappers.interactive.Player;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class LoginHandler {
@@ -22,6 +26,17 @@ public class LoginHandler {
 	@Subscribe
 	public int onLoop() {
 		RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
+
+		if (account != null && Strings.isNullOrEmpty(account.getIgn()) && dreambotControlScript.getClient().isLoggedIn()){
+			String ign = Optional.ofNullable(dreambotControlScript.getClient().getLocalPlayer()).map(Player::getName).orElse(null);
+			if (ign != null) {
+				dreambotControlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
+						.setBody(0, ign)
+						.setBody(1, account.getEmail())
+				);
+			}
+		}
+
 		if (account != null && dreambotControlScript.getClient().getGameStateID() < 25) {
 			System.out.println(dreambotControlScript.getClient().getLoginIndex());
 			switch (dreambotControlScript.getClient().getLoginIndex()) {
