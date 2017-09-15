@@ -13,6 +13,7 @@ import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -58,6 +59,11 @@ public class TestController {
 
         @Override
         public BufferedImage getScreenCapture() {
+            try {
+                return new Robot().createScreenCapture(new Rectangle(800, 800));
+            } catch (AWTException e) {
+                e.printStackTrace();
+            }
             return null;
         }
     };
@@ -72,12 +78,7 @@ public class TestController {
             e.printStackTrace();
         }
 
-        List<RSAccount> rsAccounts = testController.botControl.requestRSAccounts(true);
-        for (RSAccount rsAccount : rsAccounts) {
-            if (testController.botControl.requestAccountAssignment(rsAccount, false)){
-                System.out.println("Got account!");
-            }
-        }
+        testController.botControl.getConnection().sendScreenCapture(0);
 
       /*  new Thread(() -> {
             try {

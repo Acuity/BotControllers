@@ -188,7 +188,7 @@ public class BotControlConnection {
         }
     }
 
-    private void sendScreenCapture(Integer size) {
+    public void sendScreenCapture(Integer size) {
         BufferedImage screenCapture = botControl.getScreenCapture();
         if (screenCapture != null){
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()){
