@@ -58,6 +58,11 @@ public class TestController {
         }
 
         @Override
+        public void sendInGameMessage(String messagePackageBodyAs) {
+
+        }
+
+        @Override
         public BufferedImage getScreenCapture() {
             try {
                 return new Robot().createScreenCapture(new Rectangle(800, 800));
