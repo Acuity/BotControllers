@@ -16,6 +16,8 @@ import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.name.Rename;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,6 +195,18 @@ public class BotControlConnection {
 
     public void sendScreenCapture(Integer size) {
         BufferedImage screenCapture = botControl.getScreenCapture();
+
+        if(size != 0){
+            try {
+                screenCapture = Thumbnails.of(screenCapture)
+                        .size(screenCapture.getWidth() / (2 * size), screenCapture.getHeight() / (2 * size))
+                        .outputFormat("jpg")
+                        .asBufferedImage();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         if (screenCapture != null){
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()){
                 ImageIO.write(screenCapture, "jpg", baos );

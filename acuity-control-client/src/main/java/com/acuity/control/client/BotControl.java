@@ -50,7 +50,11 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                     e.printStackTrace();
                 }
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 3, 5, TimeUnit.SECONDS);
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            connection.sendScreenCapture(2);
+        }, 3, 5, TimeUnit.SECONDS);
     }
 
     public EventBus getEventBus() {

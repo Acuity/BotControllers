@@ -47,6 +47,12 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/acuity-db-common-1.0-SNAPSHOT-jar-with-dependencies.jar</systemPath>
         </dependency>
+
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>[0.4, 0.5)</version>
+        </dependency>
     </dependencies>
 
     <build>
