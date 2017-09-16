@@ -82,7 +82,8 @@ public class TestController {
             e.printStackTrace();
         }
 
-        testController.botControl.getConnection().sendScreenCapture(0);
+        Optional<RSAccount> rsAccount = testController.botControl.getRsAccountManager().addRSAccount("asd", "asdasd", "asdas", "asdas", "Tag/3087498");
+        System.out.println();
 
       /*  new Thread(() -> {
             try {

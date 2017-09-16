@@ -163,7 +163,9 @@ public class BotControlConnection {
             RSAccount rsAccount = null;
             if (scriptStartRequest.isConditionalOnAccountAssignment()){
                 logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), true,false, scriptInstance.getKey().isAccountRegistrationEnabled());
+                boolean registerNewAccountOnFail = scriptInstance != null && scriptInstance.getKey().isAccountRegistrationEnabled();
+
+                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), true, false, registerNewAccountOnFail);
                 logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
             }
 

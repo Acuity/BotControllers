@@ -37,6 +37,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private ProxyManager proxyManager = new ProxyManager(this);
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
+    private Map<String, String> status = new HashMap<>();
+
     private BotControlConnection connection;
 
     public BotControl(String host, ClientType clientType) {
@@ -152,12 +154,16 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     public void requestStatusSet(String key, String status){
-        send(new MessagePackage(MessagePackage.Type.REQUEST_STATUS_SET, MessagePackage.SERVER)
-                .setBody(0, key)
-                .setBody(1, status));
+        if (!Objects.equals(this.status.get(key), status)){
+            this.status.put(key, status);
+            send(new MessagePackage(MessagePackage.Type.REQUEST_STATUS_SET, MessagePackage.SERVER)
+                    .setBody(this.status)
+            );
+        }
     }
 
     public void requestStatusClear(){
+        status.clear();
         send(new MessagePackage(MessagePackage.Type.REQUEST_CLEAR_STATUS, MessagePackage.SERVER));
     }
 

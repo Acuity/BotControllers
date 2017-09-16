@@ -197,6 +197,7 @@ public class ScriptManager {
                 }
             }
 
+            botControl.requestStatusClear();
             handleAccountTransition(getScriptInstance().map(Pair::getKey).orElse(null));
         }
     }
