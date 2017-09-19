@@ -3,20 +3,15 @@ package com.acuity.control.client.scripts;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -29,7 +24,9 @@ public class ScriptManager {
 
     private BotControl botControl;
 
-    private Pair<ScriptNode, Object> currentScriptPair;
+    private Pair<String, Object> currentTaskPair;
+    private Pair<String, Object> currentScriptPair;
+
     private Map<String, Object> scriptInstances = new ConcurrentHashMap<>();
 
     public ScriptManager(BotControl botControl) {
@@ -43,70 +40,61 @@ public class ScriptManager {
             return;
         }
 
-        Pair<ScriptNode, Object> currentScriptPair = this.currentScriptPair;
-        ScriptNode currentScriptNode = currentScriptPair != null ? currentScriptPair.getKey() : null;
-        boolean currentScriptValid = currentScriptNode != null && botClientConfig.getScriptSelector().getNodeList().contains(currentScriptNode);
-
-        if (currentScriptValid){
-            if (!ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
-                onScriptEnded(currentScriptPair);
-            }
-            else if (ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getStopEvaluators())){
-                onScriptEnded(currentScriptPair);
-            }
+        Pair<String, Object> currentTaskPair = this.currentTaskPair;
+        ScriptNode currentTaskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
+        if (currentTaskNode != null){
+            evaluate(currentTaskPair, currentTaskNode);
+            return;
         }
-        else {
+
+        Pair<String, Object> currentScriptPair = this.currentScriptPair;
+        ScriptNode currentScriptNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getScriptNode(currentScriptPair.getKey()).orElse(null) : null;
+        if (currentScriptNode == null){
             for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
-                if (scriptNode.isComplete()) continue;
+                if (scriptNode.getComplete().orElse(false)) continue;
 
                 if (ScriptConditionEvaluator.evaluate(botControl, scriptNode.getEvaluatorGroup().getStartEvaluators())){
-                    this.currentScriptPair = new Pair<>(scriptNode, getScriptInstanceOf(scriptNode));
+                    this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
+                    botControl.sendClientState();
                     return;
                 }
             }
         }
+        else {
+            evaluate(currentScriptPair, currentScriptNode);
+        }
     }
 
-    private void handleAccountTransition(ScriptExecutionConfig executionConfig) {
+    private void evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
+        if (!ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
+            onScriptEnded(currentScriptPair);
+        }
+        else if (ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getStopEvaluators())){
+            onScriptEnded(currentScriptPair);
+        }
+    }
+
+    private void handleAccountTransition(ScriptNode executionConfig) {
         if (executionConfig == null) {
             logger.debug("Handling Account Transition - no next script.");
             botControl.getRsAccountManager().clearRSAccount();
             botControl.requestAccountAssignment(null, true);
-            return;
         }
-
-        logger.debug("Handling Account Transition - {}.", executionConfig.getUID());
-        RSAccount currentAccount = botControl.getRsAccountManager().getRsAccount();
-        if (executionConfig.getLastAccount() != null && (currentAccount == null || !executionConfig.getLastAccount().getID().equals(currentAccount.getID()))) {
-            if (!botControl.requestAccountAssignment(executionConfig.getLastAccount(), false)) {
-                botControl.getRsAccountManager().clearRSAccount();
-                botControl.requestAccountAssignment(null, true);
-            }
-        }
-        if (currentAccount != null && executionConfig.getScriptStartupConfig().getPullAccountsFromTagID() != null && !currentAccount.getTagIDs().contains(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID())) {
-            botControl.getRsAccountManager().clearRSAccount();
-            botControl.requestAccountAssignment(null, true);
-        }
-    }
-
-    public boolean queueTask(int index, ScriptExecutionConfig executionConfig) {
-        logger.debug("Queueing Task - {}, {}.", executionConfig.getUID(), index);
-        botClientConfig.getTaskRoutine().getConditionalScriptMap().add(index, executionConfig);
-        return botControl.updateTaskRoutine(botClientConfig.getTaskRoutine())
-                .waitForResponse(30, TimeUnit.SECONDS)
-                .getResponse()
-                .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
-                .orElse(false);
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
         synchronized (lock) {
             logger.debug("Received Updated Client Config - {}.", botClientConfig.hashCode());
-            boolean update = this.botClientConfig == null || (this.botClientConfig.getScriptRoutine().hashCode() != botClientConfig.getScriptRoutine().hashCode() || this.botClientConfig.getTaskRoutine().hashCode() != botClientConfig.getTaskRoutine().hashCode());
-            this.botClientConfig = botClientConfig;
-            if (update) {
-                cleanUpScriptInstances();
+
+            List<ScriptNode> taskNodeList = botClientConfig.getTaskNodeList();
+            if (taskNodeList.size() > 0){
+                ScriptNode taskNode = taskNodeList.get(0);
+                if (currentTaskPair == null || !Objects.equals(taskNode.getUID(), currentTaskPair.getKey())){
+                    this.currentTaskPair = new Pair<>(taskNode.getUID(), getScriptInstanceOf(taskNode));
+                }
             }
+
+            cleanUpScriptInstances();
         }
     }
 
@@ -145,42 +133,46 @@ public class ScriptManager {
         return null;
     }
 
-    public Optional<Pair<ScriptNode, Object>> getScriptInstance() {
+    public Optional<Pair<String, Object>> getScriptInstance() {
         return Optional.ofNullable(currentScriptPair);
     }
 
-    public void onScriptEnded(Pair<ScriptNode, Object> closedScript) {
+    public void onScriptEnded(Pair<String, Object> closedScript) {
         if (closedScript == null) return;
 
-        synchronized (lock) {
-            logger.debug("Script Ended - {}.", closedScript.getKey().getUID());
-            boolean wasTask = botClientConfig.getTaskRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-            if (wasTask) {
-                logger.debug("Removing Task - {}.", closedScript.getKey().getUID());
-                botControl.updateTaskRoutine(botClientConfig.getTaskRoutine()).waitForResponse(15, TimeUnit.SECONDS).ifPresent(messagePackage -> {
-                    scriptInstances.remove(closedScript.getKey());
-                    destroyInstance(closedScript.getValue());
-                });
-            } else {
-                if (closedScript.getKey().isRemoveOnEnd()) {
-                    logger.debug("Removing Script - {}.", closedScript.getKey().getUID());
-                    botClientConfig.getScriptRoutine().getConditionalScriptMap().removeIf(executionConfig -> executionConfig.getUID().equals(closedScript.getKey().getUID()));
-                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS);
-                } else {
-                    logger.debug("Moving Script to end - {}.", closedScript.getKey().getUID());
-                    List<ScriptExecutionConfig> conditionalScriptMap = botClientConfig.getScriptRoutine().getConditionalScriptMap();
-                    conditionalScriptMap.add(conditionalScriptMap.size() - 1, conditionalScriptMap.remove(0));
-                    botControl.updateScriptRoutine(botClientConfig.getScriptRoutine()).waitForResponse(15, TimeUnit.SECONDS);
+        logger.debug("Script pair stopped - {}.", closedScript);
+
+        BotClientConfig botClientConfig = botControl.getBotClientConfig();
+        ScriptNode scriptNode = botClientConfig.getScriptSelector().getScriptNode(closedScript.getKey()).orElse(null);
+        if (scriptNode == null){
+            logger.debug("ScriptNode not found.");
+        }
+        else {
+            logger.debug("ScriptNode found.");
+            boolean task = botClientConfig.getTask(scriptNode.getUID()).isPresent();
+            if (task){
+                logger.debug("ScriptNode was task.");
+                botClientConfig.getTaskNodeList().remove(scriptNode);
+                botControl.updateClientConfig(botClientConfig);
+            }
+            else {
+                if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)){
+                    logger.debug("ScriptNode was completeOnStop.");
+                    scriptNode.setComplete(true);
+                    botControl.updateClientConfig(botClientConfig);
                 }
 
-                if (closedScript.getKey().isDestroyInstanceOnEnd()){
-                    logger.debug("Destroying instance of script. {}", closedScript.getKey().getUID());
-                    scriptInstances.remove(closedScript.getKey().getUID());
+                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", false)){
+                    logger.debug("ScriptNode was destroyInstanceOnStop.");
                     destroyInstance(closedScript.getValue());
                 }
             }
+        }
 
-            handleAccountTransition(getScriptInstance().map(Pair::getKey).orElse(null));
+        if (getScriptInstance().map(pair -> Objects.equals(closedScript.getKey(), pair.getKey())).orElse(false)){
+            logger.debug("ScriptNode was currentScriptPair.");
+            currentScriptPair = null;
+            handleAccountTransition(scriptNode);
         }
     }
 }

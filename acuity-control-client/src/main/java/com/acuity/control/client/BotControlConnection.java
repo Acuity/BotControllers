@@ -2,9 +2,7 @@ package com.acuity.control.client;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
-import com.acuity.common.util.Pair;
 import com.acuity.control.client.machine.MachineUtil;
-import com.acuity.control.client.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -12,12 +10,9 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import com.google.common.eventbus.Subscribe;
 import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.name.Rename;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +140,7 @@ public class BotControlConnection {
             botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_TASK_START){
-            logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
+            /*logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
             Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
                 if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){
@@ -178,7 +173,7 @@ public class BotControlConnection {
             }
 
             logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
-            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
+            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));*/
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_SCREEN_CAP){
             sendScreenCapture(messagePackage.getBodyAs(Integer.class));

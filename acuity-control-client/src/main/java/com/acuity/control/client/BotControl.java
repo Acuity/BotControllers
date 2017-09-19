@@ -9,6 +9,7 @@ import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
@@ -79,6 +80,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public ProxyManager getProxyManager() {
         return proxyManager;
+    }
+
+    public boolean updateClientConfig(BotClientConfig botClientConfig){
+        return false;
+    }
+
+    public boolean updateClientState(BotClientState botClientState){
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -173,17 +182,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(ScriptVersion.class));
-    }
-
-
-    public MessageResponse updateTaskRoutine(ScriptRoutine tasks) {
-        if (tasks == null) return null;
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_TASK_ROUTINE, MessagePackage.SERVER).setBody(tasks));
-    }
-
-    public MessageResponse updateScriptRoutine(ScriptRoutine scriptRoutine) {
-        if (scriptRoutine == null) return null;
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_SCRIPT_ROUTINE, MessagePackage.SERVER).setBody(scriptRoutine));
     }
 
     public MessageResponse send(MessagePackage messagePackage) {
