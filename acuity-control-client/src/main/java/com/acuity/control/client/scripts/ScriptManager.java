@@ -5,6 +5,7 @@ import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,45 +28,39 @@ public class ScriptManager {
     private final Object lock = new Object();
 
     private BotControl botControl;
+
+    private Pair<ScriptNode, Object> currentScriptPair;
     private Map<String, Object> scriptInstances = new ConcurrentHashMap<>();
-
-    private BotClientConfig botClientConfig;
-
 
     public ScriptManager(BotControl botControl) {
         this.botControl = botControl;
     }
 
     public void onLoop() {
+        BotClientConfig botClientConfig = botControl.getBotClientConfig();
         if (botClientConfig == null) {
             logger.debug("onLoop - null botClientConfig.");
             return;
         }
 
-        synchronized (lock) {
-            Pair<ScriptExecutionConfig, Object> currentScriptExecution = getScriptInstance().orElse(null);
+        Pair<ScriptNode, Object> currentScriptPair = this.currentScriptPair;
+        ScriptNode currentScriptNode = currentScriptPair != null ? currentScriptPair.getKey() : null;
+        boolean currentScriptValid = currentScriptNode != null && botClientConfig.getScriptSelector().getNodeList().contains(currentScriptNode);
 
-            if (currentScriptExecution != null) {
-                try {
-                    RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
-                    if (rsAccount != null && botControl.isSignedIn(rsAccount)){
-                        boolean endConditionMet = ScriptConditionEvaluator.evaluate(botControl, currentScriptExecution.getKey().getEndCondition());
-                        if (endConditionMet) {
-                            logger.debug("onLoop - end condition met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
-                            onScriptEnded(currentScriptExecution);
-                            return;
-                        }
-                    }
-                }
-                catch (Throwable e){
-                    logger.error("Error during end condition check.", e);
-                }
+        if (currentScriptValid){
+            if (!ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
+                onScriptEnded(currentScriptPair);
+            }
+            else if (ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getStopEvaluators())){
+                onScriptEnded(currentScriptPair);
+            }
+        }
+        else {
+            for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
+                if (scriptNode.isComplete()) continue;
 
-                currentScriptExecution.getKey().setLastAccount(botControl.getRsAccountManager().getRsAccount());
-                LocalDateTime endTime = currentScriptExecution.getKey().getScriptStartupConfig().getEndTime().orElse(null);
-                if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
-                    logger.debug("onLoop - end time met, ending currentScriptExecution. {}", currentScriptExecution.getKey().getUID());
-                    onScriptEnded(currentScriptExecution);
+                if (ScriptConditionEvaluator.evaluate(botControl, scriptNode.getEvaluatorGroup().getStartEvaluators())){
+                    this.currentScriptPair = new Pair<>(scriptNode, getScriptInstanceOf(scriptNode));
                     return;
                 }
             }
@@ -131,42 +126,30 @@ public class ScriptManager {
 
 
     private static final Object lock2 = new Object();
-    private Object getScriptInstanceOf(ScriptExecutionConfig executionConfig) {
+    private Object getScriptInstanceOf(ScriptNode scriptNode) {
         synchronized (lock2) {
-            if (executionConfig != null) {
-                if (!scriptInstances.containsKey(executionConfig.getUID())) {
-                    logger.debug("Creating Script Instance - {}.", executionConfig.getUID());
-                    Object instanceOfScript = botControl.createInstanceOfScript(executionConfig.getScriptStartupConfig());
+            if (scriptNode != null) {
+                if (!scriptInstances.containsKey(scriptNode.getUID())) {
+                    logger.debug("Creating Script Instance - {}.", scriptNode.getUID());
+                    Object instanceOfScript = botControl.createInstanceOfScript(scriptNode);
                     logger.debug("Creation of {} complete. {}", instanceOfScript);
                     if (instanceOfScript != null) {
-                        scriptInstances.put(executionConfig.getUID(), instanceOfScript);
+                        scriptInstances.put(scriptNode.getUID(), instanceOfScript);
                         return instanceOfScript;
                     }
 
                 }
-                return scriptInstances.get(executionConfig.getUID());
+                return scriptInstances.get(scriptNode.getUID());
             }
         }
         return null;
     }
 
-    public Optional<Pair<ScriptExecutionConfig, Object>> getScriptInstance() {
-        if (botClientConfig == null) return Optional.empty();
-        ScriptExecutionConfig currentExecution = botClientConfig.getTaskRoutine().getCurrentExecution().orElse(botClientConfig.getScriptRoutine().getCurrentExecution().orElse(null));
-
-        if (currentExecution == null) return Optional.empty();
-
-        Object scriptInstance = scriptInstances.get(currentExecution);
-        if (scriptInstance == null) {
-            scriptInstance = getScriptInstanceOf(currentExecution);
-        }
-
-        if (scriptInstance != null) return Optional.of(new Pair<>(currentExecution, scriptInstance));
-
-        return Optional.empty();
+    public Optional<Pair<ScriptNode, Object>> getScriptInstance() {
+        return Optional.ofNullable(currentScriptPair);
     }
 
-    public void onScriptEnded(Pair<ScriptExecutionConfig, Object> closedScript) {
+    public void onScriptEnded(Pair<ScriptNode, Object> closedScript) {
         if (closedScript == null) return;
 
         synchronized (lock) {

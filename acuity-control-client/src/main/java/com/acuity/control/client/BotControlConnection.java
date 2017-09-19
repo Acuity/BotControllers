@@ -138,9 +138,7 @@ public class BotControlConnection {
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
             BotClientConfig config = messagePackage.getBodyAs(BotClientConfig.class);
-            botControl.getScriptManager().onBotClientConfigUpdate(config);
-            botControl.getBreakManager().onBotClientConfigUpdate(config);
-            botControl.getProxyManager().onBotClientConfigUpdate(config);
+            botControl.onConfigUpdate(config);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.ACCOUNT_ASSIGNMENT_CHANGE){
             RSAccount account = messagePackage.getBodyAs(RSAccount.class);

@@ -8,10 +8,12 @@ import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.*;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
@@ -38,6 +40,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
     private BotControlConnection connection;
+
+    private BotClientConfig botClientConfig;
 
     public BotControl(String host, ClientType clientType) {
         this.connection = new BotControlConnection(this, host, clientType);
@@ -202,7 +206,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract void sendClientState();
 
-    public abstract Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig);
+    public abstract Object createInstanceOfScript(ScriptNode scriptRunConfig);
 
     public abstract void destroyInstanceOfScript(Object scriptInstance);
 
@@ -240,5 +244,16 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     public void stop() {
         scheduledExecutorService.shutdownNow();
         connection.stop();
+    }
+
+    public BotClientConfig getBotClientConfig() {
+        return botClientConfig;
+    }
+
+    public void onConfigUpdate(BotClientConfig config){
+        this.botClientConfig = config;
+        getScriptManager().onBotClientConfigUpdate(botClientConfig);
+        getBreakManager().onBotClientConfigUpdate(botClientConfig);
+        getProxyManager().onBotClientConfigUpdate(botClientConfig);
     }
 }
