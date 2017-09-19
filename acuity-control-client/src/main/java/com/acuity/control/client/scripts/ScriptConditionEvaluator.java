@@ -17,6 +17,8 @@ public class ScriptConditionEvaluator {
     private static Logger logger = LoggerFactory.getLogger(ScriptConditionEvaluator.class);
 
     public static boolean evaluate(BotControl botControl, List<ScriptEvaluator> evaluators){
+        if (evaluators == null) return true;
+
         for (ScriptEvaluator evaluator : evaluators) {
             if (!evaluate(botControl, evaluator)) return false;
         }

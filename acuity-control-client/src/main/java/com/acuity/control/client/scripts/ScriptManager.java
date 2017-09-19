@@ -3,7 +3,9 @@ package com.acuity.control.client.scripts;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,30 +54,37 @@ public class ScriptManager {
         Pair<String, Object> currentScriptPair = this.currentScriptPair;
         ScriptNode currentScriptNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getScriptNode(currentScriptPair.getKey()).orElse(null) : null;
         if (currentScriptNode == null){
-            for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
-                if (scriptNode.getComplete().orElse(false)) continue;
+            ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
+            if (scriptSelector != null && scriptSelector.getNodeList() != null){
+                for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
+                    if (scriptNode.getComplete().orElse(false)) continue;
 
-                if (ScriptConditionEvaluator.evaluate(botControl, scriptNode.getEvaluatorGroup().getStartEvaluators())){
-                    this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
-                    botControl.sendClientState();
-                    return;
+                    if (ScriptConditionEvaluator.evaluate(botControl, scriptNode.getEvaluatorGroup().getStartEvaluators())){
+                        this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
+                        botControl.sendClientState();
+                        return;
+                    }
                 }
             }
         }
         else if (evaluate(currentScriptPair, currentScriptNode)){
-            botControl.getRsAccountManager().handle(currentTaskNode.getSettings());
+            botControl.getRsAccountManager().handle(currentScriptNode.getSettings());
         }
     }
 
     private boolean evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
-        if (!ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
+        List<ScriptEvaluator> runEvaluators = currentScriptNode.getEvaluatorGroup().getRunEvaluators();
+        if (runEvaluators != null && runEvaluators.size() > 0 && !ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
             onScriptEnded(currentScriptPair);
             return false;
         }
-        else if (ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getStopEvaluators())){
+
+        List<ScriptEvaluator> stopEvaluators = currentScriptNode.getEvaluatorGroup().getStopEvaluators();
+        if (stopEvaluators != null && stopEvaluators.size() > 0 && ScriptConditionEvaluator.evaluate(botControl, stopEvaluators)){
             onScriptEnded(currentScriptPair);
             return false;
         }
+
         return true;
     }
 
@@ -125,7 +134,7 @@ public class ScriptManager {
                 if (!scriptInstances.containsKey(scriptNode.getUID())) {
                     logger.debug("Creating Script Instance - {}.", scriptNode.getUID());
                     Object instanceOfScript = botControl.createInstanceOfScript(scriptNode);
-                    logger.debug("Creation of {} complete. {}", instanceOfScript);
+                    logger.debug("Creation of {} complete.", instanceOfScript);
                     if (instanceOfScript != null) {
                         scriptInstances.put(scriptNode.getUID(), instanceOfScript);
                         return instanceOfScript;
@@ -167,7 +176,7 @@ public class ScriptManager {
                     botControl.updateClientConfig(botClientConfig);
                 }
 
-                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", false)){
+                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)){
                     logger.debug("ScriptNode was destroyInstanceOnStop.");
                     destroyInstance(closedScript.getValue());
                 }

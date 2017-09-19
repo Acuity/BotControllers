@@ -144,12 +144,17 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
         Pair<String, Object> dreambotScript = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (dreambotScript != null) {
-            int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
-            if (i < 0) {
-                botControl.getScriptManager().onScriptEnded(dreambotScript);
-                return 2000;
+            try {
+                int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
+                if (i < 0) {
+                    botControl.getScriptManager().onScriptEnded(dreambotScript);
+                    return 2000;
+                }
+                return i;
             }
-            return i;
+            catch (Throwable e){
+                logger.error("Error during scriptOnLoop", e);
+            }
         }
         return 1000;
     }
