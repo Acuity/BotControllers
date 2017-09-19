@@ -1,28 +1,11 @@
 package com.acuity.control.client;
 
-import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
-import com.acuity.db.domain.vertex.impl.scripts.conditions.EndCondition;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -39,9 +22,10 @@ public class TestController {
         }
 
         @Override
-        public Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig) {
+        public Object createInstanceOfScript(ScriptNode scriptRunConfig) {
             return new Object();
         }
+
 
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {

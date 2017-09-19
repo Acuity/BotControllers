@@ -11,9 +11,8 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptStartupConfig;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.util.ArangoDBUtil;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.Boot;
@@ -60,9 +59,10 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
 
         @Override
-        public Object createInstanceOfScript(ScriptStartupConfig scriptRunConfig) {
+        public Object createInstanceOfScript(ScriptNode scriptRunConfig) {
             return initDreambotScript(scriptRunConfig);
         }
+
 
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {
@@ -142,7 +142,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<ScriptExecutionConfig, Object> dreambotScript = botControl.getScriptManager().getScriptInstance().orElse(null);
+        Pair<String, Object> dreambotScript = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (dreambotScript != null) {
             int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
             if (i < 0) {
@@ -157,7 +157,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     @Override
     public void onPaint(Graphics graphics) {
         super.onPaint(graphics);
-        Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
+        Pair<String, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (scriptInstance != null) ((AbstractScript) scriptInstance.getValue()).onPaint(graphics);
     }
 
@@ -179,12 +179,12 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
     }
 
-    public AbstractScript initDreambotScript(ScriptStartupConfig runConfig) {
+    public AbstractScript initDreambotScript(ScriptNode runConfig) {
         if (runConfig != null) {
             logger.debug("initDreambotScript - initing off ScriptStartupConfig. {}", runConfig);
             ScriptVersion scriptVersion = botControl.requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
             if (scriptVersion != null) {
-                String[] args = runConfig.getQuickStartArgs() == null ? new String[0] : runConfig.getQuickStartArgs().toArray(new String[runConfig.getQuickStartArgs().size()]);
+                String[] args = runConfig.getScriptArguments() == null ? new String[0] : runConfig.getScriptArguments().toArray(new String[runConfig.getScriptArguments().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
                     logger.debug("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {

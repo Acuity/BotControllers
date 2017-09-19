@@ -3,16 +3,15 @@ package com.acuity.control.client.accounts;
 import com.acuity.common.account_creator.AccountCreationJobV2;
 import com.acuity.common.account_creator.AccountInfoGenerator;
 import com.acuity.common.util.IPUtil;
-import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptExecutionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +31,8 @@ public class RSAccountManager {
     }
 
     public void onLoop(){
-        Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
+        // TODO: 9/19/2017 Pull accounts
+        /*Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
         if (scriptInstance != null && rsAccount == null && scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID() != null){
             requestAccountFromTag(
                     scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID(),
@@ -40,7 +40,7 @@ public class RSAccountManager {
                     false,
                     scriptInstance.getKey().isAccountRegistrationEnabled()
             );
-        }
+        }*/
 
     }
 
