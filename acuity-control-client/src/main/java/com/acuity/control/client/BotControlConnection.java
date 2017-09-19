@@ -2,7 +2,9 @@ package com.acuity.control.client;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
+import com.acuity.common.util.Pair;
 import com.acuity.control.client.machine.MachineUtil;
+import com.acuity.control.client.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.websockets.WClientEvent;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
@@ -10,7 +12,9 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
+import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.google.common.eventbus.Subscribe;
 import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
@@ -94,9 +98,10 @@ public class BotControlConnection {
 
     @Subscribe
     public void onConnect(WClientEvent.Opened opened){
-        wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
-                new LoginData(acuityEmail, new String(acuityPassword), 1, botTypeID)
-        ));
+        wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null)
+                .setBody(0, new LoginData(acuityEmail, new String(acuityPassword), 1, botTypeID))
+                .setBody(1, botControl.getBotClientConfig())
+        );
     }
 
     public Optional<String> decryptString(EncryptedString string){
@@ -126,6 +131,13 @@ public class BotControlConnection {
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
         if (messagePackage.getMessageType() == MessagePackage.Type.GOOD_LOGIN){
+            RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
+            if (rsAccount != null){
+                if (!botControl.requestAccountAssignment(rsAccount, false)){
+                    botControl.getRsAccountManager().clearRSAccount();
+                }
+            }
+
             wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.BAD_LOGIN){
@@ -140,8 +152,9 @@ public class BotControlConnection {
             botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_TASK_START){
-            /*logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
-            Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
+            logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
+
+            Pair<String, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
                 if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){
                     logger.debug("Remote Task Request - Current script not accepting new tasks.");
@@ -152,11 +165,15 @@ public class BotControlConnection {
             }
 
             RemoteScriptTask.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScriptTask.StartRequest.class);
-            ScriptExecutionConfig executionConfig = scriptStartRequest.getExecutionConfig();
+            ScriptNode executionConfig = scriptStartRequest.getExecutionConfig();
             RSAccount rsAccount = null;
-            if (scriptStartRequest.isConditionalOnAccountAssignment()){
+
+            String accountAssignmentTag = (String) executionConfig.getSettings().get("accountAssignmentTag");
+            boolean registrationEnabled = (boolean) executionConfig.getSettings().get("registrationEnabled");
+            if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
+
                 logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(executionConfig.getScriptStartupConfig().getPullAccountsFromTagID(), true,false, scriptInstance.getKey().isAccountRegistrationEnabled());
+                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true,false, registrationEnabled);
                 logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
             }
 
@@ -164,16 +181,17 @@ public class BotControlConnection {
             result.setAccount(rsAccount);
             if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
                 logger.debug("Remote Task Request - Adding task to queue.");
-                result.setScriptStarted(botControl.getScriptManager().queueTask(0, executionConfig));
-                if (!result.isScriptStarted()) {
-                    logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
-                    botControl.requestAccountAssignment(null, true);
-                }
 
+                BotClientConfig botClientConfig = botControl.getBotClientConfig();
+                botClientConfig.getTaskNodeList().add(0, executionConfig);
+                if (!botControl.updateClientConfig(botClientConfig)) {
+                    logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
+                    botControl.getRsAccountManager().clearRSAccount();
+                }
             }
 
             logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
-            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));*/
+            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_SCREEN_CAP){
             sendScreenCapture(messagePackage.getBodyAs(Integer.class));

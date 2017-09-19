@@ -38,7 +38,6 @@ public class RSAccountManager {
         if (accountAssignmentTag == null) return;
 
         if (rsAccount != null && !rsAccount.getTagIDs().contains(accountAssignmentTag)){
-            botControl.requestAccountAssignment(null, true);
             clearRSAccount();
         }
 
@@ -73,6 +72,7 @@ public class RSAccountManager {
     }
 
     public void clearRSAccount(){
+        botControl.requestAccountAssignment(null, true);
         this.rsAccount = null;
     }
 

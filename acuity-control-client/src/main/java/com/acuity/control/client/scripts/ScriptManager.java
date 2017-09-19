@@ -92,7 +92,6 @@ public class ScriptManager {
         if (executionConfig == null) {
             logger.debug("Handling Account Transition - no next script.");
             botControl.getRsAccountManager().clearRSAccount();
-            botControl.requestAccountAssignment(null, true);
         }
     }
 
