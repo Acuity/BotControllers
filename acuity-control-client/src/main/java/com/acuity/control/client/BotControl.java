@@ -222,11 +222,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        try {
-            rsAccountManager.onLoop();
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
     }
 
     private synchronized void interceptSystemOut() {

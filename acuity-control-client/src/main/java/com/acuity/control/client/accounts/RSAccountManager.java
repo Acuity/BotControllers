@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -30,18 +31,25 @@ public class RSAccountManager {
         this.botControl = botControl;
     }
 
-    public void onLoop(){
-        // TODO: 9/19/2017 Pull accounts
-        /*Pair<ScriptExecutionConfig, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
-        if (scriptInstance != null && rsAccount == null && scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID() != null){
+    public void handle(Map<String, Object> settings){
+        String accountAssignmentTag = (String) settings.get("accountAssignmentTag");
+        boolean registrationEnabled = (boolean) settings.get("registrationEnabled");
+
+        if (accountAssignmentTag == null) return;
+
+        if (!rsAccount.getTagIDs().contains(accountAssignmentTag)){
+            botControl.requestAccountAssignment(null, true);
+            clearRSAccount();
+        }
+
+        if (rsAccount == null){
             requestAccountFromTag(
-                    scriptInstance.getKey().getScriptStartupConfig().getPullAccountsFromTagID(),
+                    accountAssignmentTag,
                     true,
                     false,
-                    scriptInstance.getKey().isAccountRegistrationEnabled()
+                    registrationEnabled
             );
-        }*/
-
+        }
     }
 
     public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP){

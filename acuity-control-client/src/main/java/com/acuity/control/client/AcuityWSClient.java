@@ -94,6 +94,7 @@ public class AcuityWSClient {
             public void onClose(int code, String reason, boolean remote) {
                 logger.info("Web socket closed.");
                 if (reconnect != null) reconnectExecutor.execute(reconnect);
+
                 eventBus.post(new WClientEvent.Closed(code, reason, remote));
             }
 

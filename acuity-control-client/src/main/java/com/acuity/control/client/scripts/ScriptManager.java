@@ -43,7 +43,9 @@ public class ScriptManager {
         Pair<String, Object> currentTaskPair = this.currentTaskPair;
         ScriptNode currentTaskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
         if (currentTaskNode != null){
-            evaluate(currentTaskPair, currentTaskNode);
+            if (evaluate(currentTaskPair, currentTaskNode)){
+                botControl.getRsAccountManager().handle(currentTaskNode.getSettings());
+            }
             return;
         }
 
@@ -60,18 +62,21 @@ public class ScriptManager {
                 }
             }
         }
-        else {
-            evaluate(currentScriptPair, currentScriptNode);
+        else if (evaluate(currentScriptPair, currentScriptNode)){
+            botControl.getRsAccountManager().handle(currentTaskNode.getSettings());
         }
     }
 
-    private void evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
+    private boolean evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
         if (!ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
             onScriptEnded(currentScriptPair);
+            return false;
         }
         else if (ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getStopEvaluators())){
             onScriptEnded(currentScriptPair);
+            return false;
         }
+        return true;
     }
 
     private void handleAccountTransition(ScriptNode executionConfig) {
