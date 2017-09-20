@@ -25,7 +25,7 @@ public class BreakManager {
         this.botControl = botControl;
     }
 
-    public int onloop(){
+    public int onLoop(){
         if (profile == null) return -1;
 
         long time = System.currentTimeMillis();

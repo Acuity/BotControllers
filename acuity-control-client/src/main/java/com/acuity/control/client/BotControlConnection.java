@@ -165,11 +165,11 @@ public class BotControlConnection {
             }
 
             RemoteScriptTask.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScriptTask.StartRequest.class);
-            ScriptNode executionConfig = scriptStartRequest.getExecutionConfig();
+            ScriptNode taskNode = scriptStartRequest.getTaskNode();
             RSAccount rsAccount = null;
 
-            String accountAssignmentTag = (String) executionConfig.getSettings().get("accountAssignmentTag");
-            boolean registrationEnabled = (boolean) executionConfig.getSettings().get("registrationEnabled");
+            String accountAssignmentTag = (String) taskNode.getSettings().get("accountAssignmentTag");
+            boolean registrationEnabled = (boolean) taskNode.getSettings().get("registrationEnabled");
             if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
 
                 logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
@@ -183,7 +183,7 @@ public class BotControlConnection {
                 logger.debug("Remote Task Request - Adding task to queue.");
 
                 BotClientConfig botClientConfig = botControl.getBotClientConfig();
-                botClientConfig.getTaskNodeList().add(0, executionConfig);
+                botClientConfig.getTaskNodeList().add(0, taskNode);
                 if (!botControl.updateClientConfig(botClientConfig)) {
                     logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
                     botControl.getRsAccountManager().clearRSAccount();

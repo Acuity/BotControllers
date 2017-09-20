@@ -57,9 +57,14 @@ public class ScriptManager {
             ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
             if (scriptSelector != null && scriptSelector.getNodeList() != null){
                 for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
-                    if (scriptNode.getComplete().orElse(false)) continue;
+                    if (scriptNode.getComplete().orElse(false)) {
+                        logger.debug("Script node completed. {}", scriptNode);
+                        continue;
+                    }
 
-                    if (ScriptConditionEvaluator.evaluate(botControl, scriptNode.getEvaluatorGroup().getStartEvaluators())){
+                    List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+                    if (startEvaluators == null || startEvaluators.size() > 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                        logger.info("Selected new current script. {}", scriptNode);
                         this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
                         botControl.sendClientState();
                         return;
@@ -103,6 +108,7 @@ public class ScriptManager {
             if (taskNodeList != null && taskNodeList.size() > 0){
                 ScriptNode taskNode = taskNodeList.get(0);
                 if (currentTaskPair == null || !Objects.equals(taskNode.getUID(), currentTaskPair.getKey())){
+                    logger.info("Updated BotClientConfig contains new task at position 0. {}", taskNode);
                     this.currentTaskPair = new Pair<>(taskNode.getUID(), getScriptInstanceOf(taskNode));
                 }
             }
@@ -126,22 +132,20 @@ public class ScriptManager {
     }
 
 
-    private static final Object lock2 = new Object();
-    private Object getScriptInstanceOf(ScriptNode scriptNode) {
-        synchronized (lock2) {
-            if (scriptNode != null) {
-                if (!scriptInstances.containsKey(scriptNode.getUID())) {
-                    logger.debug("Creating Script Instance - {}.", scriptNode.getUID());
-                    Object instanceOfScript = botControl.createInstanceOfScript(scriptNode);
-                    logger.debug("Creation of {} complete.", instanceOfScript);
-                    if (instanceOfScript != null) {
-                        scriptInstances.put(scriptNode.getUID(), instanceOfScript);
-                        return instanceOfScript;
-                    }
 
+    private Object getScriptInstanceOf(ScriptNode scriptNode) {
+        if (scriptNode != null) {
+            if (!scriptInstances.containsKey(scriptNode.getUID())) {
+                logger.debug("Creating Script Instance - {}.", scriptNode.getUID());
+                Object instanceOfScript = botControl.createInstanceOfScript(scriptNode);
+                logger.debug("Creation of {} complete.", instanceOfScript);
+                if (instanceOfScript != null) {
+                    scriptInstances.put(scriptNode.getUID(), instanceOfScript);
+                    return instanceOfScript;
                 }
-                return scriptInstances.get(scriptNode.getUID());
+
             }
+            return scriptInstances.get(scriptNode.getUID());
         }
         return null;
     }

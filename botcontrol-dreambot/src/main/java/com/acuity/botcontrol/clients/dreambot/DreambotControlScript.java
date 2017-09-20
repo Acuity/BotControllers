@@ -7,12 +7,14 @@ import com.acuity.control.client.machine.MachineUtil;
 import com.acuity.control.client.scripts.ScriptInstance;
 import com.acuity.control.client.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import com.acuity.db.util.ArangoDBUtil;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.Boot;
@@ -21,7 +23,6 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.listener.AdvancedMessageListener;
 import org.dreambot.api.script.listener.InventoryListener;
-import org.dreambot.api.script.listener.MessageListener;
 import org.dreambot.api.script.loader.NetworkLoader;
 import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.message.Message;
@@ -55,6 +56,20 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(MachineUtil.getCPUUsage());
             clientState.setGameState(getClient().getGameStateID());
+
+
+            BotClientConfig botClientConfig = botControl.getBotClientConfig();
+            if (botClientConfig != null){
+                clientState.setLastConfigHash(botClientConfig.hashCode());
+                botControl.getScriptManager().getScriptInstance().ifPresent(pair -> {
+                    ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
+                    if (scriptSelector != null){
+                        clientState.setLastScriptID(scriptSelector.getScriptNode(pair.getKey()).map(ScriptNode::getScriptID).orElse(null));
+                    }
+                });
+            }
+
+
             send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
         }
 
@@ -136,7 +151,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
         botControl.onLoop();
 
-        int result = botControl.getBreakManager().onloop();
+        int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
         result = loginHandler.onLoop();

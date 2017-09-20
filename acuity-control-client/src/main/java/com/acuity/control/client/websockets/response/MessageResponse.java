@@ -1,6 +1,5 @@
 package com.acuity.control.client.websockets.response;
 
-import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
