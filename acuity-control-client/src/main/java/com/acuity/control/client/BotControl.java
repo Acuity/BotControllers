@@ -83,11 +83,15 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     public boolean updateClientConfig(BotClientConfig botClientConfig){
-        return false;
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER).setBody(botClientConfig))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     public boolean updateClientState(BotClientState botClientState){
-        return false;
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER).setBody(botClientConfig))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     @SuppressWarnings("unchecked")
