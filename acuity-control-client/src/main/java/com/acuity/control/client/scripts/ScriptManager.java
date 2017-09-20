@@ -100,7 +100,7 @@ public class ScriptManager {
             logger.debug("Received Updated Client Config - {}.", botClientConfig.hashCode());
 
             List<ScriptNode> taskNodeList = botClientConfig.getTaskNodeList();
-            if (taskNodeList.size() > 0){
+            if (taskNodeList != null && taskNodeList.size() > 0){
                 ScriptNode taskNode = taskNodeList.get(0);
                 if (currentTaskPair == null || !Objects.equals(taskNode.getUID(), currentTaskPair.getKey())){
                     this.currentTaskPair = new Pair<>(taskNode.getUID(), getScriptInstanceOf(taskNode));
