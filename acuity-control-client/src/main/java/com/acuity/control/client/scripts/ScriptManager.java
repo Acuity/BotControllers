@@ -69,19 +69,28 @@ public class ScriptManager {
             return;
         }
 
+        logger.debug("Selecting next script. {}", currentScriptNode);
+
         ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
         if (scriptSelector != null && scriptSelector.getNodeList() != null){
-            List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList().stream().filter(scriptNode -> scriptNode.getComplete().orElse(false)).collect(Collectors.toList());
-            int currentIndex = currentScriptNode == null ? -1 : nodeList.indexOf(currentScriptNode);
-            currentIndex++;
-            if (currentIndex >= nodeList.size()) currentIndex = 0;
+            List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList();
+            int index = currentScriptNode == null ? -1 : nodeList.indexOf(currentScriptNode);
+            logger.debug("Initial index. {}/{}", index, nodeList.size());
+            index++;
+            if (index >= nodeList.size()) index = 0;
 
-            ScriptNode scriptNode = nodeList.get(currentIndex);
+            ScriptNode scriptNode = nodeList.get(index);
+            logger.debug("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size());
+
             List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-            if (startEvaluators == null || startEvaluators.size() > 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+            if (startEvaluators == null || startEvaluators.size() == 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
                 logger.info("Selected new current script. {}", scriptNode);
                 this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
                 botControl.sendClientState();
+            }
+            else {
+                logger.info("Failed start evaluation.");
+                selectNextScript(scriptNode);
             }
         }
     }
