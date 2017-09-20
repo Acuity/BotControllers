@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -54,26 +55,34 @@ public class ScriptManager {
         Pair<String, Object> currentScriptPair = this.currentScriptPair;
         ScriptNode currentScriptNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getScriptNode(currentScriptPair.getKey()).orElse(null) : null;
         if (currentScriptNode == null){
-            ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
-            if (scriptSelector != null && scriptSelector.getNodeList() != null){
-                for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getNodeList()) {
-                    if (scriptNode.getComplete().orElse(false)) {
-                        logger.debug("Script node completed. {}", scriptNode);
-                        continue;
-                    }
-
-                    List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-                    if (startEvaluators == null || startEvaluators.size() > 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
-                        logger.info("Selected new current script. {}", scriptNode);
-                        this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
-                        botControl.sendClientState();
-                        return;
-                    }
-                }
-            }
+           selectNextScript(null);
         }
         else if (evaluate(currentScriptPair, currentScriptNode)){
             botControl.getRsAccountManager().handle(currentScriptNode.getSettings());
+        }
+    }
+
+    private void selectNextScript(ScriptNode currentScriptNode){
+        BotClientConfig botClientConfig = botControl.getBotClientConfig();
+        if (botClientConfig == null) {
+            logger.debug("selectNextScript - null botClientConfig.");
+            return;
+        }
+
+        ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
+        if (scriptSelector != null && scriptSelector.getNodeList() != null){
+            List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList().stream().filter(scriptNode -> scriptNode.getComplete().orElse(false)).collect(Collectors.toList());
+            int currentIndex = currentScriptNode == null ? -1 : nodeList.indexOf(currentScriptNode);
+            currentIndex++;
+            if (currentIndex >= nodeList.size()) currentIndex = 0;
+
+            ScriptNode scriptNode = nodeList.get(currentIndex);
+            List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+            if (startEvaluators == null || startEvaluators.size() > 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                logger.info("Selected new current script. {}", scriptNode);
+                this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
+                botControl.sendClientState();
+            }
         }
     }
 
@@ -155,41 +164,44 @@ public class ScriptManager {
     }
 
     public void onScriptEnded(Pair<String, Object> closedScript) {
-        if (closedScript == null) return;
+        synchronized (lock){
+            if (closedScript == null) return;
 
-        logger.debug("Script pair stopped - {}.", closedScript);
+            logger.debug("Script pair stopped - {}.", closedScript);
 
-        BotClientConfig botClientConfig = botControl.getBotClientConfig();
-        ScriptNode scriptNode = botClientConfig.getScriptSelector().getScriptNode(closedScript.getKey()).orElse(null);
-        if (scriptNode == null){
-            logger.debug("ScriptNode not found.");
-        }
-        else {
-            logger.debug("ScriptNode found.");
-            boolean task = botClientConfig.getTask(scriptNode.getUID()).isPresent();
-            if (task){
-                logger.debug("ScriptNode was task.");
-                botClientConfig.getTaskNodeList().remove(scriptNode);
-                botControl.updateClientConfig(botClientConfig);
+            BotClientConfig botClientConfig = botControl.getBotClientConfig();
+            ScriptNode scriptNode = botClientConfig.getScriptSelector().getScriptNode(closedScript.getKey()).orElse(null);
+            if (scriptNode == null){
+                logger.debug("ScriptNode not found.");
             }
             else {
-                if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)){
-                    logger.debug("ScriptNode was completeOnStop.");
-                    scriptNode.setComplete(true);
+                logger.debug("ScriptNode found.");
+                boolean task = botClientConfig.getTask(scriptNode.getUID()).isPresent();
+                if (task){
+                    logger.debug("ScriptNode was task.");
+                    botClientConfig.getTaskNodeList().remove(scriptNode);
                     botControl.updateClientConfig(botClientConfig);
                 }
+                else {
+                    if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)){
+                        logger.debug("ScriptNode was completeOnStop.");
+                        scriptNode.setComplete(true);
+                        botControl.updateClientConfig(botClientConfig);
+                    }
 
-                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)){
-                    logger.debug("ScriptNode was destroyInstanceOnStop.");
-                    destroyInstance(closedScript.getValue());
+                    if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)){
+                        logger.debug("ScriptNode was destroyInstanceOnStop.");
+                        destroyInstance(closedScript.getValue());
+                    }
                 }
             }
-        }
 
-        if (getScriptInstance().map(pair -> Objects.equals(closedScript.getKey(), pair.getKey())).orElse(false)){
-            logger.debug("ScriptNode was currentScriptPair.");
-            currentScriptPair = null;
-            handleAccountTransition(scriptNode);
+            if (getScriptInstance().map(pair -> Objects.equals(closedScript.getKey(), pair.getKey())).orElse(false)){
+                logger.debug("ScriptNode was currentScriptPair.");
+                currentScriptPair = null;
+                handleAccountTransition(scriptNode);
+                selectNextScript(scriptNode);
+            }
         }
     }
 }
