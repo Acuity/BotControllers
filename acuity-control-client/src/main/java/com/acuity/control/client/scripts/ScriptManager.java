@@ -6,6 +6,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,7 @@ public class ScriptManager {
         logger.debug("Selecting next script. {}", currentScriptNode);
 
         ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
-        if (scriptSelector != null && scriptSelector.getNodeList() != null){
+        if (scriptSelector != null && scriptSelector.getNodeList() != null && scriptSelector.getNodeList().size() > 0){
             List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList();
             int index = currentScriptNode == null ? -1 : nodeList.indexOf(currentScriptNode);
             logger.debug("Initial index. {}/{}", index, nodeList.size() - 1);
@@ -170,25 +171,25 @@ public class ScriptManager {
         return Optional.ofNullable(currentScriptPair);
     }
 
-    public void onScriptEnded(Pair<String, Object> closedScript) {
+    public void onScriptEnded(Pair<String, Object> closedNode) {
         synchronized (lock){
-            if (closedScript == null) return;
+            if (closedNode == null) return;
 
             String collect = Arrays.stream(Thread.currentThread().getStackTrace()).map(stackTraceElement -> stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName()).collect(Collectors.joining(", "));
-            logger.debug("Script pair stopped - {}. from {}", closedScript, collect);
+            logger.debug("Script pair stopped - {}. from {}", closedNode, collect);
 
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
-            ScriptNode scriptNode = botClientConfig.getScriptNode(closedScript.getKey()).orElse(null);
+            ScriptNode scriptNode = botClientConfig.getScriptNode(closedNode.getKey()).orElse(null);
             if (scriptNode == null){
                 logger.debug("ScriptNode not found.");
             }
             else {
-                logger.debug("ScriptNode found.");
                 boolean task = botClientConfig.getTask(scriptNode.getUID()).isPresent();
+                logger.debug("ScriptNode found. task={}", task);
                 if (task){
-                    logger.debug("ScriptNode was task.");
-                    botClientConfig.getTaskNodeList().remove(scriptNode);
-                    botControl.updateClientConfig(botClientConfig);
+                    boolean removed = botClientConfig.getTaskNodeList().removeIf(taskNode -> Objects.equals(taskNode.getUID(), scriptNode.getUID()));
+                    boolean updated = botControl.updateClientConfig(botClientConfig);
+                    logger.debug("ScriptNode was task. removed={}, updated={}", removed, updated);
                 }
                 else {
                     if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)){
@@ -199,17 +200,17 @@ public class ScriptManager {
 
                     if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)){
                         logger.debug("ScriptNode was destroyInstanceOnStop.");
-                        destroyInstance(closedScript.getValue());
-                        scriptInstances.remove(closedScript.getKey());
+                        destroyInstance(closedNode.getValue());
+                        scriptInstances.remove(closedNode.getKey());
                     }
                 }
             }
 
-            if (getScriptInstance().map(pair -> Objects.equals(closedScript.getKey(), pair.getKey())).orElse(false)){
+            if (getScriptInstance().map(pair -> Objects.equals(closedNode.getKey(), pair.getKey())).orElse(false)){
                 logger.debug("ScriptNode was currentScriptPair.");
                 currentScriptPair = null;
                 handleAccountTransition(scriptNode);
-                selectNextScript(scriptNode);
+                botControl.sendClientState();
             }
         }
     }
