@@ -33,7 +33,7 @@ public class RSAccountManager {
 
     public void handle(Map<String, Object> settings){
         String accountAssignmentTag = (String) settings.get("accountAssignmentTag");
-        boolean registrationEnabled = (boolean) settings.get("registrationEnabled");
+        boolean registrationEnabled = (boolean) settings.getOrDefault("registrationEnabled", false);
 
         if (accountAssignmentTag == null) return;
 
