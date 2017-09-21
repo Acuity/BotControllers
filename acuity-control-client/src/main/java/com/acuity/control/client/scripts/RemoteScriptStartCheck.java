@@ -5,6 +5,6 @@ package com.acuity.control.client.scripts;
  */
 public interface RemoteScriptStartCheck {
 
-    boolean isAcceptingScriptStarts();
+    boolean isAcceptingTasks();
 
 }

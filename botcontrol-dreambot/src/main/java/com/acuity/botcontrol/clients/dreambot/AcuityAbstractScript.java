@@ -17,7 +17,7 @@ public abstract class AcuityAbstractScript extends AbstractScript implements Rem
     }
 
     @Override
-    public boolean isAcceptingScriptStarts(){
+    public boolean isAcceptingTasks(){
         return true;
     }
 }

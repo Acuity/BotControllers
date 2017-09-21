@@ -82,14 +82,21 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return proxyManager;
     }
 
-    public boolean updateClientConfig(BotClientConfig botClientConfig){
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER).setBody(botClientConfig))
+    public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull){
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
+                .setBody(0, botClientConfig)
+                .setBody(1, serializeNull)
+        )
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
-    public boolean updateClientState(BotClientState botClientState){
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER).setBody(botClientConfig))
+    public boolean updateClientState(BotClientState botClientState, boolean serializeNull){
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER)
+                .setBody(0, botClientState)
+                .setBody(1, serializeNull)
+
+        )
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }

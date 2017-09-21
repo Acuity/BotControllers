@@ -29,7 +29,7 @@ public class ScriptConditionEvaluator {
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
         if (evaluatorKey != null && evaluatorJSON != null){
-            logger.debug("Debugging - {}, {}.", evaluatorKey, evaluatorJSON);
+            logger.trace("Evaluating - {}, {}.", evaluatorKey, evaluatorJSON);
             Class aClass = Evaluators.fromKey(evaluatorKey);
             if (aClass != null){
                 Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);

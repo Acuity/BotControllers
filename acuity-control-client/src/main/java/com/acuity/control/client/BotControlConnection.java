@@ -156,7 +156,7 @@ public class BotControlConnection {
 
             Pair<String, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
-                if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingScriptStarts()){
+                if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingTasks()){
                     logger.debug("Remote Task Request - Current script not accepting new tasks.");
                     botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                             .setBody(new RemoteScriptTask.StartResponse()));
@@ -184,7 +184,7 @@ public class BotControlConnection {
 
                 BotClientConfig botClientConfig = botControl.getBotClientConfig();
                 botClientConfig.getTaskNodeList().add(0, taskNode);
-                if (!botControl.updateClientConfig(botClientConfig)) {
+                if (!botControl.updateClientConfig(botClientConfig, true)) {
                     logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
                     botControl.getRsAccountManager().clearRSAccount();
                 }

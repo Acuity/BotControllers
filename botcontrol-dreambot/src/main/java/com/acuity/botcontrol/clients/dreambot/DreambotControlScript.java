@@ -57,7 +57,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             clientState.setCpuUsage(MachineUtil.getCPUUsage());
             clientState.setGameState(getClient().getGameStateID());
 
-
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
             if (botClientConfig != null){
                 clientState.setLastConfigHash(botClientConfig.hashCode());
@@ -69,8 +68,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 });
             }
 
-
-            send(new MessagePackage(MessagePackage.Type.CLIENT_STATE_UPDATE, MessagePackage.SERVER).setBody(clientState));
+            botControl.updateClientState(clientState, false);
         }
 
         @Override

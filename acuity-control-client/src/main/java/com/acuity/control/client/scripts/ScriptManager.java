@@ -6,7 +6,6 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,14 +187,14 @@ public class ScriptManager {
                 logger.debug("ScriptNode found. task={}", task);
                 if (task){
                     boolean removed = botClientConfig.getTaskNodeList().removeIf(taskNode -> Objects.equals(taskNode.getUID(), scriptNode.getUID()));
-                    boolean updated = botControl.updateClientConfig(botClientConfig);
+                    boolean updated = botControl.updateClientConfig(botClientConfig, true);
                     logger.debug("ScriptNode was task. removed={}, updated={}", removed, updated);
                 }
                 else {
                     if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)){
                         logger.debug("ScriptNode was completeOnStop.");
                         scriptNode.setComplete(true);
-                        botControl.updateClientConfig(botClientConfig);
+                        botControl.updateClientConfig(botClientConfig, true);
                     }
 
                     if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)){
