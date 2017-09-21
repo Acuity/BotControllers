@@ -143,6 +143,9 @@ public class BotControlConnection {
         else if (messagePackage.getMessageType() == MessagePackage.Type.BAD_LOGIN){
             handleLogin();
         }
+        else if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
+            System.exit(0);
+        }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
             BotClientConfig config = messagePackage.getBodyAs(BotClientConfig.class);
             botControl.onConfigUpdate(config);
