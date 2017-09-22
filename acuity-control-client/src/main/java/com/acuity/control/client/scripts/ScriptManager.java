@@ -69,6 +69,8 @@ public class ScriptManager {
             List<ScriptNode> continuousNodeList = botClientConfig.getScriptSelector().getContinuousNodeList();
             if (continuousNodeList != null){
                 for (ScriptNode scriptNode : continuousNodeList) {
+                    if (scriptNode.getComplete().orElse(false)) continue;
+
                     List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
                     if (ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
                         this.currentContinuousPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
