@@ -19,9 +19,6 @@ public class ScriptConditionEvaluator {
 
     public static boolean evaluate(BotControl botControl, List<ScriptEvaluator> evaluators){
         if (evaluators == null) return true;
-        RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
-
-        if (rsAccount == null || !botControl.isSignedIn(rsAccount)) return true;
 
         for (ScriptEvaluator evaluator : evaluators) {
             if (!evaluate(botControl, evaluator)) return false;
@@ -33,12 +30,13 @@ public class ScriptConditionEvaluator {
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
         if (evaluatorKey != null && evaluatorJSON != null){
-            logger.debug("Evaluating - {}, {}.", evaluatorKey, evaluatorJSON);
             Class aClass = Evaluators.fromKey(evaluatorKey);
             if (aClass != null){
                 Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);
                 try {
-                    return botControl.evaluate(instance);
+                    boolean evaluate = botControl.evaluate(instance);
+                    logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
+                    return evaluate;
                 }
                 catch (Throwable e){
                     logger.error("Error during evaluating.", e);

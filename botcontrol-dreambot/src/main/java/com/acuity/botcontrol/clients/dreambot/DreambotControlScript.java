@@ -54,8 +54,13 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         @Override
         public void sendClientState() {
             BotClientState clientState = new BotClientState();
-            clientState.setCpuUsage(MachineUtil.getCPUUsage());
-            clientState.setGameState(getClient().getGameStateID());
+
+            try {
+                clientState.setGameState(getClient().getGameStateID());
+            }
+            catch (Throwable e){
+                e.printStackTrace();
+            }
 
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
             if (botClientConfig != null){
@@ -153,7 +158,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        if (getClient().isLoggedIn()){
+        RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
+        if (rsAccount != null && botControl.isSignedIn(rsAccount)){
             Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
             if (dreambotScript != null) {
                 try {

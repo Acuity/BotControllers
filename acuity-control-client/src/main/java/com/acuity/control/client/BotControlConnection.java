@@ -213,6 +213,8 @@ public class BotControlConnection {
     public void sendScreenCapture(Integer scale) {
         BufferedImage screenCapture = botControl.getScreenCapture();
 
+        if (screenCapture == null) return;
+
         if(scale != 0){
             try {
                 screenCapture = Thumbnails.of(screenCapture)

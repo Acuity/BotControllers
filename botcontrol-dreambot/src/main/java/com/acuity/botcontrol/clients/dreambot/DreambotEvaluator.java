@@ -28,7 +28,9 @@ public class DreambotEvaluator {
         }
 
         if (evaluator instanceof VarpEvaluator){
+            if (!controlScript.getClient().isLoggedIn()) return false;
             int config = controlScript.getPlayerSettings().getConfig(((VarpEvaluator) evaluator).getVarpID());
+            System.out.println("Varp(" + ((VarpEvaluator) evaluator).getVarpID() + ") = " + config);
             return config != ((VarpEvaluator) evaluator).getVarp();
         }
 

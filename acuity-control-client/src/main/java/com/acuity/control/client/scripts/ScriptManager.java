@@ -3,6 +3,7 @@ package com.acuity.control.client.scripts;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
@@ -144,14 +145,12 @@ public class ScriptManager {
 
     private boolean evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
         List<ScriptEvaluator> runEvaluators = currentScriptNode.getEvaluatorGroup().getRunEvaluators();
-        logger.debug("Evaluating runEvaluators - {}.", runEvaluators);
         if (runEvaluators != null && runEvaluators.size() > 0 && !ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
             onScriptEnded(currentScriptPair);
             return false;
         }
 
         List<ScriptEvaluator> stopEvaluators = currentScriptNode.getEvaluatorGroup().getStopEvaluators();
-        logger.debug("Evaluating stopEvaluators - {}.", stopEvaluators);
         if (stopEvaluators != null && stopEvaluators.size() > 0 && ScriptConditionEvaluator.evaluate(botControl, stopEvaluators)){
             onScriptEnded(currentScriptPair);
             return false;
