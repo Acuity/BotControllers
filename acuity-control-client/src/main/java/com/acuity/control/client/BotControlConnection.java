@@ -157,7 +157,7 @@ public class BotControlConnection {
         else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_TASK_START){
             logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
 
-            Pair<String, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
+            Pair<String, Object> scriptInstance = botControl.getScriptManager().getExecutionPair().orElse(null);
             if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
                 if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingTasks()){
                     logger.debug("Remote Task Request - Current script not accepting new tasks.");

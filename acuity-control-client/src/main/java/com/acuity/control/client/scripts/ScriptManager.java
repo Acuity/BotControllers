@@ -47,7 +47,7 @@ public class ScriptManager {
         ScriptNode taskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
         if (taskNode != null){
             if (evaluate(currentTaskPair, taskNode)){
-                botControl.getRsAccountManager().handle(taskNode.getSettings());
+                botControl.getRsAccountManager().handle(null, taskNode.getSettings());
             }
             return;
         }
@@ -61,7 +61,7 @@ public class ScriptManager {
         ScriptNode continuousNode = currentContinuousPair != null ? botClientConfig.getScriptSelector().getContinuousNode(currentContinuousPair.getKey()).orElse(null) : null;
         if (continuousNode != null){
             if (evaluate(currentContinuousPair, continuousNode)){
-                botControl.getRsAccountManager().handle(continuousNode.getSettings());
+                botControl.getRsAccountManager().handle(botClientConfig.getScriptSelector().getSettings(), continuousNode.getSettings());
             }
             return;
         }
@@ -84,7 +84,7 @@ public class ScriptManager {
             selectNextBaseScript(lastScriptNodeUID);
         }
         else if (evaluate(currentScriptPair, baseNode)){
-            botControl.getRsAccountManager().handle(baseNode.getSettings());
+            botControl.getRsAccountManager().handle(botClientConfig.getScriptSelector().getSettings(), baseNode.getSettings());
         }
     }
 
@@ -216,8 +216,9 @@ public class ScriptManager {
         return null;
     }
 
-    public Optional<Pair<String, Object>> getScriptInstance() {
+    public Optional<Pair<String, Object>> getExecutionPair() {
         if (currentTaskPair != null) return Optional.of(currentTaskPair);
+        if (currentContinuousPair != null) return Optional.of(currentContinuousPair);
         return Optional.ofNullable(currentScriptPair);
     }
 

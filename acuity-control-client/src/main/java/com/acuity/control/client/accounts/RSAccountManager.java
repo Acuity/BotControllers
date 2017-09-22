@@ -31,9 +31,18 @@ public class RSAccountManager {
         this.botControl = botControl;
     }
 
-    public void handle(Map<String, Object> settings){
-        String accountAssignmentTag = (String) settings.get("accountAssignmentTag");
-        boolean registrationEnabled = (boolean) settings.getOrDefault("registrationEnabled", false);
+    public void handle(Map<String, Object> selectorSettings, Map<String, Object> nodeSettings){
+        String accountAssignmentTag = (String) nodeSettings.get("accountAssignmentTag");
+        boolean registrationEnabled = (boolean) nodeSettings.getOrDefault("registrationEnabled", false);
+
+        if (selectorSettings != null){
+            if (accountAssignmentTag == null){
+                accountAssignmentTag = (String) selectorSettings.get("accountAssignmentTag");
+            }
+            if (!nodeSettings.containsKey("registrationEnabled")){
+                registrationEnabled = (boolean) selectorSettings.getOrDefault("registrationEnabled", false);
+            }
+        }
 
         if (accountAssignmentTag == null) return;
 

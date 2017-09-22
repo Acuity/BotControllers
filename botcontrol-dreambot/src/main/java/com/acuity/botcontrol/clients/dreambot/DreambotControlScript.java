@@ -60,11 +60,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
             if (botClientConfig != null){
                 clientState.setLastConfigHash(botClientConfig.hashCode());
-                botControl.getScriptManager().getScriptInstance().ifPresent(pair -> {
-                    ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
-                    if (scriptSelector != null){
-                        clientState.setLastScriptID(scriptSelector.getScriptNode(pair.getKey()).map(ScriptNode::getScriptID).orElse(null));
-                    }
+                botControl.getScriptManager().getExecutionPair().ifPresent(pair -> {
+                    clientState.setLastScriptID(botClientConfig.getScriptNode(pair.getKey()).map(ScriptNode::getScriptID).orElse(null));
                 });
             }
 
@@ -155,7 +152,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<String, Object> dreambotScript = botControl.getScriptManager().getScriptInstance().orElse(null);
+        Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
         if (dreambotScript != null) {
             try {
                 int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
@@ -175,7 +172,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     @Override
     public void onPaint(Graphics graphics) {
         super.onPaint(graphics);
-        Pair<String, Object> scriptInstance = botControl.getScriptManager().getScriptInstance().orElse(null);
+        Pair<String, Object> scriptInstance = botControl.getScriptManager().getExecutionPair().orElse(null);
         if (scriptInstance != null) ((AbstractScript) scriptInstance.getValue()).onPaint(graphics);
     }
 
