@@ -27,6 +27,8 @@ public class ScriptManager {
     private Pair<String, Object> currentTaskPair;
     private Pair<String, Object> currentScriptPair;
 
+    private String lastScriptNodeUID;
+
     private Map<String, Object> scriptInstances = new ConcurrentHashMap<>();
 
     public ScriptManager(BotControl botControl) {
@@ -52,42 +54,61 @@ public class ScriptManager {
         Pair<String, Object> currentScriptPair = this.currentScriptPair;
         ScriptNode currentScriptNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getScriptNode(currentScriptPair.getKey()).orElse(null) : null;
         if (currentScriptNode == null){
-           selectNextScript(null);
+            selectNextScript(lastScriptNodeUID);
         }
         else if (evaluate(currentScriptPair, currentScriptNode)){
             botControl.getRsAccountManager().handle(currentScriptNode.getSettings());
         }
     }
 
-    private void selectNextScript(ScriptNode currentScriptNode){
+    private void selectNextScript(String lastScriptNodeUID){
         BotClientConfig botClientConfig = botControl.getBotClientConfig();
         if (botClientConfig == null) {
             logger.debug("selectNextScript - null botClientConfig.");
             return;
         }
 
-        logger.debug("Selecting next script. {}", currentScriptNode);
+        synchronized (lock){
+            ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
+            if (scriptSelector != null && scriptSelector.getNodeList() != null && scriptSelector.getNodeList().size() > 0){
+                logger.debug("Selecting next script. {}", lastScriptNodeUID);
 
-        ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
-        if (scriptSelector != null && scriptSelector.getNodeList() != null && scriptSelector.getNodeList().size() > 0){
-            List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList();
-            int index = currentScriptNode == null ? -1 : nodeList.indexOf(currentScriptNode);
-            logger.debug("Initial index. {}/{}", index, nodeList.size() - 1);
-            index++;
-            if (index >= nodeList.size()) index = 0;
+                List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList();
 
-            ScriptNode scriptNode = nodeList.get(index);
-            logger.debug("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
+                int index = -1;
+                for (int i = 0; i < nodeList.size(); i++) {
+                    ScriptNode scriptNode = nodeList.get(i);
+                    if (Objects.equals(scriptNode.getUID(), lastScriptNodeUID)) {
+                        index = i;
+                        break;
+                    }
+                }
 
-            List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-            if (startEvaluators == null || startEvaluators.size() == 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
-                this.currentScriptPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
-                logger.info("Selected new current script. {}", currentScriptPair);
-                botControl.sendClientState();
+                logger.debug("Initial index. {}/{}", index, nodeList.size() - 1);
+                index++;
+                if (index >= nodeList.size()) index = 0;
+
+                ScriptNode scriptNode = nodeList.get(index);
+                logger.debug("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
+
+                List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+                if (startEvaluators == null || startEvaluators.size() == 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                    handleAccountTransition(lastScriptNodeUID, scriptNode);
+                    setCurrentScriptPair(new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode)));
+                    logger.info("Selected new current script. {}", currentScriptPair);
+                    botControl.sendClientState();
+                    return;
+                }
+                else {
+                    logger.info("Failed start evaluation.");
+                    selectNextScript(scriptNode.getUID());
+                    return;
+                }
             }
             else {
-                logger.info("Failed start evaluation.");
-                selectNextScript(scriptNode);
+                if (botControl.getRsAccountManager().getRsAccount() != null){
+                    botControl.getRsAccountManager().clearRSAccount();
+                }
             }
         }
     }
@@ -110,11 +131,8 @@ public class ScriptManager {
         return true;
     }
 
-    private void handleAccountTransition(ScriptNode executionConfig) {
-        if (executionConfig == null) {
-            logger.debug("Handling Account Transition - no next script.");
-            botControl.getRsAccountManager().clearRSAccount();
-        }
+    private void handleAccountTransition(String lastScriptNodeUID, ScriptNode scriptNode) {
+
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
@@ -132,6 +150,12 @@ public class ScriptManager {
 
             cleanUpScriptInstances();
         }
+    }
+
+    private ScriptManager setCurrentScriptPair(Pair<String, Object> currentScriptPair) {
+        if (this.currentScriptPair != null) lastScriptNodeUID = this.currentScriptPair.getKey();
+        this.currentScriptPair = currentScriptPair;
+        return this;
     }
 
     private void cleanUpScriptInstances() {
@@ -188,6 +212,7 @@ public class ScriptManager {
                 if (task){
                     boolean removed = botClientConfig.getTaskNodeList().removeIf(taskNode -> Objects.equals(taskNode.getUID(), scriptNode.getUID()));
                     boolean updated = botControl.updateClientConfig(botClientConfig, true);
+                    currentTaskPair = null;
                     logger.debug("ScriptNode was task. removed={}, updated={}", removed, updated);
                 }
                 else {
@@ -202,14 +227,9 @@ public class ScriptManager {
                         destroyInstance(closedNode.getValue());
                         scriptInstances.remove(closedNode.getKey());
                     }
-                }
-            }
 
-            if (getScriptInstance().map(pair -> Objects.equals(closedNode.getKey(), pair.getKey())).orElse(false)){
-                logger.debug("ScriptNode was currentScriptPair.");
-                currentScriptPair = null;
-                handleAccountTransition(scriptNode);
-                botControl.sendClientState();
+                    setCurrentScriptPair(null);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.acuity.control.client.scripts;
 
 import com.acuity.control.client.BotControl;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.Evaluators;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.util.Json;
@@ -18,6 +19,9 @@ public class ScriptConditionEvaluator {
 
     public static boolean evaluate(BotControl botControl, List<ScriptEvaluator> evaluators){
         if (evaluators == null) return true;
+        RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
+
+        if (rsAccount == null || !botControl.isSignedIn(rsAccount)) return true;
 
         for (ScriptEvaluator evaluator : evaluators) {
             if (!evaluate(botControl, evaluator)) return false;
@@ -25,11 +29,11 @@ public class ScriptConditionEvaluator {
         return true;
     }
 
-    public static boolean evaluate(BotControl botControl, ScriptEvaluator evaluator){
+    private static boolean evaluate(BotControl botControl, ScriptEvaluator evaluator){
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
         if (evaluatorKey != null && evaluatorJSON != null){
-            logger.trace("Evaluating - {}, {}.", evaluatorKey, evaluatorJSON);
+            logger.debug("Evaluating - {}, {}.", evaluatorKey, evaluatorJSON);
             Class aClass = Evaluators.fromKey(evaluatorKey);
             if (aClass != null){
                 Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);
