@@ -62,6 +62,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 clientState.setLastConfigHash(botClientConfig.hashCode());
                 botControl.getScriptManager().getExecutionPair().ifPresent(pair -> {
                     clientState.setLastScriptID(botClientConfig.getScriptNode(pair.getKey()).map(ScriptNode::getScriptID).orElse(null));
+                    clientState.setLastScriptVersionID(botClientConfig.getScriptNode(pair.getKey()).map(ScriptNode::getScriptVersionID).orElse(null));
                 });
             }
 

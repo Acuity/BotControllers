@@ -58,8 +58,10 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         }, 3, 5, TimeUnit.SECONDS);
 
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            connection.sendScreenCapture(2);
-        }, 3, 5, TimeUnit.SECONDS);
+            if (connection.isConnected()) {
+                connection.sendScreenCapture(2);
+            }
+        }, 3, 10, TimeUnit.SECONDS);
     }
 
     public EventBus getEventBus() {

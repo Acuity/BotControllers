@@ -7,6 +7,8 @@ import com.google.common.eventbus.Subscribe;
 import org.dreambot.api.methods.MethodProvider;
 import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -14,6 +16,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class LoginHandler {
+
+    private static Logger logger = LoggerFactory.getLogger(LoginHandler.class);
 
 	private final Timer timer = new Timer();
 
@@ -33,7 +37,7 @@ public class LoginHandler {
 				case 2:
 					switch (dreambotControlScript.getClient().getLoginResponse()) {
 						case TOO_MANY_ATTEMPTS:
-							MethodProvider.log("Too many login attempts! Sleeping for 2 minutes.");
+                            logger.warn("Too many login attempts! Sleeping for 2 minutes.");
 							clearText(true);
 							timer.setRunTime(120000);
 							timer.reset();

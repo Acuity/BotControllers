@@ -219,8 +219,8 @@ public class BotControlConnection {
                         .size(screenCapture.getWidth() / (2 * scale), screenCapture.getHeight() / (2 * scale))
                         .outputFormat("jpg")
                         .asBufferedImage();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Throwable e) {
+                logger.error("Error during scaling screen capture.", e);
             }
         }
 
@@ -231,8 +231,8 @@ public class BotControlConnection {
                 byte[] imageBytes = baos.toByteArray();
                 send(new MessagePackage(MessagePackage.Type.REQUEST_SCREEN_CAP, MessagePackage.SERVER).setBody(imageBytes));
             }
-            catch (IOException e) {
-                e.printStackTrace();
+            catch (Throwable e) {
+                logger.error("Error during sending screen capture.", e);
             }
         }
     }

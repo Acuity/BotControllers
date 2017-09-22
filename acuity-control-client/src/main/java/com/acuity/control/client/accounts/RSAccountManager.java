@@ -112,7 +112,7 @@ public class RSAccountManager {
                             .run();
                     if (result){
                         boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
-                        if (added) return requestAccountFromTag(tagID, filterUnassignable, force, registerNewOnFail);
+                        if (added) return requestAccountFromTag(tagID, filterUnassignable, force, false);
                     }
                 } catch (Exception e) {
                     logger.error("Error during account creation.", e);
@@ -139,14 +139,17 @@ public class RSAccountManager {
     }
 
     public void onBannedAccount(RSAccount account) {
+        logger.warn("Account banned. {}", account);
         botControl.requestTags("Banned").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 
     public void onLockedAccount(RSAccount account) {
+        logger.warn("Account locked. {}", account);
         botControl.requestTags("Locked").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 
     public void onWrongLogin(RSAccount account) {
+        logger.warn("Account wrong login. {}", account);
         botControl.requestTags("Incorrect Login").forEach(tag -> botControl.requestTagAccount(account, tag));
     }
 }
