@@ -25,6 +25,7 @@ public class ScriptManager {
     private BotControl botControl;
 
     private Pair<String, Object> currentTaskPair;
+    private Pair<String, Object> currentContinuousPair;
     private Pair<String, Object> currentScriptPair;
 
     private String lastScriptNodeUID;
@@ -43,37 +44,63 @@ public class ScriptManager {
         }
 
         Pair<String, Object> currentTaskPair = this.currentTaskPair;
-        ScriptNode currentTaskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
-        if (currentTaskNode != null){
-            if (evaluate(currentTaskPair, currentTaskNode)){
-                botControl.getRsAccountManager().handle(currentTaskNode.getSettings());
+        ScriptNode taskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
+        if (taskNode != null){
+            if (evaluate(currentTaskPair, taskNode)){
+                botControl.getRsAccountManager().handle(taskNode.getSettings());
             }
             return;
         }
 
-        Pair<String, Object> currentScriptPair = this.currentScriptPair;
-        ScriptNode currentScriptNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getScriptNode(currentScriptPair.getKey()).orElse(null) : null;
-        if (currentScriptNode == null){
-            selectNextScript(lastScriptNodeUID);
+        if (botClientConfig.getScriptSelector() == null) {
+            logger.debug("onLoop - null scriptSelector.");
+            return;
         }
-        else if (evaluate(currentScriptPair, currentScriptNode)){
-            botControl.getRsAccountManager().handle(currentScriptNode.getSettings());
+
+        Pair<String, Object> currentContinuousPair = this.currentContinuousPair;
+        ScriptNode continuousNode = currentContinuousPair != null ? botClientConfig.getScriptSelector().getContinuousNode(currentContinuousPair.getKey()).orElse(null) : null;
+        if (continuousNode != null){
+            if (evaluate(currentContinuousPair, continuousNode)){
+                botControl.getRsAccountManager().handle(continuousNode.getSettings());
+            }
+            return;
+        }
+        else {
+            List<ScriptNode> continuousNodeList = botClientConfig.getScriptSelector().getContinuousNodeList();
+            if (continuousNodeList != null){
+                for (ScriptNode scriptNode : continuousNodeList) {
+                    List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+                    if (ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                        this.currentContinuousPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
+                        return;
+                    }
+                }
+            }
+        }
+
+        Pair<String, Object> currentScriptPair = this.currentScriptPair;
+        ScriptNode baseNode = currentScriptPair != null ? botClientConfig.getScriptSelector().getBaseNode(currentScriptPair.getKey()).orElse(null) : null;
+        if (baseNode == null){
+            selectNextBaseScript(lastScriptNodeUID);
+        }
+        else if (evaluate(currentScriptPair, baseNode)){
+            botControl.getRsAccountManager().handle(baseNode.getSettings());
         }
     }
 
-    private void selectNextScript(String lastScriptNodeUID){
+    private void selectNextBaseScript(String lastScriptNodeUID){
         BotClientConfig botClientConfig = botControl.getBotClientConfig();
         if (botClientConfig == null) {
-            logger.debug("selectNextScript - null botClientConfig.");
+            logger.debug("selectNextBaseScript - null botClientConfig.");
             return;
         }
 
         synchronized (lock){
             ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
-            if (scriptSelector != null && scriptSelector.getNodeList() != null && scriptSelector.getNodeList().size() > 0){
+            if (scriptSelector != null && scriptSelector.getBaseNodeList() != null && scriptSelector.getBaseNodeList().size() > 0){
                 logger.debug("Selecting next script. {}", lastScriptNodeUID);
 
-                List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getNodeList();
+                List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getBaseNodeList();
 
                 int index = -1;
                 for (int i = 0; i < nodeList.size(); i++) {
@@ -101,7 +128,7 @@ public class ScriptManager {
                 }
                 else {
                     logger.info("Failed start evaluation.");
-                    selectNextScript(scriptNode.getUID());
+                    selectNextBaseScript(scriptNode.getUID());
                     return;
                 }
             }
@@ -228,7 +255,14 @@ public class ScriptManager {
                         scriptInstances.remove(closedNode.getKey());
                     }
 
-                    setCurrentScriptPair(null);
+                    if (botClientConfig.getScriptSelector().getBaseNode(closedNode.getKey()).isPresent()){
+                        logger.debug("currentBasePair cleared.");
+                        setCurrentScriptPair(null);
+                    }
+                    else if (botClientConfig.getScriptSelector().getContinuousNode(closedNode.getKey()).isPresent()){
+                        logger.debug("currentContinuousPair cleared.");
+                        currentContinuousPair = null;
+                    }
                 }
             }
         }
