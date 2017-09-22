@@ -229,6 +229,11 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract BufferedImage getScreenCapture();
 
+    public boolean isSignedIn(){
+        RSAccount rsAccount = getRsAccountManager().getRsAccount();
+        return isSignedIn(rsAccount);
+    }
+
     public void onLoop() {
         try {
             scriptManager.onLoop();

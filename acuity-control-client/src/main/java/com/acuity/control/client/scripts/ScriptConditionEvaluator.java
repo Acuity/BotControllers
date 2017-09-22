@@ -18,8 +18,6 @@ public class ScriptConditionEvaluator {
     private static Logger logger = LoggerFactory.getLogger(ScriptConditionEvaluator.class);
 
     public static boolean evaluate(BotControl botControl, List<ScriptEvaluator> evaluators){
-        if (evaluators == null) return true;
-
         for (ScriptEvaluator evaluator : evaluators) {
             if (!evaluate(botControl, evaluator)) return false;
         }
@@ -29,21 +27,22 @@ public class ScriptConditionEvaluator {
     private static boolean evaluate(BotControl botControl, ScriptEvaluator evaluator){
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
-        if (evaluatorKey != null && evaluatorJSON != null){
-            Class aClass = Evaluators.fromKey(evaluatorKey);
-            if (aClass != null){
-                Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);
-                try {
-                    boolean evaluate = botControl.evaluate(instance);
-                    logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
-                    return evaluate;
-                }
-                catch (Throwable e){
-                    logger.error("Error during evaluating.", e);
-                }
+
+        if (evaluatorKey != null && evaluatorJSON != null) return true;
+
+        Class aClass = Evaluators.fromKey(evaluatorKey);
+        if (aClass != null) {
+            Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);
+            try {
+                boolean evaluate = botControl.evaluate(instance);
+                logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
+                return evaluate;
+            } catch (Throwable e) {
+                logger.error("Error during evaluating.", e);
             }
         }
-        return false;
+
+        return true;
     }
 
 }

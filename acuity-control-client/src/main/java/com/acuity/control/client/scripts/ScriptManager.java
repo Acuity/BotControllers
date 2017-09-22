@@ -44,6 +44,8 @@ public class ScriptManager {
             return;
         }
 
+        logger.debug("task={}, con={}, base={}", currentContinuousPair, currentContinuousPair, currentScriptPair);
+
         Pair<String, Object> currentTaskPair = this.currentTaskPair;
         ScriptNode taskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
         if (taskNode != null){
@@ -73,8 +75,9 @@ public class ScriptManager {
                     if (scriptNode.getComplete().orElse(false)) continue;
 
                     List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-                    if (ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                    if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
                         this.currentContinuousPair = new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode));
+                        logger.info("Selected new continuous script. {}", currentContinuousPair);
                         return;
                     }
                 }
@@ -122,10 +125,9 @@ public class ScriptManager {
                 logger.debug("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
 
                 List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-                if (startEvaluators == null || startEvaluators.size() == 0 || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
-                    handleAccountTransition(lastScriptNodeUID, scriptNode);
+                if (startEvaluators == null || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
                     setCurrentScriptPair(new Pair<>(scriptNode.getUID(), getScriptInstanceOf(scriptNode)));
-                    logger.info("Selected new current script. {}", currentScriptPair);
+                    logger.info("Selected new base script. {}", currentScriptPair);
                     botControl.sendClientState();
                     return;
                 }
@@ -145,22 +147,18 @@ public class ScriptManager {
 
     private boolean evaluate(Pair<String, Object> currentScriptPair, ScriptNode currentScriptNode){
         List<ScriptEvaluator> runEvaluators = currentScriptNode.getEvaluatorGroup().getRunEvaluators();
-        if (runEvaluators != null && runEvaluators.size() > 0 && !ScriptConditionEvaluator.evaluate(botControl, currentScriptNode.getEvaluatorGroup().getRunEvaluators())){
+        if (runEvaluators != null && !ScriptConditionEvaluator.evaluate(botControl, runEvaluators)){
             onScriptEnded(currentScriptPair);
             return false;
         }
 
         List<ScriptEvaluator> stopEvaluators = currentScriptNode.getEvaluatorGroup().getStopEvaluators();
-        if (stopEvaluators != null && stopEvaluators.size() > 0 && ScriptConditionEvaluator.evaluate(botControl, stopEvaluators)){
+        if (stopEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, stopEvaluators)){
             onScriptEnded(currentScriptPair);
             return false;
         }
 
         return true;
-    }
-
-    private void handleAccountTransition(String lastScriptNodeUID, ScriptNode scriptNode) {
-
     }
 
     public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
@@ -242,6 +240,7 @@ public class ScriptManager {
                     boolean removed = botClientConfig.getTaskNodeList().removeIf(taskNode -> Objects.equals(taskNode.getUID(), scriptNode.getUID()));
                     boolean updated = botControl.updateClientConfig(botClientConfig, true);
                     currentTaskPair = null;
+                    destroyInstance(closedNode.getValue());
                     logger.debug("ScriptNode was task. removed={}, updated={}", removed, updated);
                 }
                 else {
