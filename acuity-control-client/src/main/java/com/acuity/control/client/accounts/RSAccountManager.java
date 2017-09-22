@@ -47,6 +47,7 @@ public class RSAccountManager {
         if (accountAssignmentTag == null) return;
 
         if (rsAccount != null && !rsAccount.getTagIDs().contains(accountAssignmentTag)){
+            logger.debug("RSAccount tags do not contain current tag. {}, {}", accountAssignmentTag, rsAccount.getTagIDs());
             clearRSAccount();
         }
 

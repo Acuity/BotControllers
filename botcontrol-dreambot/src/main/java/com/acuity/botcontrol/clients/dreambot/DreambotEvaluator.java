@@ -29,7 +29,7 @@ public class DreambotEvaluator {
 
         if (evaluator instanceof VarpEvaluator){
             int config = controlScript.getPlayerSettings().getConfig(((VarpEvaluator) evaluator).getVarpID());
-            return config == ((VarpEvaluator) evaluator).getVarp();
+            return config != ((VarpEvaluator) evaluator).getVarp();
         }
 
         return false;
