@@ -186,7 +186,7 @@ public class BotControlConnection {
                 logger.debug("Remote Task Request - Adding task to queue.");
 
                 BotClientConfig botClientConfig = botControl.getBotClientConfig();
-                botClientConfig.getTaskNodeList().add(0, taskNode);
+                botClientConfig.getTaskNodeList().add(taskNode);
                 if (!botControl.updateClientConfig(botClientConfig, true)) {
                     logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
                     botControl.getRsAccountManager().clearRSAccount();

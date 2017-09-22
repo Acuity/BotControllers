@@ -152,20 +152,23 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         result = loginHandler.onLoop();
         if (result > 0) return result;
 
-        Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
-        if (dreambotScript != null) {
-            try {
-                int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
-                if (i < 0) {
-                    botControl.getScriptManager().onScriptEnded(dreambotScript);
-                    return 2000;
+        if (getClient().isLoggedIn()){
+            Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
+            if (dreambotScript != null) {
+                try {
+                    int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
+                    if (i < 0) {
+                        botControl.getScriptManager().onScriptEnded(dreambotScript);
+                        return 2000;
+                    }
+                    return i;
                 }
-                return i;
-            }
-            catch (Throwable e){
-                logger.error("Error during scriptOnLoop", e);
+                catch (Throwable e){
+                    logger.error("Error during scriptOnLoop", e);
+                }
             }
         }
+
         return 1000;
     }
 
@@ -254,11 +257,11 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             setBotControl(clazz.getSuperclass(), abstractScript);
             abstractScript.registerMethodContext(getClient());
             abstractScript.registerContext(getClient());
-            if (args.length > 0) abstractScript.onStart(args);
+            if (args != null && args.length > 0) abstractScript.onStart(args);
             else abstractScript.onStart();
             return abstractScript;
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            logger.error("Error during script startup.", e);
         }
         return null;
     }

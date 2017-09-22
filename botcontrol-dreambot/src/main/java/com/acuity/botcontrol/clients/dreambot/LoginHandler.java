@@ -27,16 +27,6 @@ public class LoginHandler {
 	public int onLoop() {
 		RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
 
-		if (account != null && Strings.isNullOrEmpty(account.getIgn()) && dreambotControlScript.getClient().isLoggedIn()){
-			String ign = Optional.ofNullable(dreambotControlScript.getClient().getLocalPlayer()).map(Player::getName).orElse(null);
-			if (ign != null) {
-				dreambotControlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
-						.setBody(0, ign)
-						.setBody(1, account.getEmail())
-				);
-			}
-		}
-
 		if (account != null && dreambotControlScript.getClient().getGameStateID() < 25) {
 			System.out.println(dreambotControlScript.getClient().getLoginIndex());
 			switch (dreambotControlScript.getClient().getLoginIndex()) {
@@ -72,12 +62,19 @@ public class LoginHandler {
 					break;
 			}
 			return 1000;
-		} else {
-			if (account == null || !account.getEmail().equals(dreambotControlScript.getClient().getUsername())) {
-				if (dreambotControlScript.getClient().isLoggedIn()) {
-					dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
-					dreambotControlScript.getTabs().logout();
-					return 1000;
+		} else if (account != null && dreambotControlScript.getClient().isLoggedIn()){
+			if (!account.getEmail().equals(dreambotControlScript.getClient().getUsername())) {
+				dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
+				dreambotControlScript.getTabs().logout();
+				return 1000;
+			}
+			else if (Strings.isNullOrEmpty(account.getIgn())){
+				String ign = Optional.ofNullable(dreambotControlScript.getClient().getLocalPlayer()).map(Player::getName).orElse(null);
+				if (ign != null) {
+					dreambotControlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
+							.setBody(0, ign)
+							.setBody(1, account.getEmail())
+					);
 				}
 			}
 		}
