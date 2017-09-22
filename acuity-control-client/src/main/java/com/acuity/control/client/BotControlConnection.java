@@ -144,6 +144,7 @@ public class BotControlConnection {
             handleLogin();
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
+            logger.debug("Received kill client command from server.");
             System.exit(0);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){

@@ -24,22 +24,26 @@ public class ScriptConditionEvaluator {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     private static boolean evaluate(BotControl botControl, ScriptEvaluator evaluator){
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
 
         if (evaluatorKey != null && evaluatorJSON != null) return true;
 
-        Class aClass = Evaluators.fromKey(evaluatorKey);
-        if (aClass != null) {
-            Object instance = Json.GSON.fromJson(evaluatorJSON, aClass);
-            try {
-                boolean evaluate = botControl.evaluate(instance);
-                logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
-                return evaluate;
-            } catch (Throwable e) {
-                logger.error("Error during evaluating.", e);
-            }
+        Class evaluatorClass = Evaluators.fromKey(evaluatorKey);
+        if (evaluatorClass == null){
+            logger.error("Evaluator key returned null class. {}", evaluatorKey);
+            return true;
+        }
+
+        try {
+            Object instance = Json.GSON.fromJson(evaluatorJSON, evaluatorClass);
+            boolean evaluate = botControl.evaluate(instance);
+            logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
+            return evaluate;
+        } catch (Throwable e) {
+            logger.error("Error during evaluating.", e);
         }
 
         return true;

@@ -13,16 +13,22 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.*;
+import com.acuity.db.domain.vertex.impl.scripts.Script;
+import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,13 +38,15 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class BotControl implements SubscriberExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(BotControl.class);
+
     private EventBus eventBus = new EventBus(this);
 
     private ScriptManager scriptManager = new ScriptManager(this);
     private BreakManager breakManager = new BreakManager(this);
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
     private ProxyManager proxyManager = new ProxyManager(this);
-    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 
     private BotControlConnection connection;
 
@@ -48,18 +56,23 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         this.connection = new BotControlConnection(this, host, clientType);
 
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            if (connection.isConnected()) {
-                try {
+            try {
+                if (connection.isConnected()) {
                     sendClientState();
-                } catch (Throwable e) {
-                    e.printStackTrace();
                 }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
+
         }, 3, 5, TimeUnit.SECONDS);
 
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            if (connection.isConnected()) {
-                connection.sendScreenCapture(2);
+            try {
+                if (connection.isConnected()) {
+                    connection.sendScreenCapture(2);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }, 3, 10, TimeUnit.SECONDS);
     }
@@ -84,7 +97,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return proxyManager;
     }
 
-    public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull){
+    public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
                 .setBody(0, botClientConfig)
                 .setBody(1, serializeNull)
@@ -93,7 +106,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
-    public boolean updateClientState(BotClientState botClientState, boolean serializeNull){
+    public boolean updateClientState(BotClientState botClientState, boolean serializeNull) {
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER)
                 .setBody(0, botClientState)
                 .setBody(1, serializeNull)
@@ -171,19 +184,19 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .map(messagePackage -> messagePackage.getBodyAs(Script.class));
     }
 
-    public Optional<Tag> requestTag(String tagID){
+    public Optional<Tag> requestTag(String tagID) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_TAG, MessagePackage.SERVER).setBody(tagID))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(Tag.class));
     }
 
-    public void requestStatusSet(String key, String status){
+    public void requestStatusSet(String key, String status) {
         send(new MessagePackage(MessagePackage.Type.REQUEST_STATUS_SET, MessagePackage.SERVER)
                 .setBody(0, key)
                 .setBody(1, status));
     }
 
-    public void requestStatusClear(){
+    public void requestStatusClear() {
         send(new MessagePackage(MessagePackage.Type.REQUEST_CLEAR_STATUS, MessagePackage.SERVER));
     }
 
@@ -229,7 +242,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract BufferedImage getScreenCapture();
 
-    public boolean isSignedIn(){
+    public boolean isSignedIn() {
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
         return isSignedIn(rsAccount);
     }
@@ -261,7 +274,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return botClientConfig;
     }
 
-    public void onConfigUpdate(BotClientConfig config){
+    public void onConfigUpdate(BotClientConfig config) {
+        logger.debug("BotClientConfig updated. {}", config);
         this.botClientConfig = config;
         getScriptManager().onBotClientConfigUpdate(botClientConfig);
         getBreakManager().onBotClientConfigUpdate(botClientConfig);
