@@ -36,7 +36,11 @@ public class DreambotEvaluator {
         }
 
         if (evaluator instanceof VarpEvaluator){
-            if (!controlScript.getBotControl().isSignedIn()) return false;
+            if (!controlScript.getBotControl().isSignedIn()) {
+                logger.debug("VarpEval not logged in returing false.");
+                return false;
+            }
+
             int varpID = ((VarpEvaluator) evaluator).getVarpID();
             int config = controlScript.getPlayerSettings().getConfig(varpID);
             boolean result = config != ((VarpEvaluator) evaluator).getVarp();

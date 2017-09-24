@@ -145,7 +145,7 @@ public class BotControlConnection {
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
             logger.debug("Received kill client command from server.");
-            System.exit(0);
+            wsClient.close();
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
             BotClientConfig config = messagePackage.getBodyAs(BotClientConfig.class);
@@ -172,13 +172,14 @@ public class BotControlConnection {
             ScriptNode taskNode = scriptStartRequest.getTaskNode();
             RSAccount rsAccount = null;
 
-            String accountAssignmentTag = (String) taskNode.getSettings().get("accountAssignmentTag");
-            boolean registrationEnabled = (boolean) taskNode.getSettings().getOrDefault("registrationEnabled", false);
-            if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
-
-                logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                rsAccount = botControl.getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true,false, registrationEnabled);
-                logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
+            if (taskNode.getRsAccountSelector() != null){
+                String accountAssignmentTag = taskNode.getRsAccountSelector().getAccountSelectionID();
+                boolean registrationEnabled = taskNode.getRsAccountSelector().isRegistrationAllowed();
+                if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
+                    logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
+                    rsAccount = botControl.getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
+                    logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
+                }
             }
 
             RemoteScriptTask.StartResponse result = new RemoteScriptTask.StartResponse();

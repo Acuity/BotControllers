@@ -106,6 +106,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
+    public void updateClientStateNoResponse(BotClientState botClientState, boolean serializeNull) {
+        send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER)
+                .setBody(0, botClientState)
+                .setBody(1, serializeNull)
+
+        );
+    }
+
     public boolean updateClientState(BotClientState botClientState, boolean serializeNull) {
         return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER)
                 .setBody(0, botClientState)

@@ -57,10 +57,15 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
             try {
                 clientState.setGameState(getClient().getGameStateID());
+                clientState.setLastEmail(getClient().getUsername());
+                clientState.setCurrentWorld(getClient().getCurrentWorld());
+                clientState.setLastIGN(getLocalPlayer().getName());
             }
             catch (Throwable e){
                 e.printStackTrace();
             }
+
+            clientState.setLastRSAccount(botControl.getRsAccountManager().getRsAccount());
 
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
             if (botClientConfig != null){
@@ -71,7 +76,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 });
             }
 
-            botControl.updateClientState(clientState, false);
+            botControl.updateClientStateNoResponse(clientState, false);
         }
 
         @Override
@@ -150,13 +155,15 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public int onLoop() {
         if (!botControl.getConnection().isConnected()) return 1000;
 
+        System.out.println(getClient().getLoginIndex());
+
         botControl.onLoop();
 
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        result = loginHandler.onLoop();
-        if (result > 0) return result;
+        boolean loginResult = loginHandler.onLoop();
+        if (loginResult) return 1000;
 
         RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
         if (rsAccount != null && botControl.isSignedIn(rsAccount)){
@@ -264,8 +271,14 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             setBotControl(clazz.getSuperclass(), abstractScript);
             abstractScript.registerMethodContext(getClient());
             abstractScript.registerContext(getClient());
-            if (args != null && args.length > 0) abstractScript.onStart(args);
-            else abstractScript.onStart();
+            if (args != null && args.length > 0) {
+                logger.debug("Starting script with args. {}, {}", clazz, Arrays.toString(args));
+                abstractScript.onStart(args);
+            }
+            else {
+                logger.debug("Starting script without args. {}", clazz);
+                abstractScript.onStart();
+            }
             return abstractScript;
         } catch (Throwable e) {
             logger.error("Error during script startup.", e);

@@ -29,7 +29,7 @@ public class ScriptConditionEvaluator {
         String evaluatorKey = evaluator.getKey();
         String evaluatorJSON = evaluator.getJson();
 
-        if (evaluatorKey != null && evaluatorJSON != null) return true;
+        if (evaluatorKey == null || evaluatorJSON == null) return true;
 
         Class evaluatorClass = Evaluators.fromKey(evaluatorKey);
         if (evaluatorClass == null){

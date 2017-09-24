@@ -44,6 +44,10 @@ public class AcuityWSClient {
         wClient.connect();
     }
 
+    public void close(){
+        if (wClient != null) wClient.close();
+    }
+
     public void stop(){
         reconnect = null;
         if (wClient != null) wClient.close();
