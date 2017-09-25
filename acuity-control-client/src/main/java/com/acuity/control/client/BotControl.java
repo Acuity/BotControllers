@@ -6,7 +6,9 @@ import com.acuity.control.client.proxies.ProxyManager;
 import com.acuity.control.client.scripts.ScriptManager;
 import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
+import com.acuity.control.client.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
+import com.acuity.db.domain.common.world.WorldData;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
@@ -46,6 +48,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private BreakManager breakManager = new BreakManager(this);
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
     private ProxyManager proxyManager = new ProxyManager(this);
+    private WorldManager worldManager = new WorldManager(this);
+
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 
     private BotControlConnection connection;
@@ -93,8 +97,21 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return breakManager;
     }
 
+    public WorldManager getWorldManager() {
+        return worldManager;
+    }
+
     public ProxyManager getProxyManager() {
         return proxyManager;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<WorldData> requestWorldData(){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_WORLD_DATA, MessagePackage.SERVER))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(WorldData[].class)))
+                .orElse(Collections.EMPTY_LIST);
     }
 
     public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {

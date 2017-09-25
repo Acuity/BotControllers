@@ -114,38 +114,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
-        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
-        try {
-            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
-            List list = (List) getAllFreeScripts.invoke(null);
-            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
-            list.addAll((List) getAllPremiumScripts.invoke(null));
-
-            for (Object testObject : list) {
-                try {
-                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
-                            .filter(field -> field.getType().equals(ScriptData.class))
-                            .findAny().orElse(null);
-
-                    if (scriptDataField != null) {
-                        scriptDataField.setAccessible(true);
-                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
-
-                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
-                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return results;
-    }
-
     @Override
     public void onStart() {
         botControl.getEventBus().register(this);
@@ -162,8 +130,9 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        boolean loginResult = loginHandler.onLoop();
-        if (loginResult) return 1000;
+        if (loginHandler.onLoop()) return 1000;
+
+        if (botControl.getWorldManager().onLoop()) return  1000;
 
         RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
         if (rsAccount != null && botControl.isSignedIn(rsAccount)){
@@ -209,6 +178,38 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
+        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
+        try {
+            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
+            List list = (List) getAllFreeScripts.invoke(null);
+            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
+            list.addAll((List) getAllPremiumScripts.invoke(null));
+
+            for (Object testObject : list) {
+                try {
+                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
+                            .filter(field -> field.getType().equals(ScriptData.class))
+                            .findAny().orElse(null);
+
+                    if (scriptDataField != null) {
+                        scriptDataField.setAccessible(true);
+                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
+
+                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
+                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return results;
     }
 
     public AbstractScript initDreambotScript(ScriptNode runConfig) {
@@ -295,22 +296,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
     }
 
-    public static void main(String[] args) {
-        Boot.main(new String[]{});
-
-        while (InstancePool.getAll().size() == 0) {
-            sleep(1000);
-        }
-
-        Instance instance = InstancePool.getAll().stream().findFirst().orElse(null);
-
-        while (instance.getClient().getGameStateID() < 10){
-            sleep(1000);
-        }
-
-        instance.getScriptManager().start(DreambotControlScript.class);
-    }
-
     @Override
     public void onAutoMessage(Message message) {
         sendInGameMessage(message);
@@ -356,5 +341,21 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 .setBody(0, message.getMessage())
                 .setBody(1, message.getTypeID())
         );
+    }
+
+    public static void main(String[] args) {
+        Boot.main(new String[]{});
+
+        while (InstancePool.getAll().size() == 0) {
+            sleep(1000);
+        }
+
+        Instance instance = InstancePool.getAll().stream().findFirst().orElse(null);
+
+        while (instance.getClient().getGameStateID() < 10){
+            sleep(1000);
+        }
+
+        instance.getScriptManager().start(DreambotControlScript.class);
     }
 }

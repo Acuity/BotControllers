@@ -145,6 +145,10 @@ public class BotControlConnection {
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
             logger.debug("Received kill client command from server.");
+            System.exit(0);
+        }
+        else if (messagePackage.getMessageType() == MessagePackage.Type.RESTART_CLIENT_CONNECTION){
+            logger.debug("Received restart client connection command from server.");
             wsClient.close();
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
