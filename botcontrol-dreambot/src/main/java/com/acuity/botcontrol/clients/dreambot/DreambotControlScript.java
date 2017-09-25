@@ -81,7 +81,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
         @Override
         public Object createInstanceOfScript(ScriptNode scriptRunConfig) {
-            return initDreambotScript(scriptRunConfig);
+            return DreambotScriptManager.initDreambotScript(botControl, getClient(), scriptRunConfig);
         }
 
 
@@ -180,113 +180,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
-        Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
-        try {
-            Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
-            List list = (List) getAllFreeScripts.invoke(null);
-            Method getAllPremiumScripts = NetworkLoader.class.getDeclaredMethod("getAllPremiumScripts");
-            list.addAll((List) getAllPremiumScripts.invoke(null));
-
-            for (Object testObject : list) {
-                try {
-                    Field scriptDataField = Arrays.stream(testObject.getClass().getDeclaredFields())
-                            .filter(field -> field.getType().equals(ScriptData.class))
-                            .findAny().orElse(null);
-
-                    if (scriptDataField != null) {
-                        scriptDataField.setAccessible(true);
-                        ScriptData scriptData = (ScriptData) scriptDataField.get(testObject);
-
-                        Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
-                        if (remoteClass != null) results.put(scriptData.name, remoteClass);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return results;
-    }
-
-    public AbstractScript initDreambotScript(ScriptNode runConfig) {
-        if (runConfig != null) {
-            logger.debug("initDreambotScript - initing off ScriptStartupConfig. {}", runConfig);
-            ScriptVersion scriptVersion = botControl.requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
-            if (scriptVersion != null) {
-                String[] args = runConfig.getScriptArguments() == null ? new String[0] : runConfig.getScriptArguments().toArray(new String[runConfig.getScriptArguments().size()]);
-                if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
-                    logger.debug("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
-                    try {
-                        ScriptInstance scriptInstance = Scripts.loadScript(
-                                ArangoDBUtil.keyFromID(runConfig.getScriptID()),
-                                ArangoDBUtil.keyFromID(runConfig.getScriptID()),
-                                ClientType.DREAMBOT.getID(),
-                                scriptVersion.getRevision(),
-                                scriptVersion.getJarURL()
-                                );
-                        scriptInstance.loadJar();
-                        Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
-                        if (result != null) {
-                            return startScript(result, args);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    Script script = botControl.requestScript(runConfig.getScriptID()).orElse(null);
-                    if (script != null){
-                        logger.debug("initDreambotScript - loading version off Dreambot-Repo.", script);
-                        Map<String, Class<? extends AbstractScript>> repoScripts = DreambotControlScript.getRepoScripts();
-                        Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
-                        if (aClass != null) {
-                            return startScript(aClass, args);
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private void setBotControl(Class clazz, Object object) {
-        Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.getType().equals(BotControl.class)).forEach(field -> {
-            boolean accessible = field.isAccessible();
-            if (!accessible) field.setAccessible(true);
-            try {
-                field.set(object, botControl);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            if (!accessible) field.setAccessible(false);
-        });
-    }
-
-    private AbstractScript startScript(Class clazz, String[] args) {
-        try {
-            AbstractScript abstractScript = (AbstractScript) clazz.newInstance();
-            setBotControl(clazz, abstractScript);
-            setBotControl(clazz.getSuperclass(), abstractScript);
-            abstractScript.registerMethodContext(getClient());
-            abstractScript.registerContext(getClient());
-            if (args != null && args.length > 0) {
-                logger.debug("Starting script with args. {}, {}", clazz, Arrays.toString(args));
-                abstractScript.onStart(args);
-            }
-            else {
-                logger.debug("Starting script without args. {}", clazz);
-                abstractScript.onStart();
-            }
-            return abstractScript;
-        } catch (Throwable e) {
-            logger.error("Error during script startup.", e);
-        }
-        return null;
-    }
-
 
     @Override
     public void onItemChange(Item[] items) {
@@ -333,7 +226,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onPrivateOutMessage(Message message) {
-
     }
 
     private void sendInGameMessage(Message message){
@@ -341,21 +233,5 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 .setBody(0, message.getMessage())
                 .setBody(1, message.getTypeID())
         );
-    }
-
-    public static void main(String[] args) {
-        Boot.main(new String[]{});
-
-        while (InstancePool.getAll().size() == 0) {
-            sleep(1000);
-        }
-
-        Instance instance = InstancePool.getAll().stream().findFirst().orElse(null);
-
-        while (instance.getClient().getGameStateID() < 10){
-            sleep(1000);
-        }
-
-        instance.getScriptManager().start(DreambotControlScript.class);
     }
 }
