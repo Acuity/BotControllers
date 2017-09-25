@@ -1,7 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.db.domain.common.RSItem;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.rs_account.RSItem;
 import org.dreambot.api.wrappers.items.Item;
 
 import java.util.Objects;
@@ -29,7 +29,7 @@ public class DreambotItemTracker {
         long time = System.currentTimeMillis();
         if (time - lastSend < TimeUnit.SECONDS.toMillis(10)) return;
 
-        Set<RSItem> inv = controlScript.getInventory().stream()
+        Set<RSItem> inv = controlScript.getInventory().stream().parallel()
                 .filter(Objects::nonNull)
                 .map(item -> new RSItem(item.getID(), item.getName(), item.getAmount(), item.isNoted()))
                 .distinct()
