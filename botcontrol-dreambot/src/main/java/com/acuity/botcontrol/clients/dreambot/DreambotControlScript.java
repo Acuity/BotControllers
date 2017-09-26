@@ -106,6 +106,16 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         }
 
         @Override
+        public Integer getCurrentWorld() {
+            return getClient().getCurrentWorld();
+        }
+
+        @Override
+        public void hopToWorld(int world) {
+            getWorldHopper().hopWorld(world);
+        }
+
+        @Override
         public BufferedImage getScreenCapture() {
             return getClient().getCanvasImage();
         }

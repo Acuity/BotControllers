@@ -1,5 +1,6 @@
 package com.acuity.control.client;
 
+import com.acuity.common.world_data_parser.WorldDataResult;
 import com.acuity.control.client.accounts.RSAccountManager;
 import com.acuity.control.client.breaks.BreakManager;
 import com.acuity.control.client.proxies.ProxyManager;
@@ -8,7 +9,6 @@ import com.acuity.control.client.util.RemotePrintStream;
 import com.acuity.control.client.websockets.response.MessageResponse;
 import com.acuity.control.client.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.common.world.WorldData;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -106,12 +103,22 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public List<WorldData> requestWorldData(){
-        return send(new MessagePackage(MessagePackage.Type.REQUEST_WORLD_DATA, MessagePackage.SERVER))
-                .waitForResponse(30, TimeUnit.SECONDS)
-                .getResponse()
-                .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(WorldData[].class)))
-                .orElse(Collections.EMPTY_LIST);
+    public WorldDataResult requestWorldData(){
+        try{
+            return send(new MessagePackage(MessagePackage.Type.REQUEST_WORLD_DATA, MessagePackage.SERVER))
+                    .waitForResponse(30, TimeUnit.SECONDS)
+                    .getResponse()
+                    .map(messagePackage -> {
+                        System.out.println(messagePackage);
+                        return messagePackage.getBodyAs(WorldDataResult.class);
+                    })
+                    .orElse(null);
+        }
+        catch (Throwable e){
+            e.printStackTrace();
+            System.out.println();
+        }
+        return null;
     }
 
     public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {
@@ -264,6 +271,10 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     public abstract boolean isSignedIn(RSAccount rsAccount);
 
     public abstract void sendInGameMessage(String messagePackageBodyAs);
+
+    public abstract Integer getCurrentWorld();
+
+    public abstract void hopToWorld(int world);
 
     public abstract BufferedImage getScreenCapture();
 

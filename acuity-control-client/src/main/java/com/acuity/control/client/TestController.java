@@ -46,6 +46,16 @@ public class TestController {
         }
 
         @Override
+        public Integer getCurrentWorld() {
+            return 308;
+        }
+
+        @Override
+        public void hopToWorld(int world) {
+
+        }
+
+        @Override
         public BufferedImage getScreenCapture() {
             try {
                 return new Robot().createScreenCapture(new Rectangle(800, 800));
