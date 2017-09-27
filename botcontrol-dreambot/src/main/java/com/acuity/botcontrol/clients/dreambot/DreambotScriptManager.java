@@ -1,8 +1,8 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.scripts.ScriptInstance;
-import com.acuity.control.client.scripts.Scripts;
+import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;

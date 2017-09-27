@@ -1,7 +1,6 @@
-package com.acuity.control.client.scripts;
+package com.acuity.control.client.managers.scripts;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.Evaluators;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.util.Json;

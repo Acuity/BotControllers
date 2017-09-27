@@ -1,4 +1,4 @@
-package com.acuity.control.client.scripts;
+package com.acuity.control.client.managers.scripts;
 
 import com.acuity.common.util.AcuityDir;
 import com.acuity.control.client.util.Downloader;

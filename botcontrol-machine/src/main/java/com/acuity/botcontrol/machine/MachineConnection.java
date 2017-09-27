@@ -2,9 +2,9 @@ package com.acuity.botcontrol.machine;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
-import com.acuity.control.client.AcuityWSClient;
-import com.acuity.control.client.machine.MachineUtil;
-import com.acuity.control.client.websockets.WClientEvent;
+import com.acuity.control.client.network.AcuityWSClient;
+import com.acuity.control.client.util.MachineUtil;
+import com.acuity.control.client.network.websockets.WClientEvent;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;

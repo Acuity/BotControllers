@@ -3,44 +3,28 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
-import com.acuity.control.client.machine.MachineUtil;
-import com.acuity.control.client.scripts.ScriptInstance;
-import com.acuity.control.client.scripts.Scripts;
+import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
-import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
-import com.acuity.db.util.ArangoDBUtil;
 import com.google.common.eventbus.Subscribe;
-import org.dreambot.Boot;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.listener.AdvancedMessageListener;
 import org.dreambot.api.script.listener.InventoryListener;
-import org.dreambot.api.script.loader.NetworkLoader;
 import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.message.Message;
-import org.dreambot.core.Instance;
-import org.dreambot.core.InstancePool;
-import org.dreambot.server.net.datatype.ScriptData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Zach on 8/12/2017.

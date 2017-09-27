@@ -1,4 +1,4 @@
-package com.acuity.control.client.websockets;
+package com.acuity.control.client.network.websockets;
 
 import com.google.common.eventbus.SubscriberExceptionContext;
 

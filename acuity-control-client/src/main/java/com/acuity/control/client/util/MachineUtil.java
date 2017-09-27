@@ -1,4 +1,4 @@
-package com.acuity.control.client.machine;
+package com.acuity.control.client.util;
 
 
 import com.acuity.db.domain.vertex.impl.machine.MachineUpdate;

@@ -1,9 +1,8 @@
-package com.acuity.control.client.scripts;
+package com.acuity.control.client.managers.scripts;
 
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;

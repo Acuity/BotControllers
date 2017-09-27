@@ -1,13 +1,15 @@
 package com.acuity.control.client;
 
 import com.acuity.common.world_data_parser.WorldDataResult;
-import com.acuity.control.client.accounts.RSAccountManager;
-import com.acuity.control.client.breaks.BreakManager;
-import com.acuity.control.client.proxies.ProxyManager;
-import com.acuity.control.client.scripts.ScriptManager;
+import com.acuity.control.client.managers.accounts.RSAccountManager;
+import com.acuity.control.client.managers.breaks.BreakManager;
+import com.acuity.control.client.managers.config.BotClientConfigManager;
+import com.acuity.control.client.managers.proxies.ProxyManager;
+import com.acuity.control.client.managers.scripts.ScriptManager;
+import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.util.RemotePrintStream;
-import com.acuity.control.client.websockets.response.MessageResponse;
-import com.acuity.control.client.world.WorldManager;
+import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.managers.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
@@ -41,6 +43,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     private EventBus eventBus = new EventBus(this);
 
+    private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
     private ScriptManager scriptManager = new ScriptManager(this);
     private BreakManager breakManager = new BreakManager(this);
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
@@ -48,10 +51,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private WorldManager worldManager = new WorldManager(this);
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
-
     private BotControlConnection connection;
-
-    private BotClientConfig botClientConfig;
 
     public BotControl(String host, ClientType clientType) {
         this.connection = new BotControlConnection(this, host, clientType);
@@ -100,6 +100,10 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public ProxyManager getProxyManager() {
         return proxyManager;
+    }
+
+    public BotClientConfigManager getClientConfigManager() {
+        return clientConfigManager;
     }
 
     @SuppressWarnings("unchecked")
@@ -307,14 +311,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     }
 
     public BotClientConfig getBotClientConfig() {
-        return botClientConfig;
-    }
-
-    public void onConfigUpdate(BotClientConfig config) {
-        logger.debug("BotClientConfig updated. {}", config);
-        this.botClientConfig = config;
-        getScriptManager().onBotClientConfigUpdate(botClientConfig);
-        getBreakManager().onBotClientConfigUpdate(botClientConfig);
-        getProxyManager().onBotClientConfigUpdate(botClientConfig);
+        return clientConfigManager.getCurrentConfig();
     }
 }

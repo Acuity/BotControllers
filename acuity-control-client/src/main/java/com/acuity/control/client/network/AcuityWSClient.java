@@ -1,9 +1,9 @@
-package com.acuity.control.client;
+package com.acuity.control.client.network;
 
-import com.acuity.control.client.websockets.WClient;
-import com.acuity.control.client.websockets.WClientEvent;
-import com.acuity.control.client.websockets.response.MessageResponse;
-import com.acuity.control.client.websockets.response.ResponseTracker;
+import com.acuity.control.client.network.websockets.WClient;
+import com.acuity.control.client.network.websockets.WClientEvent;
+import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.network.websockets.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
 import com.google.common.eventbus.EventBus;

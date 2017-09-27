@@ -1,11 +1,11 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.scripts.RemoteScriptStartCheck;
-import org.dreambot.api.methods.MethodContext;
+import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
 import org.dreambot.api.methods.world.World;
 import org.dreambot.api.script.AbstractScript;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -34,7 +34,7 @@ public abstract class AcuityAbstractScript extends AbstractScript implements Rem
                 .f2p()
                 .stream()
                 .filter(filter)
-                .sorted((o1, o2) -> Integer.compare(worldBotPopulations.getOrDefault(o1.getRealID(), Integer.MAX_VALUE), worldBotPopulations.getOrDefault(o2.getRealID(), Integer.MAX_VALUE)))
+                .sorted(Comparator.comparingInt(o -> worldBotPopulations.getOrDefault(o.getRealID(), Integer.MAX_VALUE)))
                 .collect(Collectors.toList());
 
         World bestWorld = worldsRanked.get(0);

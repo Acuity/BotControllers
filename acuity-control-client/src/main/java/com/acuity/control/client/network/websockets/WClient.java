@@ -1,8 +1,7 @@
-package com.acuity.control.client.websockets;
+package com.acuity.control.client.network.websockets;
 
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 import org.java_websocket.client.WebSocketClient;

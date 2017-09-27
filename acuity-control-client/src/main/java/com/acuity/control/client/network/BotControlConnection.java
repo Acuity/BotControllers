@@ -1,12 +1,13 @@
-package com.acuity.control.client;
+package com.acuity.control.client.network;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.Pair;
-import com.acuity.control.client.machine.MachineUtil;
-import com.acuity.control.client.scripts.RemoteScriptStartCheck;
-import com.acuity.control.client.websockets.WClientEvent;
-import com.acuity.control.client.websockets.response.MessageResponse;
+import com.acuity.control.client.BotControl;
+import com.acuity.control.client.util.MachineUtil;
+import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
+import com.acuity.control.client.network.websockets.WClientEvent;
+import com.acuity.control.client.network.websockets.response.MessageResponse;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.security.Permission;
 import java.util.Optional;
 import java.util.UUID;
@@ -153,7 +153,7 @@ public class BotControlConnection {
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
             BotClientConfig config = messagePackage.getBodyAs(BotClientConfig.class);
-            botControl.onConfigUpdate(config);
+            botControl.getClientConfigManager().setCurrentConfig(config);
         }
         else if (messagePackage.getMessageType() == MessagePackage.Type.ACCOUNT_ASSIGNMENT_CHANGE){
             RSAccount account = messagePackage.getBodyAs(RSAccount.class);

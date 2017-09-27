@@ -1,4 +1,4 @@
-package com.acuity.control.client.proxies;
+package com.acuity.control.client.managers.proxies;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;

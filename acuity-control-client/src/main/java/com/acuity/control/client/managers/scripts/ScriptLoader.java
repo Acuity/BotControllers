@@ -1,4 +1,4 @@
-package com.acuity.control.client.scripts;
+package com.acuity.control.client.managers.scripts;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

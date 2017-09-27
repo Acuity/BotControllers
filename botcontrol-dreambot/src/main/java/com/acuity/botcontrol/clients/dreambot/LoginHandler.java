@@ -1,6 +1,6 @@
 package com.acuity.botcontrol.clients.dreambot;
 
-import com.acuity.control.client.scripts.ScriptManager;
+import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;

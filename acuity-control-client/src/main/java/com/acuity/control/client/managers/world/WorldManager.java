@@ -1,4 +1,4 @@
-package com.acuity.control.client.world;
+package com.acuity.control.client.managers.world;
 
 import com.acuity.common.world_data_parser.WorldData;
 import com.acuity.common.world_data_parser.WorldDataResult;

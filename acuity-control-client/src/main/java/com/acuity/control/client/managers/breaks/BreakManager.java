@@ -1,4 +1,4 @@
-package com.acuity.control.client.breaks;
+package com.acuity.control.client.managers.breaks;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;

@@ -1,4 +1,4 @@
-package com.acuity.control.client.websockets.response;
+package com.acuity.control.client.network.websockets.response;
 
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.slf4j.Logger;

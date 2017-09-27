@@ -1,9 +1,8 @@
-package com.acuity.control.client.websockets.response;
+package com.acuity.control.client.network.websockets.response;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
