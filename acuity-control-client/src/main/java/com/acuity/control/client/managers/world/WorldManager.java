@@ -3,7 +3,7 @@ package com.acuity.control.client.managers.world;
 import com.acuity.common.world_data_parser.WorldData;
 import com.acuity.common.world_data_parser.WorldDataResult;
 import com.acuity.control.client.BotControl;
-import com.acuity.db.domain.common.world.RSWorldSelector;
+import com.acuity.db.domain.common.RSWorldSelector;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

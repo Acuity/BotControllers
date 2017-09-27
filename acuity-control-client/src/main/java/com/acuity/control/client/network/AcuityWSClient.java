@@ -54,7 +54,12 @@ public class AcuityWSClient {
     }
 
     public void send(MessagePackage messagePackage){
-        if (isConnected()) wClient.send(Json.GSON.toJson(messagePackage));
+        try {
+            wClient.send(Json.GSON.toJson(messagePackage));
+        }
+        catch (Throwable e){
+            logger.error("Error during send.", e);
+        }
     }
 
     public EventBus getEventBus(){
@@ -71,10 +76,11 @@ public class AcuityWSClient {
 
     private WClient createWClient() throws URISyntaxException {
         return new WClient(this.lastHost, new Draft_6455()) {
+
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 logger.info("Web socket opened.");
-                eventBus.post(new WClientEvent.Opened());
+                messageExecutor.execute(() -> eventBus.post(new WClientEvent.Opened()));
             }
 
             @Override
@@ -91,6 +97,7 @@ public class AcuityWSClient {
                 catch (Throwable e){
                     logger.error("Error during response handling.", e);
                 }
+
                 messageExecutor.execute(() -> eventBus.post(messagePackage));
             }
 
@@ -104,12 +111,12 @@ public class AcuityWSClient {
 
             @Override
             public void onError(Exception e) {
-                e.printStackTrace();
+                logger.error("Error in WClient, onError.", e);
             }
 
             @Override
             public void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext) {
-                throwable.printStackTrace();
+                logger.error("Error in WClient, handleException.", throwable);
             }
         };
     }
@@ -124,13 +131,14 @@ public class AcuityWSClient {
                 logger.debug("Sleeping for reconnect delay of {}ms.", reconnectDelay);
                 Thread.sleep(reconnectDelay);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Error during reconnect sleep.", e);
             }
+
             try {
                 logger.info("Attempting reconnect.");
                 start(lastHost);
             } catch (URISyntaxException e) {
-                e.printStackTrace();
+                logger.error("Error during reconnect start.", e);
             }
         }
     }

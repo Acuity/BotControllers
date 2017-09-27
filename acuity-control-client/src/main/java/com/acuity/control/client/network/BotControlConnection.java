@@ -98,10 +98,28 @@ public class BotControlConnection {
 
     @Subscribe
     public void onConnect(WClientEvent.Opened opened){
-        wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null)
-                .setBody(0, new LoginData(acuityEmail, new String(acuityPassword), 1, botTypeID))
-                .setBody(1, botControl.getBotClientConfig())
-        );
+        synchronized (this){
+            Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
+                    .setBody(0, acuityEmail)
+                    .setBody(1, new String(acuityPassword))
+            ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
+                    .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                    .orElse(false);
+
+            if (!result) wsClient.close();
+            else {
+                result = send(new MessagePackage(MessagePackage.Type.BOT_CLIENT_HANDSHAKE, MessagePackage.SERVER)
+                        .setBody(botControl.getBotClientConfig())
+                ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
+                        .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
+                        .orElse(false);
+
+                if (!result) wsClient.close();
+                else {
+                    wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
+                }
+            }
+        }
     }
 
     public Optional<String> decryptString(EncryptedString string){
@@ -130,20 +148,7 @@ public class BotControlConnection {
 
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
-        if (messagePackage.getMessageType() == MessagePackage.Type.GOOD_LOGIN){
-            RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
-            if (rsAccount != null){
-                if (!botControl.requestAccountAssignment(rsAccount, false)){
-                    botControl.getRsAccountManager().clearRSAccount();
-                }
-            }
-
-            wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.BAD_LOGIN){
-            handleLogin();
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
+        if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
             logger.debug("Received kill client command from server.");
             System.exit(0);
         }

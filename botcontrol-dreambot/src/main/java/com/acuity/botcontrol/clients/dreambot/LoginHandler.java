@@ -44,7 +44,7 @@ public class LoginHandler {
             rsAccountSelector = executionNode.getRsAccountSelector();
         }
 
-        logger.debug("LoginHandler start. {}, {}, {}", account, executionNode, rsAccountSelector);
+        logger.trace("LoginHandler start. {}, {}, {}", account, executionNode, rsAccountSelector);
 
         if (account == null && executionNode == null) {
             if (dreambotControlScript.getClient().isLoggedIn()) {
@@ -74,7 +74,6 @@ public class LoginHandler {
         }
 
         if (account != null && rsAccountSelector != null) {
-            logger.debug("CHECK. {}, {}", account.getTagIDs(), rsAccountSelector.getAccountSelectionID());
             if (!account.getTagIDs().contains(rsAccountSelector.getAccountSelectionID())) {
                 logger.debug("Assigned account does not contain correct id. {}, {}", account.getTagIDs(), rsAccountSelector.getAccountSelectionID());
                 dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
