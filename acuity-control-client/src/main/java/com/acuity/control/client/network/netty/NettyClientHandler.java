@@ -35,11 +35,17 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("Channel active.");
+        super.channelActive(ctx);
+        executor.execute(() -> client.getEventBus().post(new WClientEvent.Opened()));
+    }
+
+    @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         logger.info("Channel registered.");
         super.channelRegistered(ctx);
         context = ctx;
-        executor.execute(() -> client.getEventBus().post(new WClientEvent.Opened()));
     }
 
     @Override
@@ -65,10 +71,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("Channel inactive.");
+        super.channelInactive(ctx);
+        client.getEventBus().post(new WClientEvent.Closed(0, null, false));
+    }
+
+    @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         logger.info("Channel unregistered.");
         super.channelUnregistered(ctx);
-        client.getEventBus().post(new WClientEvent.Closed(0, null, false));
         scheduleReconnect(ctx);
     }
 

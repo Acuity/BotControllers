@@ -43,7 +43,7 @@ public class ScriptManager {
             return;
         }
 
-        logger.debug("task={}, con={}, base={}", currentTaskPair, currentContinuousPair, currentScriptPair);
+        logger.trace("task={}, con={}, base={}", currentTaskPair, currentContinuousPair, currentScriptPair);
 
         Pair<String, Object> currentTaskPair = this.currentTaskPair;
         ScriptNode taskNode = currentTaskPair != null ? botClientConfig.getTask(currentTaskPair.getKey()).orElse(null) : null;
@@ -53,7 +53,7 @@ public class ScriptManager {
         }
 
         if (botClientConfig.getScriptSelector() == null) {
-            logger.debug("onLoop - null scriptSelector.");
+            logger.trace("onLoop - null scriptSelector.");
             return;
         }
 
