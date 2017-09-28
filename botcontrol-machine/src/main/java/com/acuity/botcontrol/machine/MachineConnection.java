@@ -3,7 +3,7 @@ package com.acuity.botcontrol.machine;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.control.client.network.netty.NettyClient;
-import com.acuity.control.client.network.websockets.NetworkEvent;
+import com.acuity.control.client.network.NetworkEvent;
 import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.EventBus;

@@ -2,16 +2,17 @@ package com.acuity.control.client.network;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
+import com.acuity.common.util.PackageReflectionUtil;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.network.netty.NettyClient;
-import com.acuity.control.client.network.websockets.NetworkEvent;
-import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.message_package.MessageEndpoint;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
@@ -26,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.security.Permission;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +38,7 @@ public class BotControlConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(BotControlConnection.class);
     private static final Permission DECRYPT_STRING_PERMISSION = new RuntimePermission("decryptString");
+    private static final Set<MessageEndpoint> endpoints = PackageReflectionUtil.findAndInit(MessageEndpoint.class, "com.acuity.control.client.network.endpoints");
 
     private final Object lock = new Object();
 
@@ -151,79 +154,29 @@ public class BotControlConnection {
         return response;
     }
 
+    public NettyClient getClient() {
+        return wsClient;
+    }
+
+    public BotControl getBotControl() {
+        return botControl;
+    }
+
+    @SuppressWarnings("unchecked")
     @Subscribe
     public void onMessage(MessagePackage messagePackage){
-        if (messagePackage.getMessageType() == MessagePackage.Type.KILL_CLIENT){
-            logger.debug("Received kill client command from server.");
-            System.exit(0);
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.RESTART_CLIENT_CONNECTION){
-            logger.debug("Received restart client connection command from server.");
-            wsClient.close();
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.CONFIG_UPDATE){
-            BotClientConfig config = messagePackage.getBodyAs(BotClientConfig.class);
-            botControl.getClientConfigManager().setCurrentConfig(config);
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.ACCOUNT_ASSIGNMENT_CHANGE){
-            RSAccount account = messagePackage.getBodyAs(RSAccount.class);
-            botControl.getRsAccountManager().onRSAccountAssignmentUpdate(account);
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_REMOTE_TASK_START){
-            logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
-
-            Pair<String, Object> scriptInstance = botControl.getScriptManager().getExecutionPair().orElse(null);
-            if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
-                if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingTasks()){
-                    logger.debug("Remote Task Request - Current script not accepting new tasks.");
-                    botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
-                            .setBody(new RemoteScriptTask.StartResponse()));
+        for (MessageEndpoint endpoint : endpoints) {
+            if (endpoint.isEndpointOf(messagePackage.getMessageType())) {
+                try {
+                    endpoint.handle(this, messagePackage);
                     return;
                 }
-            }
-
-            RemoteScriptTask.StartRequest scriptStartRequest = messagePackage.getBodyAs(RemoteScriptTask.StartRequest.class);
-            ScriptNode taskNode = scriptStartRequest.getTaskNode();
-            RSAccount rsAccount = null;
-
-            if (taskNode.getRsAccountSelector() != null){
-                String accountAssignmentTag = taskNode.getRsAccountSelector().getAccountSelectionID();
-                boolean registrationEnabled = taskNode.getRsAccountSelector().isRegistrationAllowed();
-                if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
-                    logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                    rsAccount = botControl.getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
-                    logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
+                catch (Throwable e){
+                    logger.error("Error during endpoint handling.", e);
                 }
             }
-
-            RemoteScriptTask.StartResponse result = new RemoteScriptTask.StartResponse();
-            result.setAccount(rsAccount);
-            if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
-                logger.debug("Remote Task Request - Adding task to queue.");
-
-                BotClientConfig botClientConfig = botControl.getBotClientConfig();
-                botClientConfig.getTaskNodeList().add(taskNode);
-                if (!botControl.updateClientConfig(botClientConfig, true)) {
-                    logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
-                    botControl.getRsAccountManager().clearRSAccount();
-                }
-                else {
-                    result.setTaskQueued(true);
-                }
-            }
-
-            logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
-            botControl.respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.REQUEST_SCREEN_CAP){
-            sendScreenCapture(messagePackage.getBodyAs(Integer.class));
-        }
-        else if (messagePackage.getMessageType() == MessagePackage.Type.SEND_IN_GAME_MESSAGE){
-            botControl.sendInGameMessage(messagePackage.getBodyAs(String.class));
-        }
-        else {
-            botControl.getEventBus().post(messagePackage);
-        }
+        botControl.getEventBus().post(messagePackage);
     }
 
     public void sendScreenCapture(Integer scale) {

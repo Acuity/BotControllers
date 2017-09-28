@@ -8,7 +8,7 @@ import com.acuity.control.client.managers.proxies.ProxyManager;
 import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.util.RemotePrintStream;
-import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.control.client.managers.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;

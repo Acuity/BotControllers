@@ -1,6 +1,6 @@
 package com.acuity.control.client.network.netty;
 
-import com.acuity.control.client.network.websockets.response.ResponseTracker;
+import com.acuity.control.client.network.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;

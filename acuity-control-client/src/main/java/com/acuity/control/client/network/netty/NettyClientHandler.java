@@ -1,7 +1,7 @@
 package com.acuity.control.client.network.netty;
 
-import com.acuity.control.client.network.websockets.NetworkEvent;
-import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.network.NetworkEvent;
+import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
 import io.netty.bootstrap.Bootstrap;
