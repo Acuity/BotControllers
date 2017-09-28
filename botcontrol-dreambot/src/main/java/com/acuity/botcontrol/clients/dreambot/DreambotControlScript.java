@@ -134,7 +134,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 try {
                     int scriptSleep = ((AbstractScript) dreambotScript.getValue()).onLoop();
                     if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
-                    return Math.max(scriptSleep, 75);
+                    return Math.max(scriptSleep, 250);
                 }
                 catch (Throwable e){
                     logger.error("Error during scriptOnLoop", e);
