@@ -12,6 +12,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -53,10 +56,10 @@ public class NettyClient implements SubscriberExceptionHandler{
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(
                                 new IdleStateHandler(30, 0, 0),
-                                new StringEncoder(),
 
-                                new LineBasedFrameDecoder(80),
-                                new StringDecoder(),
+                                new ObjectEncoder(),
+                                new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
+
                                 nettyClientHandler
                                 );
                     }
