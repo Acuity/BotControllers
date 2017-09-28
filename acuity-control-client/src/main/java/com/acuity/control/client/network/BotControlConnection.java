@@ -106,7 +106,6 @@ public class BotControlConnection {
             Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
                     .setBody(0, acuityEmail)
                     .setBody(1, new String(acuityPassword))
-                    .setBody(2, botTypeID)
             ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                     .orElse(false);
@@ -114,7 +113,8 @@ public class BotControlConnection {
             if (!result) wsClient.close();
             else {
                 result = send(new MessagePackage(MessagePackage.Type.BOT_CLIENT_HANDSHAKE, MessagePackage.SERVER)
-                        .setBody(botControl.getBotClientConfig())
+                        .setBody(0, botControl.getBotClientConfig())
+                        .setBody(1, botTypeID)
                 ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
                         .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                         .orElse(false);
