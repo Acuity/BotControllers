@@ -61,6 +61,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             }
 
             botControl.updateClientStateNoResponse(clientState, false);
+            logger.debug("Sent state.");
         }
 
         @Override
@@ -117,8 +118,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public int onLoop() {
         if (!botControl.getConnection().isConnected()) return 1000;
 
-        System.out.println(getClient().getLoginIndex());
-
         botControl.onLoop();
 
         int result = botControl.getBreakManager().onLoop();
@@ -133,12 +132,9 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
             if (dreambotScript != null) {
                 try {
-                    int i = ((AbstractScript) dreambotScript.getValue()).onLoop();
-                    if (i < 0) {
-                        botControl.getScriptManager().onScriptEnded(dreambotScript);
-                        return 2000;
-                    }
-                    return i;
+                    int scriptSleep = ((AbstractScript) dreambotScript.getValue()).onLoop();
+                    if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
+                    return Math.max(scriptSleep, 75);
                 }
                 catch (Throwable e){
                     logger.error("Error during scriptOnLoop", e);

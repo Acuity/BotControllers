@@ -30,6 +30,14 @@ public class MessageResponse {
         return Optional.ofNullable(response);
     }
 
+    public <T> Optional<T> getBodyAs(int index, Class<T> clazz){
+        return getResponse().map(messagePackage -> messagePackage.getBodyAs(index, clazz));
+    }
+
+    public <T> Optional<T> getBodyAs(Class<T> clazz){
+        return getBodyAs(0, clazz);
+    }
+
     public void ifPresent(Consumer<MessagePackage> consumer) {
         if (response != null) consumer.accept(response);
     }

@@ -1,3 +1,4 @@
+/*
 package com.acuity.control.client.network.websockets;
 
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
@@ -10,12 +11,15 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+*/
 /**
  * Created by Zach on 8/5/2017.
- */
+ *//*
+
 public abstract class WClient extends WebSocketClient implements SubscriberExceptionHandler{
 
     private static final Logger logger = LoggerFactory.getLogger(WClient.class);
@@ -44,3 +48,4 @@ public abstract class WClient extends WebSocketClient implements SubscriberExcep
     @Override
     public abstract void handleException(Throwable throwable, SubscriberExceptionContext subscriberExceptionContext);
 }
+*/

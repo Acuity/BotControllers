@@ -113,7 +113,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                     .waitForResponse(30, TimeUnit.SECONDS)
                     .getResponse()
                     .map(messagePackage -> {
-                        System.out.println(messagePackage);
                         return messagePackage.getBodyAs(WorldDataResult.class);
                     })
                     .orElse(null);
@@ -138,7 +137,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER)
                 .setBody(0, botClientState)
                 .setBody(1, serializeNull)
-
         );
     }
 

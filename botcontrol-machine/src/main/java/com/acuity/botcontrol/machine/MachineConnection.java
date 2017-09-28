@@ -2,12 +2,10 @@ package com.acuity.botcontrol.machine;
 
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
-import com.acuity.control.client.network.AcuityWSClient;
-import com.acuity.control.client.util.MachineUtil;
+import com.acuity.control.client.network.netty.NettyClient;
 import com.acuity.control.client.network.websockets.WClientEvent;
-import com.acuity.db.domain.common.ClientType;
+import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -16,7 +14,7 @@ import com.google.common.eventbus.Subscribe;
  */
 public class MachineConnection {
 
-    private AcuityWSClient wsClient = new AcuityWSClient();
+    private NettyClient wsClient = new NettyClient();
     private LoginFrame loginFrame;
 
     private String host;
@@ -36,16 +34,16 @@ public class MachineConnection {
 
     @Subscribe
     public void onConnect(WClientEvent.Opened event){
-        wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
+     /*   wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
                 new LoginData(acuityEmail, acuityPassword, 2, ClientType.UNKNOWN.getID())
-        ));
+        ));*/
     }
 
     public void start(String email, String password) throws Exception {
         this.acuityEmail = email;
         this.acuityPassword = password;
         wsClient.getEventBus().register(this);
-        wsClient.start("ws://" + host + ":2052");
+        wsClient.start();
     }
 
     public EventBus getEventBus(){

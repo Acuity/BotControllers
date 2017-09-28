@@ -1,3 +1,4 @@
+/*
 package com.acuity.control.client.network;
 
 import com.acuity.control.client.network.websockets.WClient;
@@ -13,13 +14,16 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+*/
 /**
  * Created by Zach on 8/5/2017.
- */
+ *//*
+
 public class AcuityWSClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AcuityWSClient.class);
@@ -80,6 +84,12 @@ public class AcuityWSClient {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 logger.info("Web socket opened.");
+                try {
+                    getSocket().setKeepAlive(true);
+
+                } catch (SocketException e) {
+                    logger.warn("Error during setting socket to keep-alive.", e);
+                }
                 messageExecutor.execute(() -> eventBus.post(new WClientEvent.Opened()));
             }
 
@@ -143,3 +153,4 @@ public class AcuityWSClient {
         }
     }
 }
+*/

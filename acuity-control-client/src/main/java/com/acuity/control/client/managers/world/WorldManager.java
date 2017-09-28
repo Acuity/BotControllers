@@ -38,7 +38,7 @@ public class WorldManager {
         Integer currentWorld = botControl.getCurrentWorld();
         if (currentWorld == null) return false;
 
-        if (lastCheck.isBefore(LocalDateTime.now().minusSeconds(25))){
+        if (lastCheck.isBefore(LocalDateTime.now().minusSeconds(10))){
             WorldDataResult worldData = botControl.requestWorldData();
             worldData.zip();
 

@@ -4,15 +4,15 @@ import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.util.MachineUtil;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
+import com.acuity.control.client.network.netty.NettyClient;
 import com.acuity.control.client.network.websockets.WClientEvent;
 import com.acuity.control.client.network.websockets.response.MessageResponse;
+import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.LoginData;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
@@ -37,6 +37,8 @@ public class BotControlConnection {
     private static final Logger logger = LoggerFactory.getLogger(BotControlConnection.class);
     private static final Permission DECRYPT_STRING_PERMISSION = new RuntimePermission("decryptString");
 
+    private final Object lock = new Object();
+
     private BotControl botControl;
     private String host;
     private String acuityEmail;
@@ -45,7 +47,7 @@ public class BotControlConnection {
 
     private LoginFrame loginFrame;
 
-    private AcuityWSClient wsClient = new AcuityWSClient();
+    private NettyClient wsClient = new NettyClient();
 
     public BotControlConnection(BotControl botControl, String host, ClientType clientType) {
         this.botControl = botControl;
@@ -85,7 +87,7 @@ public class BotControlConnection {
         this.acuityEmail = email;
         this.acuityPassword = password.toCharArray();
         wsClient.getEventBus().register(this);
-        wsClient.start("ws://" + host + ":2052");
+        wsClient.start();
     }
 
     public void stop(){
@@ -98,10 +100,13 @@ public class BotControlConnection {
 
     @Subscribe
     public void onConnect(WClientEvent.Opened opened){
-        synchronized (this){
+        synchronized (lock){
+            if (acuityEmail == null || acuityPassword == null) wsClient.close();
+
             Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
                     .setBody(0, acuityEmail)
                     .setBody(1, new String(acuityPassword))
+                    .setBody(2, botTypeID)
             ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                     .orElse(false);

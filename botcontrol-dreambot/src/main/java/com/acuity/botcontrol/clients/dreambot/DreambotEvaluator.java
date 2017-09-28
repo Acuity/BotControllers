@@ -31,20 +31,20 @@ public class DreambotEvaluator {
             }
 
             boolean result = count >= amount;
-            logger.debug("Item {} evaluated to {} vs {}, result={}.", itemID, count, amount, result);
+            logger.trace("Item {} evaluated to {} vs {}, result={}.", itemID, count, amount, result);
             return result;
         }
 
         if (evaluator instanceof VarpEvaluator){
             if (!controlScript.getBotControl().isSignedIn()) {
-                logger.debug("VarpEval not logged in returing false.");
+                logger.trace("VarpEval not logged in returing false.");
                 return false;
             }
 
             int varpID = ((VarpEvaluator) evaluator).getVarpID();
             int config = controlScript.getPlayerSettings().getConfig(varpID);
             boolean result = config != ((VarpEvaluator) evaluator).getVarp();
-            logger.debug("Varp {} evaluated to {}, result={}.", varpID, config, result);
+            logger.trace("Varp {} evaluated to {}, result={}.", varpID, config, result);
             return result;
         }
 

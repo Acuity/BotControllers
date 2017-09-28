@@ -39,7 +39,7 @@ public class ScriptConditionEvaluator {
         try {
             Object instance = Json.GSON.fromJson(evaluatorJSON, evaluatorClass);
             boolean evaluate = botControl.evaluate(instance);
-            logger.debug("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
+            logger.trace("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
             return evaluate;
         } catch (Throwable e) {
             logger.error("Error during evaluating.", e);
