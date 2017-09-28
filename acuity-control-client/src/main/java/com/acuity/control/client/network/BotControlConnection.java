@@ -6,7 +6,7 @@ import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.network.netty.NettyClient;
-import com.acuity.control.client.network.websockets.WClientEvent;
+import com.acuity.control.client.network.websockets.NetworkEvent;
 import com.acuity.control.client.network.websockets.response.MessageResponse;
 import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
@@ -99,7 +99,7 @@ public class BotControlConnection {
     }
 
     @Subscribe
-    public void onConnect(WClientEvent.Opened opened){
+    public void onConnect(NetworkEvent.Opened opened){
         synchronized (lock){
             if (acuityEmail == null || acuityPassword == null) wsClient.close();
 

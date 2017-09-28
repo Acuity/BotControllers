@@ -3,7 +3,7 @@ package com.acuity.botcontrol.machine;
 import com.acuity.common.security.PasswordStore;
 import com.acuity.common.ui.LoginFrame;
 import com.acuity.control.client.network.netty.NettyClient;
-import com.acuity.control.client.network.websockets.WClientEvent;
+import com.acuity.control.client.network.websockets.NetworkEvent;
 import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.EventBus;
@@ -28,12 +28,12 @@ public class MachineConnection {
     }
 
     @Subscribe
-    public void onLoginComplete(WClientEvent.LoginComplete loginComplete){
+    public void onLoginComplete(NetworkEvent.LoginComplete loginComplete){
         wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
     }
 
     @Subscribe
-    public void onConnect(WClientEvent.Opened event){
+    public void onConnect(NetworkEvent.Opened event){
      /*   wsClient.send(new MessagePackage(MessagePackage.Type.LOGIN, null).setBody(
                 new LoginData(acuityEmail, acuityPassword, 2, ClientType.UNKNOWN.getID())
         ));*/

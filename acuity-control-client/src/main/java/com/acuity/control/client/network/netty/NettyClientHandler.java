@@ -1,10 +1,9 @@
 package com.acuity.control.client.network.netty;
 
-import com.acuity.control.client.network.websockets.WClientEvent;
+import com.acuity.control.client.network.websockets.NetworkEvent;
 import com.acuity.control.client.network.websockets.response.MessageResponse;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
-import com.google.common.eventbus.EventBus;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,7 +37,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         logger.info("Channel active.");
         super.channelActive(ctx);
-        executor.execute(() -> client.getEventBus().post(new WClientEvent.Opened()));
+        executor.execute(() -> client.getEventBus().post(new NetworkEvent.Opened()));
     }
 
     @Override
@@ -74,7 +73,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.info("Channel inactive.");
         super.channelInactive(ctx);
-        client.getEventBus().post(new WClientEvent.Closed(0, null, false));
+        client.getEventBus().post(new NetworkEvent.Closed());
     }
 
     @Override
