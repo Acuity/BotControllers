@@ -11,12 +11,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +21,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Zach on 9/27/2017.
  */
-public class NettyClient implements SubscriberExceptionHandler{
+public class NettyClient implements SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
@@ -35,38 +32,38 @@ public class NettyClient implements SubscriberExceptionHandler{
 
     private NettyClientHandler nettyClientHandler = new NettyClientHandler(this);
 
-    public void start(){
+    public void start() {
         group = new NioEventLoopGroup();
         configureBootstrap(new Bootstrap(), group).connect();
     }
 
-    public void stop(){
-        if (group != null){
+    public void stop() {
+        if (group != null) {
             group.shutdownGracefully();
             group = null;
         }
     }
 
-    Bootstrap configureBootstrap(Bootstrap b, EventLoopGroup g) {
-        b.group(g)
+    Bootstrap configureBootstrap(Bootstrap bootstrap, EventLoopGroup g) {
+        bootstrap.group(g)
                 .channel(NioSocketChannel.class)
                 .remoteAddress("localhost", 2052)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    public void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(
-                                new IdleStateHandler(30, 0, 0),
+                    public void initChannel(SocketChannel channel) throws Exception {
+                        channel.pipeline().addLast(
+                                new IdleStateHandler(0, 30, 0),
 
                                 new ObjectEncoder(),
                                 new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
 
                                 nettyClientHandler
-                                );
+                        );
                     }
                 });
 
 
-        return b;
+        return bootstrap;
     }
 
     public ResponseTracker getResponseTracker() {
