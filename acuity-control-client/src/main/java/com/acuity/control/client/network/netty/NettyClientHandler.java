@@ -5,10 +5,7 @@ import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.util.Json;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.EventLoop;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Zach on 9/27/2017.
  */
 @ChannelHandler.Sharable
-public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
+public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
@@ -48,25 +45,36 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String in) throws Exception {
-        if (in == null || in.isEmpty()) return;
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg != null && msg instanceof String){
+            String in = (String) msg;
 
-        try {
-            MessagePackage messagePackage = Json.GSON.fromJson(in, MessagePackage.class);
-            if (messagePackage.getResponseToKey() != null){
-                MessageResponse response = client.getResponseTracker().getCache().getIfPresent(messagePackage.getResponseToKey());
-                if (response != null) {
-                    response.setResponse(messagePackage);
-                    client.getResponseTracker().getCache().invalidate(messagePackage.getResponseToKey());
+            if (in.isEmpty()) return;
+
+            try {
+                MessagePackage messagePackage = Json.GSON.fromJson(in, MessagePackage.class);
+                if (messagePackage.getResponseToKey() != null){
+                    MessageResponse response = client.getResponseTracker().getCache().getIfPresent(messagePackage.getResponseToKey());
+                    if (response != null) {
+                        response.setResponse(messagePackage);
+                        client.getResponseTracker().getCache().invalidate(messagePackage.getResponseToKey());
+                    }
                 }
-            }
 
-            executor.execute(() -> client.getEventBus().post(messagePackage));
+                executor.execute(() -> client.getEventBus().post(messagePackage));
+            }
+            catch (Throwable e){
+                logger.error("Error during handling MessagePackage.", e);
+                logger.info("Error json. {}", in);
+            }
         }
-        catch (Throwable e){
-            logger.error("Error during handling MessagePackage.", e);
-            logger.info("Error json. {}", in);
-        }
+
+    }
+
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
     }
 
     @Override

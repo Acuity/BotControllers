@@ -52,11 +52,8 @@ public class NettyClient implements SubscriberExceptionHandler {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
                         channel.pipeline().addLast(
-                                new IdleStateHandler(0, 30, 0),
-
                                 new ObjectEncoder(),
                                 new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
-
                                 nettyClientHandler
                         );
                     }
