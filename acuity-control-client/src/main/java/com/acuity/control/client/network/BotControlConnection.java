@@ -5,6 +5,7 @@ import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.PackageReflectionUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.network.netty.NettyClient;
+import com.acuity.control.client.network.netty.TestNettyClient;
 import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
@@ -44,7 +45,7 @@ public class BotControlConnection {
 
     private LoginFrame loginFrame;
 
-    private NettyClient wsClient = new NettyClient();
+    private NetworkInterface networkInterface = new TestNettyClient();
 
     public BotControlConnection(BotControl botControl, String host, ClientType clientType) {
         this.botControl = botControl;
@@ -83,22 +84,22 @@ public class BotControlConnection {
     public void start(String email, String password) throws Exception {
         this.acuityEmail = email;
         this.acuityPassword = password.toCharArray();
-        wsClient.getEventBus().register(this);
-        wsClient.start();
+        networkInterface.getEventBus().register(this);
+        networkInterface.start();
     }
 
     public void stop(){
         try {
-            wsClient.getEventBus().unregister(this);
+            networkInterface.getEventBus().unregister(this);
         }catch (IllegalArgumentException ignored){
         }
-        wsClient.stop();
+        networkInterface.shutdown();
     }
 
     @Subscribe
     public void onConnect(NetworkEvent.Opened opened){
         synchronized (lock){
-            if (acuityEmail == null || acuityPassword == null) wsClient.close();
+            if (acuityEmail == null || acuityPassword == null) networkInterface.disconnect();
 
             Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
                     .setBody(0, acuityEmail)
@@ -107,7 +108,7 @@ public class BotControlConnection {
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                     .orElse(false);
 
-            if (!result) wsClient.close();
+            if (!result) networkInterface.disconnect();
             else {
                 result = send(new MessagePackage(MessagePackage.Type.BOT_CLIENT_HANDSHAKE, MessagePackage.SERVER)
                         .setBody(0, botControl.getBotClientConfig())
@@ -116,9 +117,9 @@ public class BotControlConnection {
                         .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                         .orElse(false);
 
-                if (!result) wsClient.close();
+                if (!result) networkInterface.disconnect();
                 else {
-                    wsClient.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
+                   // networkInterface.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
                 }
             }
         }
@@ -142,14 +143,14 @@ public class BotControlConnection {
     public MessageResponse send(MessagePackage messagePackage){
         messagePackage.setResponseKey(UUID.randomUUID().toString());
         MessageResponse response = new MessageResponse(messagePackage.getResponseKey());
-        wsClient.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
-        wsClient.send(messagePackage);
+        networkInterface.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
+        networkInterface.send(messagePackage);
         logger.debug("Sent - {}.", messagePackage);
         return response;
     }
 
-    public NettyClient getClient() {
-        return wsClient;
+    public NetworkInterface getNetworkInterface() {
+        return networkInterface;
     }
 
     public BotControl getBotControl() {
@@ -203,6 +204,6 @@ public class BotControlConnection {
     }
 
     public boolean isConnected() {
-        return wsClient != null && wsClient.isConnected();
+        return networkInterface != null && networkInterface.isConnected();
     }
 }

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class RemoteTaskStartEP extends ControlEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteTaskStartEP.class);
-    
+
     @Override
     public boolean isEndpointOf(int i) {
         return MessagePackage.Type.REQUEST_REMOTE_TASK_START == i;
@@ -29,8 +29,8 @@ public class RemoteTaskStartEP extends ControlEndpoint {
         logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
 
         Pair<String, Object> scriptInstance = botControlConnection.getBotControl().getScriptManager().getExecutionPair().orElse(null);
-        if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck){
-            if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingTasks()){
+        if (scriptInstance != null && scriptInstance.getValue() instanceof RemoteScriptStartCheck) {
+            if (!((RemoteScriptStartCheck) scriptInstance.getValue()).isAcceptingTasks()) {
                 logger.debug("Remote Task Request - Current script not accepting new tasks.");
                 botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                         .setBody(new RemoteScriptTask.StartResponse()));
@@ -42,10 +42,10 @@ public class RemoteTaskStartEP extends ControlEndpoint {
         ScriptNode taskNode = scriptStartRequest.getTaskNode();
         RSAccount rsAccount = null;
 
-        if (taskNode.getRsAccountSelector() != null){
+        if (taskNode.getRsAccountSelector() != null) {
             String accountAssignmentTag = taskNode.getRsAccountSelector().getAccountSelectionID();
             boolean registrationEnabled = taskNode.getRsAccountSelector().isRegistrationAllowed();
-            if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null){
+            if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null) {
                 logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
                 rsAccount = botControlConnection.getBotControl().getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
                 logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
@@ -54,7 +54,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
 
         RemoteScriptTask.StartResponse result = new RemoteScriptTask.StartResponse();
         result.setAccount(rsAccount);
-        if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()){
+        if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()) {
             logger.debug("Remote Task Request - Adding task to queue.");
 
             BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
@@ -62,8 +62,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             if (!botControlConnection.getBotControl().updateClientConfig(botClientConfig, true)) {
                 logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
                 botControlConnection.getBotControl().getRsAccountManager().clearRSAccount();
-            }
-            else {
+            } else {
                 result.setTaskQueued(true);
             }
         }

@@ -102,9 +102,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     public void send(MessagePackage messagePackage) {
+        if (messagePackage == null) return;
         try {
             String json = Json.GSON.toJson(messagePackage);
-            if (context != null) context.writeAndFlush(json);
+            if (json == null || json.isEmpty()) return;
+            if (context != null && context.channel().isActive()) context.writeAndFlush(json);
         }
         catch (Throwable e){
             logger.error("Error during sending MessagePackage.", e);
@@ -113,7 +115,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     public void close() {
         try {
-            if (context != null) context.channel().close();
+            if (context != null) context.channel().disconnect();
         }
         catch (Throwable e){
             logger.error("Error during closing.", e);

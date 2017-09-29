@@ -1,5 +1,8 @@
 package com.acuity.control.client.network.netty;
 
+import com.acuity.common.network.io.FODecoder;
+import com.acuity.common.network.io.FOEncoder;
+import com.acuity.control.client.network.NetworkInterface;
 import com.acuity.control.client.network.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.EventBus;
@@ -21,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Zach on 9/27/2017.
  */
-public class NettyClient implements SubscriberExceptionHandler {
+public class NettyClient implements NetworkInterface, SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
@@ -37,7 +40,7 @@ public class NettyClient implements SubscriberExceptionHandler {
         configureBootstrap(new Bootstrap(), group).connect();
     }
 
-    public void stop() {
+    public void shutdown() {
         if (group != null) {
             group.shutdownGracefully();
             group = null;
@@ -52,8 +55,8 @@ public class NettyClient implements SubscriberExceptionHandler {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
                         channel.pipeline().addLast(
-                                new ObjectEncoder(),
-                                new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
+                                new FOEncoder(),
+                                new FODecoder(),
                                 nettyClientHandler
                         );
                     }
@@ -80,7 +83,7 @@ public class NettyClient implements SubscriberExceptionHandler {
         nettyClientHandler.send(messagePackage);
     }
 
-    public void close() {
+    public void disconnect() {
         nettyClientHandler.close();
     }
 

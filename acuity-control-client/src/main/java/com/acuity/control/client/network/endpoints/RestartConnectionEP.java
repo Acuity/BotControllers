@@ -21,6 +21,6 @@ public class RestartConnectionEP extends ControlEndpoint {
     @Override
     public void handle(BotControlConnection botControlConnection, MessagePackage messagePackage) {
         logger.debug("Received restart client connection command from server.");
-        botControlConnection.getClient().close();
+        botControlConnection.getNetworkInterface().disconnect();
     }
 }
