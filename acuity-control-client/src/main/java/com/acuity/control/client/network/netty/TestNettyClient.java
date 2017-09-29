@@ -83,7 +83,7 @@ public class TestNettyClient implements NetworkInterface, SubscriberExceptionHan
 
                                         @Override
                                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                            logger.info("channelRead. {}", msg);
+                                            logger.trace("channelRead. {}", msg);
                                             if (msg != null && msg instanceof String){
                                                 String in = (String) msg;
                                                 if (in.isEmpty()) return;

@@ -53,18 +53,20 @@ public class WorldManager {
 
                         if (entry.isMembers() && !finalRsWorldSelector.isP2p()) return false;
                         if (!entry.isMembers() && !finalRsWorldSelector.isF2p()) return false;
+                        if (entry.isDangerous() && !finalRsWorldSelector.isPvp()) return false;
+                        if (entry.isSkillTotal()) return false;
 
                         return true;
                     })
                     .sorted((o1, o2) -> Double.compare(o1.getPopulation(), o2.getPopulation()))
                     .collect(Collectors.toList());
 
-            logger.info("Viable worlds vs current pop. {}, {}", currentWorldBotPopulation, betterWorlds);
+            logger.trace("Current world population vs viable world list. {}, {}", currentWorldBotPopulation, betterWorlds);
 
             if (betterWorlds.size() > 0){
-                int world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size()))).getWorld();
-                logger.info("Found better world. {}",world );
-                botControl.hopToWorld(world);
+                WorldData world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size())));
+                logger.info("Found better world. betterWorld={}, betterWorldBotPop={}, currentWorld={}, currentWorldBotPop={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
+                botControl.hopToWorld(world.getWorld());
                 lastCheck = LocalDateTime.now().plusMinutes(1);
                 return true;
             }

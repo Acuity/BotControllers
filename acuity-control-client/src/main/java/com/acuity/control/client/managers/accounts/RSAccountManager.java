@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -55,18 +56,30 @@ public class RSAccountManager {
         this.rsAccount = null;
     }
 
+    private int requestFailures = 0;
     public RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail){
-        logger.debug("Requesting account - {}, {}.", tagID, force);
-        List<RSAccount> rsAccounts = botControl.requestRSAccounts(filterUnassignable);
+        logger.debug("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
+        if (rsAccount != null) clearRSAccount();
+
+        List<RSAccount> rsAccounts = botControl.requestRSAccounts(filterUnassignable).stream()
+                .filter(rsAccount -> rsAccount.getTagIDs().contains(tagID))
+                .collect(Collectors.toList());
+
+        logger.debug("Viable RS-Accounts. {}", rsAccounts);
+
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
-            if (account.getTagIDs().contains(tagID) && botControl.requestAccountAssignment(account, force)){
+            if (botControl.requestAccountAssignment(account, force)){
                 logger.debug("Account Assigned - {}.", account.getEmail());
+                requestFailures = 0;
                 return account;
             }
         }
 
-        if (registerNewOnFail){
+        requestFailures++;
+
+        if (requestFailures > 3 && registerNewOnFail){
+            logger.debug("Registering new RS-Account.");
             String apiKey = get2CaptchaKey().orElse(null);
             if (apiKey != null){
                 String randomEmail = accountInfoGenerator.getRandomEmail();
@@ -81,13 +94,17 @@ public class RSAccountManager {
                             .run();
                     if (result){
                         boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
-                        if (added) return requestAccountFromTag(tagID, filterUnassignable, force, false);
+                        if (added) {
+                            requestFailures = 0;
+                            return requestAccountFromTag(tagID, filterUnassignable, force, false);
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("Error during account creation.", e);
                 }
             }
         }
+
         return null;
     }
 

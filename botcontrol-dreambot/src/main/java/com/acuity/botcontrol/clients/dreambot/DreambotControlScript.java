@@ -61,7 +61,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             }
 
             botControl.updateClientStateNoResponse(clientState, false);
-            logger.debug("Sent state.");
+            logger.trace("Sent state.");
         }
 
         @Override

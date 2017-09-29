@@ -145,7 +145,7 @@ public class BotControlConnection {
         MessageResponse response = new MessageResponse(messagePackage.getResponseKey());
         networkInterface.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
         networkInterface.send(messagePackage);
-        logger.debug("Sent - {}.", messagePackage);
+        logger.trace("Sent - {}.", messagePackage);
         return response;
     }
 
