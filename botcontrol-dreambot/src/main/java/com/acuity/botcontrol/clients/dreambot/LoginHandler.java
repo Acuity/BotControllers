@@ -112,9 +112,11 @@ public class LoginHandler {
                             break;
                         case DISABLED:
                             dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount(account);
+                            clearText();
                             break;
                         case ACCOUNT_LOCKED:
                             dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(account);
+                            clearText();
                             break;
                         default:
                             String password = getPassword(account);
