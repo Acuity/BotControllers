@@ -7,7 +7,7 @@ import com.google.common.eventbus.EventBus;
 /**
  * Created by Zachary Herridge on 9/29/2017.
  */
-public interface NetworkInterface {
+public interface ConnectionInterface {
     EventBus getEventBus();
 
     void start();

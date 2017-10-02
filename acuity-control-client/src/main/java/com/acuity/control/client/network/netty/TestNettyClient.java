@@ -3,7 +3,7 @@ package com.acuity.control.client.network.netty;
 import com.acuity.common.network.io.FODecoder;
 import com.acuity.common.network.io.FOEncoder;
 import com.acuity.control.client.network.NetworkEvent;
-import com.acuity.control.client.network.NetworkInterface;
+import com.acuity.control.client.network.ConnectionInterface;
 import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.control.client.network.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
@@ -19,7 +19,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.internal.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by Zachary Herridge on 9/29/2017.
  */
-public class TestNettyClient implements NetworkInterface, SubscriberExceptionHandler{
+public class TestNettyClient implements ConnectionInterface, SubscriberExceptionHandler{
 
     private ResponseTracker tracker = new ResponseTracker();
     private EventBus eventBus = new EventBus(this);

@@ -17,18 +17,14 @@ public class BotClientConfigManager {
 
     private BotControl botControl;
     private BotClientConfig currentConfig = new BotClientConfig();
-    private LocalDateTime lastConfirm = LocalDateTime.MIN;
 
     public BotClientConfigManager(BotControl botControl) {
         this.botControl = botControl;
     }
 
-    public void loop(){
-        if (LocalDateTime.now().minusMinutes(1).isBefore(lastConfirm)){
-            synchronized (LOCK){
-                botControl.confirmState();
-            }
-            lastConfirm = LocalDateTime.now();
+    public void confirmState(){
+        synchronized (LOCK){
+            botControl.confirmState();
         }
     }
 

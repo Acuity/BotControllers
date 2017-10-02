@@ -5,9 +5,7 @@ import com.acuity.common.ui.LoginFrame;
 import com.acuity.common.util.PackageReflectionUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.network.netty.NettyClient;
-import com.acuity.control.client.network.netty.TestNettyClient;
 import com.acuity.control.client.network.response.MessageResponse;
-import com.acuity.control.client.util.MachineUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.message_package.MessageEndpoint;
@@ -45,7 +43,7 @@ public class BotControlConnection {
 
     private LoginFrame loginFrame;
 
-    private NetworkInterface networkInterface = new NettyClient();
+    private ConnectionInterface connectionInterface = new NettyClient();
 
     public BotControlConnection(BotControl botControl, String host, ClientType clientType) {
         this.botControl = botControl;
@@ -84,22 +82,22 @@ public class BotControlConnection {
     public void start(String email, String password) throws Exception {
         this.acuityEmail = email;
         this.acuityPassword = password.toCharArray();
-        networkInterface.getEventBus().register(this);
-        networkInterface.start();
+        connectionInterface.getEventBus().register(this);
+        connectionInterface.start();
     }
 
     public void stop(){
         try {
-            networkInterface.getEventBus().unregister(this);
+            connectionInterface.getEventBus().unregister(this);
         }catch (IllegalArgumentException ignored){
         }
-        networkInterface.shutdown();
+        connectionInterface.shutdown();
     }
 
     @Subscribe
     public void onConnect(NetworkEvent.Opened opened){
         synchronized (lock){
-            if (acuityEmail == null || acuityPassword == null) networkInterface.disconnect();
+            if (acuityEmail == null || acuityPassword == null) connectionInterface.disconnect();
 
             Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
                     .setBody(0, acuityEmail)
@@ -108,7 +106,7 @@ public class BotControlConnection {
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                     .orElse(false);
 
-            if (!result) networkInterface.disconnect();
+            if (!result) connectionInterface.disconnect();
             else {
                 result = send(new MessagePackage(MessagePackage.Type.BOT_CLIENT_HANDSHAKE, MessagePackage.SERVER)
                         .setBody(0, botControl.getBotClientConfig())
@@ -117,7 +115,7 @@ public class BotControlConnection {
                         .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                         .orElse(false);
 
-                if (!result) networkInterface.disconnect();
+                if (!result) connectionInterface.disconnect();
                 else {
                    // networkInterface.send(new MessagePackage(MessagePackage.Type.MACHINE_INFO, MessagePackage.SERVER).setBody(MachineUtil.buildMachineState()));
                 }
@@ -143,14 +141,14 @@ public class BotControlConnection {
     public MessageResponse send(MessagePackage messagePackage){
         messagePackage.setResponseKey(UUID.randomUUID().toString());
         MessageResponse response = new MessageResponse(messagePackage.getResponseKey());
-        networkInterface.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
-        networkInterface.send(messagePackage);
+        connectionInterface.getResponseTracker().getCache().put(messagePackage.getResponseKey(), response);
+        connectionInterface.send(messagePackage);
         logger.trace("Sent - {}.", messagePackage);
         return response;
     }
 
-    public NetworkInterface getNetworkInterface() {
-        return networkInterface;
+    public ConnectionInterface getConnectionInterface() {
+        return connectionInterface;
     }
 
     public BotControl getBotControl() {
@@ -171,6 +169,13 @@ public class BotControlConnection {
                 }
             }
         }
+
+        botControl.getScriptManager().getExecutionInstance().ifPresent(scriptInstance -> {
+            Object instance = scriptInstance.getInstance();
+            if (instance != null && instance instanceof NetworkedInterface){
+                ((NetworkedInterface) instance).onMessagePackage(messagePackage);
+            }
+        });
         botControl.getEventBus().post(messagePackage);
     }
 
@@ -204,6 +209,6 @@ public class BotControlConnection {
     }
 
     public boolean isConnected() {
-        return networkInterface != null && networkInterface.isConnected();
+        return connectionInterface != null && connectionInterface.isConnected();
     }
 }

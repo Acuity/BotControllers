@@ -2,7 +2,7 @@ package com.acuity.control.client.network.netty;
 
 import com.acuity.common.network.io.FODecoder;
 import com.acuity.common.network.io.FOEncoder;
-import com.acuity.control.client.network.NetworkInterface;
+import com.acuity.control.client.network.ConnectionInterface;
 import com.acuity.control.client.network.response.ResponseTracker;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.EventBus;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Zach on 9/27/2017.
  */
-public class NettyClient implements NetworkInterface, SubscriberExceptionHandler {
+public class NettyClient implements ConnectionInterface, SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 

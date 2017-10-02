@@ -81,19 +81,19 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
         scriptExecutorService.scheduleAtFixedRate(() -> {
             try {
-                clientConfigManager.loop();
+                clientConfigManager.confirmState();
             }
             catch (Throwable e){
-                logger.error("Error during ConfigManager loop.", e);
+                logger.error("Error during ConfigManager confirmState.", e);
             }
-        }, 10, 15, TimeUnit.SECONDS);
+        }, 30, 45, TimeUnit.SECONDS);
 
         scriptExecutorService.scheduleAtFixedRate(() -> {
             try {
                 scriptManager.loop();
             }
             catch (Throwable e){
-                logger.error("Error during script manager loop.", e);
+                logger.error("Error during script manager confirmState.", e);
             }
         }, 3, 1, TimeUnit.SECONDS);
 

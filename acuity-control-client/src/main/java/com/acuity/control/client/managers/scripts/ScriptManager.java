@@ -42,7 +42,7 @@ public class ScriptManager {
 
         String currentNodeUID = this.currentNodeUID;
         ScriptInstance scriptInstance = currentNodeUID != null ? scriptInstances.get(this.currentNodeUID) : null;
-        logger.trace("Current execution. {}, {}", currentNodeUID, scriptInstance);
+        logger.debug("Current execution. {}, {}", currentNodeUID, scriptInstance);
 
         ScriptNode taskNode = botClientConfig.getTaskNode();
         if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)){
@@ -50,13 +50,15 @@ public class ScriptManager {
             return;
         }
         else {
-            for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
-                if (scriptNode.getComplete().orElse(false)) continue;
+            if (botClientConfig.getScriptSelector() != null && botClientConfig.getScriptSelector().getContinuousNodeList() != null){
+                for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
+                    if (scriptNode.getComplete().orElse(false)) continue;
 
-                List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-                if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
-                    setCurrentNode(taskNode, 1);
-                    return;
+                    List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+                    if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                        setCurrentNode(taskNode, 1);
+                        return;
+                    }
                 }
             }
         }
