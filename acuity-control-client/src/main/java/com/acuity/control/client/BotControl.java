@@ -51,6 +51,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private WorldManager worldManager = new WorldManager(this);
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+
+    private ScheduledExecutorService scriptExecutorService = Executors.newSingleThreadScheduledExecutor();
     private BotControlConnection connection;
 
     public BotControl(String host, ClientType clientType) {
@@ -76,6 +78,25 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 e.printStackTrace();
             }
         }, 3, 10, TimeUnit.SECONDS);
+
+        scriptExecutorService.scheduleAtFixedRate(() -> {
+            try {
+                clientConfigManager.loop();
+            }
+            catch (Throwable e){
+                logger.error("Error during ConfigManager loop.", e);
+            }
+        }, 10, 15, TimeUnit.SECONDS);
+
+        scriptExecutorService.scheduleAtFixedRate(() -> {
+            try {
+                scriptManager.loop();
+            }
+            catch (Throwable e){
+                logger.error("Error during script manager loop.", e);
+            }
+        }, 3, 1, TimeUnit.SECONDS);
+
     }
 
     public EventBus getEventBus() {
@@ -124,13 +145,23 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return null;
     }
 
+    public void confirmState(){
+        RSAccount rsAccount = getRsAccountManager().getRsAccount();
+        send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
+                .setBody(0, getBotClientConfig().hashCode())
+                .setBody(1, rsAccount == null ? null : rsAccount.getID())
+        ).waitForResponse(30, TimeUnit.SECONDS);
+    }
+
     public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
-                .setBody(0, botClientConfig)
-                .setBody(1, serializeNull)
-        )
-                .waitForResponse(30, TimeUnit.SECONDS)
-                .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
+        synchronized (BotClientConfigManager.LOCK){
+            return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
+                    .setBody(0, botClientConfig)
+                    .setBody(1, serializeNull)
+            )
+                    .waitForResponse(30, TimeUnit.SECONDS)
+                    .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
+        }
     }
 
     public void updateClientStateNoResponse(BotClientState botClientState, boolean serializeNull) {
@@ -284,15 +315,6 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
         return isSignedIn(rsAccount);
     }
-
-    public void onLoop() {
-        try {
-            scriptManager.onLoop();
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
     private synchronized void interceptSystemOut() {
         PrintStream out = System.out;
         if (out instanceof RemotePrintStream) ((RemotePrintStream) out).setBotControl(this);

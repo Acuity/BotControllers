@@ -2,6 +2,7 @@ package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.dreambot.api.methods.world.World;
 import org.dreambot.api.script.AbstractScript;
 
@@ -26,6 +27,8 @@ public abstract class AcuityAbstractScript extends AbstractScript implements Rem
     public boolean isAcceptingTasks(){
         return true;
     }
+
+    public abstract void onMessagePackage(MessagePackage messagePackage);
 
     public int getBestWorld(Predicate<World> filter){
         Map<Integer, Integer> worldBotPopulations = WorldUtil.getWorldBotPopulations(this, getBotControl());

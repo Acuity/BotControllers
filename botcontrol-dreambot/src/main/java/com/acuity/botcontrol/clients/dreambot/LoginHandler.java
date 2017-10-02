@@ -31,6 +31,8 @@ public class LoginHandler {
     private static final Point LOGIN = new Point(292, 326);
     private static final Point TRY_AGAIN = new Point(385, 278);
 
+    private static String lastEmail;
+
     public LoginHandler(DreambotControlScript dreambotControlScript) {
         this.dreambotControlScript = dreambotControlScript;
     }
@@ -74,7 +76,7 @@ public class LoginHandler {
         }
 
         if (account != null && rsAccountSelector != null) {
-            if (!account.getTagIDs().contains(rsAccountSelector.getAccountSelectionID())) {
+            if (account.getTagIDs() == null || !account.getTagIDs().contains(rsAccountSelector.getAccountSelectionID())) {
                 logger.debug("Assigned account does not contain correct id. {}, {}", account.getTagIDs(), rsAccountSelector.getAccountSelectionID());
                 dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
                 return true;
@@ -111,10 +113,18 @@ public class LoginHandler {
                             timer.reset();
                             break;
                         case DISABLED:
-                            dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount(account);
+                            if (!Objects.equals(lastEmail, account.getEmail())) {
+                                clearText();
+                                return true;
+                            }
+                            dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount(lastEmail, account);
                             break;
                         case ACCOUNT_LOCKED:
-                            dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(account);
+                            if (!Objects.equals(lastEmail, account.getEmail())) {
+                                clearText();
+                                return true;
+                            }
+                            dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(lastEmail, account);
                             break;
                         default:
                             String password = getPassword(account);
@@ -125,6 +135,7 @@ public class LoginHandler {
                                 MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
                             }
                             if (isLoginInfoCorrect(account.getEmail(), password)){
+                                lastEmail = account.getEmail();
                                 dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
                                 MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
                             }
@@ -132,7 +143,11 @@ public class LoginHandler {
                     }
                     break;
                 case 3:
-                    dreambotControlScript.getBotControl().getRsAccountManager().onWrongLogin(account);
+                    if (!Objects.equals(lastEmail, account.getEmail())) {
+                        clearText();
+                        return true;
+                    }
+                    dreambotControlScript.getBotControl().getRsAccountManager().onWrongLogin(lastEmail, account);
                     dreambotControlScript.getMouse().click(new Point(379, 273));
                     break;
                 default:

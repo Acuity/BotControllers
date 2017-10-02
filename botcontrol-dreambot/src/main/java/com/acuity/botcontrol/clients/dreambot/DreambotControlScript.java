@@ -4,7 +4,6 @@ import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
-import com.acuity.control.client.managers.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
@@ -54,9 +53,10 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             BotClientConfig botClientConfig = botControl.getBotClientConfig();
             if (botClientConfig != null){
                 clientState.setLastConfigHash(botClientConfig.hashCode());
-                botControl.getScriptManager().getExecutionPair().ifPresent(pair -> {
-                    clientState.setLastScriptID(botClientConfig.getScriptNode(pair.getKey()).map(ScriptNode::getScriptID).orElse(null));
-                    clientState.setLastScriptVersionID(botClientConfig.getScriptNode(pair.getKey()).map(ScriptNode::getScriptVersionID).orElse(null));
+
+                botControl.getScriptManager().getExecutionNode().ifPresent(scriptNode -> {
+                    clientState.setLastScriptID(scriptNode.getScriptID());
+                    clientState.setLastScriptVersionID(scriptNode.getScriptVersionID());
                 });
             }
 
@@ -118,8 +118,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public int onLoop() {
         if (!botControl.getConnection().isConnected()) return 1000;
 
-        botControl.onLoop();
-
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
@@ -129,16 +127,23 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
         RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
         if (rsAccount != null && botControl.isSignedIn(rsAccount)){
-            Pair<String, Object> dreambotScript = botControl.getScriptManager().getExecutionPair().orElse(null);
+            ScriptInstance dreambotScript = botControl.getScriptManager().getExecutionInstance().orElse(null);
             if (dreambotScript != null) {
-                try {
-                    int scriptSleep = ((AbstractScript) dreambotScript.getValue()).onLoop();
-                    if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
-                    return Math.max(scriptSleep, 250);
+                Object instance = dreambotScript.getInstance();
+                if (instance == null){
+                    dreambotScript.setInstance(botControl.createInstanceOfScript(dreambotScript.getScriptNode()));
                 }
-                catch (Throwable e){
-                    logger.error("Error during scriptOnLoop", e);
+                else {
+                    try {
+                        int scriptSleep = ((AbstractScript) instance).onLoop();
+                        if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
+                        return Math.max(scriptSleep, 250);
+                    }
+                    catch (Throwable e){
+                        logger.error("Error during scriptOnLoop", e);
+                    }
                 }
+
             }
         }
 
@@ -148,8 +153,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     @Override
     public void onPaint(Graphics graphics) {
         super.onPaint(graphics);
-        Pair<String, Object> scriptInstance = botControl.getScriptManager().getExecutionPair().orElse(null);
-        if (scriptInstance != null) ((AbstractScript) scriptInstance.getValue()).onPaint(graphics);
+        ScriptInstance scriptInstance = botControl.getScriptManager().getExecutionInstance().orElse(null);
+        if (scriptInstance != null && scriptInstance.getInstance() != null) ((AbstractScript) scriptInstance.getInstance()).onPaint(graphics);
     }
 
     @Override

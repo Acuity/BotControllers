@@ -15,7 +15,7 @@ public class Scripts {
         return Downloader.downloadIfNotPresent(new File(AcuityDir.getScripts(), scriptKey + "/" + clientType + "/jar/"), "scriptRev" + scriptRev + ".jar", downloadLink, true);
     }
 
-    public static ScriptInstance loadScript(String key, String title, int clientType, int rev, String jarURL) throws IOException {
-        return new ScriptInstance(key, title, downloadScript(key, clientType, rev, jarURL));
+    public static ScriptLocation loadScript(String key, String title, int clientType, int rev, String jarURL) throws IOException {
+        return new ScriptLocation(key, title, downloadScript(key, clientType, rev, jarURL));
     }
 }

@@ -73,14 +73,8 @@ public class TestController {
         TestController testController = new TestController();
         while (true){
             try {
-                testController.botControl.onLoop();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            catch (Exception e){
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

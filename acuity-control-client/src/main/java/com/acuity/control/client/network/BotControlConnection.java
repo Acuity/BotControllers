@@ -45,7 +45,7 @@ public class BotControlConnection {
 
     private LoginFrame loginFrame;
 
-    private NetworkInterface networkInterface = new TestNettyClient();
+    private NetworkInterface networkInterface = new NettyClient();
 
     public BotControlConnection(BotControl botControl, String host, ClientType clientType) {
         this.botControl = botControl;

@@ -1,7 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.ScriptLocation;
 import com.acuity.control.client.managers.scripts.Scripts;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
@@ -71,7 +71,7 @@ public class DreambotScriptManager {
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
                     logger.debug("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {
-                        ScriptInstance scriptInstance = Scripts.loadScript(
+                        ScriptLocation scriptInstance = Scripts.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
                                 ClientType.DREAMBOT.getID(),

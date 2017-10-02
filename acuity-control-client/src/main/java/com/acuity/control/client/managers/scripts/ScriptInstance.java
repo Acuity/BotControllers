@@ -1,32 +1,65 @@
 package com.acuity.control.client.managers.scripts;
 
-import java.io.File;
-import java.io.IOException;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
 /**
- * Created by Zach on 8/12/2017.
+ * Created by Zach on 10/1/2017.
  */
 public class ScriptInstance {
 
-    private static final String CLASS_EXTENTION = ".class";
+    private boolean task;
+    private boolean continuous;
+    private boolean incremental;
 
-    private final String key;
-    private final String title;
-    private final File jarLocation;
-    private ScriptLoader scriptLoader;
+    private ScriptNode scriptNode;
+    private Object instance;
 
-    public ScriptInstance(String key, String title, File jarLocation) {
-        this.key = key;
-        this.title = title;
-        this.jarLocation = jarLocation;
-        this.scriptLoader = new ScriptLoader();
+    public ScriptInstance(ScriptNode scriptNode) {
+        this.scriptNode = scriptNode;
     }
 
-    public ScriptLoader getScriptLoader() {
-        return scriptLoader;
+    public ScriptInstance setContinuous(boolean continuous) {
+        this.continuous = continuous;
+        return this;
     }
 
-    public void loadJar() throws IOException {
-        scriptLoader.loadJar(jarLocation);
+    public ScriptInstance setIncremental(boolean incremental) {
+        this.incremental = incremental;
+        return this;
+    }
+
+    public boolean isContinuous() {
+        return continuous;
+    }
+
+    public boolean isTask() {
+        return task;
+    }
+
+    public boolean isIncremental() {
+        return incremental;
+    }
+
+    public ScriptInstance setTask(boolean task) {
+        this.task = task;
+        return this;
+    }
+
+    public ScriptNode getScriptNode() {
+        return scriptNode;
+    }
+
+    public ScriptInstance setScriptNode(ScriptNode scriptNode) {
+        this.scriptNode = scriptNode;
+        return this;
+    }
+
+    public Object getInstance() {
+        return instance;
+    }
+
+    public ScriptInstance setInstance(Object instance) {
+        this.instance = instance;
+        return this;
     }
 }
