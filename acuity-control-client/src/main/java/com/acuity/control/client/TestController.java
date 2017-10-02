@@ -67,6 +67,11 @@ public class TestController {
             }
             return null;
         }
+
+        @Override
+        public boolean executeLoginHandler() {
+            return false;
+        }
     };
 
     public static void main(String[] args) {

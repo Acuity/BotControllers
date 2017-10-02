@@ -3,6 +3,7 @@ package com.acuity.control.client.managers.scripts;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
@@ -34,56 +35,67 @@ public class ScriptManager {
     }
 
     public void loop() {
-        BotClientConfig botClientConfig = botControl.getBotClientConfig();
-        if (botClientConfig == null) {
-            logger.debug("Null botClientConfig.");
-            return;
-        }
+        synchronized (LOCK){
+            BotClientConfig botClientConfig = botControl.getBotClientConfig();
+            if (botClientConfig == null) {
+                logger.debug("BotClientConfig not found, skipping script evaluations.");
+                return;
+            }
 
-        String currentNodeUID = this.currentNodeUID;
-        ScriptInstance scriptInstance = currentNodeUID != null ? scriptInstances.get(this.currentNodeUID) : null;
-        logger.debug("Current execution. {}, {}", currentNodeUID, scriptInstance);
+            String currentNodeUID = this.currentNodeUID;
+            ScriptInstance scriptInstance = currentNodeUID != null ? scriptInstances.get(this.currentNodeUID) : null;
+            logger.debug("Current execution. {}, {}", scriptInstance, currentNodeUID);
 
-        ScriptNode taskNode = botClientConfig.getTaskNode();
-        if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)){
-            setCurrentNode(taskNode, 2);
-            return;
-        }
-        else {
-            if (botClientConfig.getScriptSelector() != null && botClientConfig.getScriptSelector().getContinuousNodeList() != null){
-                for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
-                    if (scriptNode.getComplete().orElse(false)) continue;
+            ScriptNode taskNode = botClientConfig.getTaskNode();
+            if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)){
+                logger.debug("Task node found, setting as current node. {}", taskNode);
+                setCurrentNode(taskNode, 2);
+                return;
+            }
+            else {
+                if (botClientConfig.getScriptSelector() != null && botClientConfig.getScriptSelector().getContinuousNodeList() != null){
+                    for (ScriptNode scriptNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
+                        if (scriptNode.getComplete().orElse(false)) continue;
 
-                    List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
-                    if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
-                        setCurrentNode(taskNode, 1);
-                        return;
+                        List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+                        if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
+                            logger.debug("Continuous node found, setting as current node. {}", taskNode);
+                            setCurrentNode(taskNode, 1);
+                            return;
+                        }
                     }
                 }
             }
-        }
 
-        if (scriptInstance != null){
-            evaluate(scriptInstance);
-        }
-        else {
-            selectNextBaseScript(lastSelectorNodeUID);
+            if (botControl.isSignedIn()){
+                if (scriptInstance != null){
+                    evaluate(scriptInstance);
+                }
+                else {
+                    selectNextBaseScript(lastSelectorNodeUID, 0);
+                }
+            }
+            else {
+                logger.warn("Not signed in, skipping instance evaluation.");
+            }
         }
     }
 
-    private void selectNextBaseScript(String lastScriptNodeUID){
-        BotClientConfig botClientConfig = botControl.getBotClientConfig();
-        if (botClientConfig == null) {
-            logger.debug("selectNextBaseScript - null botClientConfig.");
-            return;
-        }
-
+    private boolean selectNextBaseScript(String lastScriptNodeUID, int attempt){
         synchronized (LOCK){
+            BotClientConfig botClientConfig = botControl.getBotClientConfig();
+            if (botClientConfig == null) {
+                logger.debug("selectNextBaseScript - null botClientConfig.");
+                return false;
+            }
+
             ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
             if (scriptSelector != null && scriptSelector.getBaseNodeList() != null && scriptSelector.getBaseNodeList().size() > 0){
                 logger.debug("Selecting next script. {}", lastScriptNodeUID);
 
                 List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getBaseNodeList();
+
+                if (attempt > nodeList.size()) return false;
 
                 int index = -1;
                 for (int i = 0; i < nodeList.size(); i++) {
@@ -104,10 +116,11 @@ public class ScriptManager {
                 List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
                 if (startEvaluators == null || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)){
                     setCurrentNode(scriptNode, 0);
+                    return true;
                 }
                 else {
                     logger.info("Failed start evaluation.");
-                    selectNextBaseScript(scriptNode.getUID());
+                    return selectNextBaseScript(scriptNode.getUID(), attempt + 1);
                 }
             }
             else {
@@ -116,6 +129,8 @@ public class ScriptManager {
                 }
             }
         }
+
+        return false;
     }
 
     private void setCurrentNode(ScriptNode scriptNode, int type) {
@@ -182,6 +197,12 @@ public class ScriptManager {
         return Optional.ofNullable(scriptInstances.get(currentNodeUID));
     }
 
+    private void transitionAccount(ScriptInstance closedInstance) {
+        if (closedInstance.isTask()){
+            botControl.getRsAccountManager().clearRSAccount();
+        }
+    }
+
     public void onScriptEnded(ScriptInstance closedInstance) {
         synchronized (LOCK){
             if (closedInstance == null) return;
@@ -215,7 +236,10 @@ public class ScriptManager {
                 if (closedInstance.isIncremental()) lastSelectorNodeUID = scriptNode.getUID();
             }
 
-            if (closedInstance.getScriptNode().getUID().equals(currentNodeUID)) currentNodeUID = null;
+            if (closedInstance.getScriptNode().getUID().equals(currentNodeUID)) {
+                currentNodeUID = null;
+                transitionAccount(closedInstance);
+            }
         }
     }
 }
