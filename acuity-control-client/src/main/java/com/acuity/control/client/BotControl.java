@@ -311,10 +311,13 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public abstract BufferedImage getScreenCapture();
 
+    public abstract boolean executeLoginHandler();
+
     public boolean isSignedIn() {
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
         return isSignedIn(rsAccount);
     }
+
     private synchronized void interceptSystemOut() {
         PrintStream out = System.out;
         if (out instanceof RemotePrintStream) ((RemotePrintStream) out).setBotControl(this);

@@ -1,6 +1,5 @@
 package com.acuity.botcontrol.clients.dreambot;
 
-import com.acuity.common.util.Pair;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
@@ -104,6 +103,11 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         public BufferedImage getScreenCapture() {
             return getClient().getCanvasImage();
         }
+
+        @Override
+        public boolean executeLoginHandler() {
+            return loginHandler.execute();
+        }
     };
 
     private LoginHandler loginHandler = new LoginHandler(this);
@@ -121,7 +125,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        if (loginHandler.onLoop()) return 1000;
+        if (loginHandler.execute()) return 1000;
 
         if (botControl.getWorldManager().onLoop()) return  1000;
 

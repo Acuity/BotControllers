@@ -37,7 +37,7 @@ public class LoginHandler {
         this.dreambotControlScript = dreambotControlScript;
     }
 
-    public boolean onLoop() {
+    public synchronized boolean execute() {
         RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
         ScriptNode executionNode = dreambotControlScript.getBotControl().getScriptManager().getExecutionNode().orElse(null);
         RSAccountSelector rsAccountSelector = Optional.ofNullable(dreambotControlScript.getBotControl().getBotClientConfig().getScriptSelector()).map(ScriptSelector::getRsAccountSelector).orElse(null);
