@@ -1,6 +1,7 @@
 package com.acuity.control.client.managers.scripts;
 
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import com.google.common.base.MoreObjects;
 
 /**
  * Created by Zach on 10/1/2017.
@@ -61,5 +62,16 @@ public class ScriptInstance {
     public ScriptInstance setInstance(Object instance) {
         this.instance = instance;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("task", task)
+                .add("continuous", continuous)
+                .add("incremental", incremental)
+                .add("scriptNode", scriptNode)
+                .add("instance", instance)
+                .toString();
     }
 }
