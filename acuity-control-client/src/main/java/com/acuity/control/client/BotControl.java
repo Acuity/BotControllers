@@ -145,14 +145,18 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return null;
     }
 
-    public void confirmState(){
+    public Optional<MessagePackage> confirmState(){
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
         String rev = getBotClientConfig() != null ? getBotClientConfig().getRev() : null;
-        logger.debug("Confirming state. {}, {}", rev, rsAccount);
-        send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
+
+        Optional<MessagePackage> response = send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
                 .setBody(0, rev)
                 .setBody(1, rsAccount != null ? rsAccount.getID() : null)
-        ).waitForResponse(30, TimeUnit.SECONDS);
+        ).waitForResponse(30, TimeUnit.SECONDS).getResponse();
+
+        logger.debug("Confirmed state. {}/{}, {}/{}", rev, response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), rsAccount, response.map(messagePackage -> messagePackage.getBodyAs(1, Boolean.class)).orElse(false));
+
+        return response;
     }
 
     public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {

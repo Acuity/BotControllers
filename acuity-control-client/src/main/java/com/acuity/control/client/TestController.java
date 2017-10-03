@@ -29,7 +29,6 @@ public class TestController {
             return new Object();
         }
 
-
         @Override
         public void destroyInstanceOfScript(Object scriptInstance) {
         }
