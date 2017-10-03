@@ -1,6 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.managers.scripts.ScriptManager;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
@@ -40,7 +41,9 @@ public class LoginHandler {
     public synchronized boolean execute() {
         RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
         ScriptNode executionNode = dreambotControlScript.getBotControl().getScriptManager().getExecutionNode().orElse(null);
-        RSAccountSelector rsAccountSelector = Optional.ofNullable(dreambotControlScript.getBotControl().getBotClientConfig().getScriptSelector()).map(ScriptSelector::getRsAccountSelector).orElse(null);
+        RSAccountSelector rsAccountSelector = Optional.ofNullable(dreambotControlScript.getBotControl().getBotClientConfig())
+                .map(BotClientConfig::getScriptSelector)
+                .map(ScriptSelector::getRsAccountSelector).orElse(null);
 
         if (executionNode != null && executionNode.getRsAccountSelector() != null) {
             rsAccountSelector = executionNode.getRsAccountSelector();
@@ -57,11 +60,14 @@ public class LoginHandler {
         }
 
         if (account == null && rsAccountSelector != null){
-            dreambotControlScript.getBotControl().getRsAccountManager().requestAccountFromTag(
+
+            RSAccount rsAccount = dreambotControlScript.getBotControl().getRsAccountManager().requestAccountFromTag(
                     rsAccountSelector.getAccountSelectionID(),
                     true,
                     false,
                     rsAccountSelector.isRegistrationAllowed());
+
+            if (rsAccount != null) dreambotControlScript.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
             return true;
         }
 

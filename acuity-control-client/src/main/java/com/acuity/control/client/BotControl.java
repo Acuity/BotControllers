@@ -147,9 +147,11 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public void confirmState(){
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
+        String rev = getBotClientConfig() != null ? getBotClientConfig().getRev() : null;
+        logger.debug("Confirming state. {}, {}", rev, rsAccount);
         send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
-                .setBody(0, getBotClientConfig().hashCode())
-                .setBody(1, rsAccount == null ? null : rsAccount.getID())
+                .setBody(0, rev)
+                .setBody(1, rsAccount != null ? rsAccount.getID() : null)
         ).waitForResponse(30, TimeUnit.SECONDS);
     }
 
@@ -315,7 +317,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public boolean isSignedIn() {
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
-        return isSignedIn(rsAccount);
+        return rsAccount != null && isSignedIn(rsAccount);
     }
 
     private synchronized void interceptSystemOut() {

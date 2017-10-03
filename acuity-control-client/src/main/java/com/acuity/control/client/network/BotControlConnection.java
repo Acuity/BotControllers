@@ -170,10 +170,16 @@ public class BotControlConnection {
             }
         }
 
+
         botControl.getScriptManager().getExecutionInstance().ifPresent(scriptInstance -> {
-            Object instance = scriptInstance.getInstance();
-            if (instance != null && instance instanceof NetworkedInterface){
-                ((NetworkedInterface) instance).onMessagePackage(messagePackage);
+            try {
+                Object instance = scriptInstance.getInstance();
+                if (instance != null && instance instanceof NetworkedInterface){
+                    ((NetworkedInterface) instance).onMessagePackage(messagePackage);
+                }
+            }
+            catch (Throwable e){
+                logger.error("Error during onMessage.", e);
             }
         });
         botControl.getEventBus().post(messagePackage);

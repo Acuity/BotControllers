@@ -76,6 +76,15 @@ public class TestController {
 
     public static void main(String[] args) {
         TestController testController = new TestController();
+
+        try {
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        testController.botControl.confirmState();
+
         while (true){
             try {
                 Thread.sleep(1000);

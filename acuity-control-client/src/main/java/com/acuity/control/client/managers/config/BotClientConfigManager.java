@@ -30,7 +30,7 @@ public class BotClientConfigManager {
 
     public void setCurrentConfig(BotClientConfig config) {
         synchronized (LOCK){
-            logger.debug("BotClientConfig updated. {}", config);
+            logger.debug("BotClientConfig updated. new={}, old={}", config, currentConfig);
             this.currentConfig = config;
             botControl.getScriptManager().onBotClientConfigUpdate(currentConfig);
             botControl.getBreakManager().onBotClientConfigUpdate(currentConfig);

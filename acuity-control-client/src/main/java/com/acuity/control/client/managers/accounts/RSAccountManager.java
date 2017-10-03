@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -27,16 +26,17 @@ public class RSAccountManager {
     private RSAccount rsAccount;
 
     private AccountInfoGenerator accountInfoGenerator = new AccountInfoGenerator();
+    private int requestFailures = 0;
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
     }
 
-    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP){
+    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP) {
         return addRSAccount(email, ign, password, creationIP, null);
     }
 
-    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID){
+    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID) {
         return botControl.getConnection().sendWithCredentials(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
                 .setBody(2, email)
                 .setBody(3, ign)
@@ -47,22 +47,22 @@ public class RSAccountManager {
         ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
     }
 
-    public Optional<String> get2CaptchaKey(){
+    public Optional<String> get2CaptchaKey() {
         return botControl.getConnection().send(new MessagePackage(MessagePackage.Type.REQUEST_2CAPTCHA_KEY, MessagePackage.SERVER))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
     }
 
-    public void clearRSAccount(){
-        botControl.requestAccountAssignment(null, true);
-        this.rsAccount = null;
+    public void clearRSAccount() {
+        if (botControl.requestAccountAssignment(null, true)) {
+            this.rsAccount = null;
+        }
     }
 
-    private int requestFailures = 0;
-    public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail){
+    public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
         logger.debug("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
         if (rsAccount != null) {
-            if (rsAccount.getTagIDs().contains(tagID)){
+            if (rsAccount.getTagIDs().contains(tagID)) {
                 return rsAccount;
             }
             clearRSAccount();
@@ -76,7 +76,7 @@ public class RSAccountManager {
 
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
-            if (botControl.requestAccountAssignment(account, force)){
+            if (botControl.requestAccountAssignment(account, force)) {
                 logger.debug("Account Assigned - {}.", account.getEmail());
                 requestFailures = 0;
                 return account;
@@ -85,10 +85,10 @@ public class RSAccountManager {
 
         requestFailures++;
 
-        if (requestFailures > 3 && registerNewOnFail){
+        if (requestFailures > 3 && registerNewOnFail) {
             logger.debug("Registering new RS-Account.");
             String apiKey = get2CaptchaKey().orElse(null);
-            if (apiKey != null){
+            if (apiKey != null) {
                 String randomEmail = accountInfoGenerator.getRandomEmail();
                 String randomDisplayName = accountInfoGenerator.getRandomDisplayName();
                 int randomAge = accountInfoGenerator.getRandomAge();
@@ -99,7 +99,7 @@ public class RSAccountManager {
                             .with2CaptchaKey(apiKey)
                             .withAccountInfo(randomEmail, randomDisplayName, randomAge, randomPassword)
                             .run();
-                    if (result){
+                    if (result) {
                         boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
                         if (added) {
                             requestFailures = 0;
@@ -115,12 +115,12 @@ public class RSAccountManager {
         return null;
     }
 
-    public void setAccountInfoGenerator(AccountInfoGenerator accountInfoGenerator) {
-        this.accountInfoGenerator = accountInfoGenerator;
-    }
-
     public AccountInfoGenerator getAccountInfoGenerator() {
         return accountInfoGenerator;
+    }
+
+    public void setAccountInfoGenerator(AccountInfoGenerator accountInfoGenerator) {
+        this.accountInfoGenerator = accountInfoGenerator;
     }
 
     public RSAccount getRsAccount() {

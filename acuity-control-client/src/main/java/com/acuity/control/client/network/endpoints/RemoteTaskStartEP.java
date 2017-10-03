@@ -4,6 +4,7 @@ import com.acuity.common.util.Pair;
 import com.acuity.control.client.managers.config.BotClientConfigManager;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.network.ControlEndpoint;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
@@ -28,7 +29,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
 
     @Override
     public void handle(BotControlConnection botControlConnection, MessagePackage messagePackage) {
-        synchronized (BotClientConfigManager.LOCK){
+        synchronized (ScriptManager.LOCK){
             logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
 
             BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
@@ -59,6 +60,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
                 if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null) {
                     logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
                     rsAccount = botControlConnection.getBotControl().getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
+                    if (rsAccount != null) botControlConnection.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
                     logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
                 }
             }
