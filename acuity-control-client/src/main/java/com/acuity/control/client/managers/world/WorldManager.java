@@ -40,6 +40,8 @@ public class WorldManager {
 
         if (lastCheck.isBefore(LocalDateTime.now().minusSeconds(10))){
             WorldDataResult worldData = botControl.requestWorldData();
+            if (worldData == null) return false;
+
             worldData.zip();
 
             int currentWorldBotPopulation = worldData.getWorldBotPopulation().getOrDefault(currentWorld, Integer.MAX_VALUE) - 2;

@@ -38,7 +38,7 @@ public class LoginHandler {
         this.dreambotControlScript = dreambotControlScript;
     }
 
-    public synchronized boolean execute() {
+    public boolean execute() {
         RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
         ScriptNode executionNode = dreambotControlScript.getBotControl().getScriptManager().getExecutionNode().orElse(null);
         RSAccountSelector rsAccountSelector = Optional.ofNullable(dreambotControlScript.getBotControl().getBotClientConfig())
@@ -72,13 +72,11 @@ public class LoginHandler {
         }
 
         if (account != null && executionNode == null) {
-            synchronized (ScriptManager.LOCK){
-                if (dreambotControlScript.getBotControl().getScriptManager().getExecutionNode() == null){
-                    logger.debug("Assigned account without node.");
-                    dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
-                }
+            if (dreambotControlScript.getBotControl().getScriptManager().getExecutionNode() == null){
+                logger.debug("Assigned account without node.");
+                dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
+                return true;
             }
-            return true;
         }
 
         if (account != null && rsAccountSelector != null) {
@@ -172,8 +170,17 @@ public class LoginHandler {
 
     private void logout() {
         logger.debug("logging out.");
-        dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
-        dreambotControlScript.getTabs().logout();
+        try {
+            dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
+        }
+        catch (Throwable ignored){
+        }
+
+        try {
+            dreambotControlScript.getTabs().logout();
+        }
+        catch (Throwable ignored){
+        }
     }
 
     private boolean isLoginInfoCorrect(String username, String password){

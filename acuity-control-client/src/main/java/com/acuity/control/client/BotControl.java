@@ -41,6 +41,8 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BotControl.class);
 
+    private static final int TIMEOUT_SECONDS = 6;
+    
     private EventBus eventBus = new EventBus(this);
 
     private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
@@ -50,9 +52,9 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private ProxyManager proxyManager = new ProxyManager(this);
     private WorldManager worldManager = new WorldManager(this);
 
-    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
-
+    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
     private ScheduledExecutorService scriptExecutorService = Executors.newSingleThreadScheduledExecutor();
+
     private BotControlConnection connection;
 
     public BotControl(String host, ClientType clientType) {
@@ -79,7 +81,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
             }
         }, 3, 10, TimeUnit.SECONDS);
 
-        scriptExecutorService.scheduleAtFixedRate(() -> {
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
             try {
                 clientConfigManager.confirmState();
             }
@@ -131,16 +133,13 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     public WorldDataResult requestWorldData(){
         try{
             return send(new MessagePackage(MessagePackage.Type.REQUEST_WORLD_DATA, MessagePackage.SERVER))
-                    .waitForResponse(30, TimeUnit.SECONDS)
+                    .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                     .getResponse()
-                    .map(messagePackage -> {
-                        return messagePackage.getBodyAs(WorldDataResult.class);
-                    })
+                    .map(messagePackage -> messagePackage.getBodyAs(WorldDataResult.class))
                     .orElse(null);
         }
         catch (Throwable e){
             e.printStackTrace();
-            System.out.println();
         }
         return null;
     }
@@ -152,22 +151,20 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         Optional<MessagePackage> response = send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
                 .setBody(0, rev)
                 .setBody(1, rsAccount != null ? rsAccount.getID() : null)
-        ).waitForResponse(30, TimeUnit.SECONDS).getResponse();
+        ).waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS).getResponse();
 
-        logger.debug("Confirmed state. {}/{}, {}/{}", rev, response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), rsAccount, response.map(messagePackage -> messagePackage.getBodyAs(1, Boolean.class)).orElse(false));
+        logger.debug("Confirmed state. {}/{}, {}/{}", response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), response.map(messagePackage -> messagePackage.getBodyAs(1, Boolean.class)).orElse(false), rev, rsAccount);
 
         return response;
     }
 
     public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {
-        synchronized (BotClientConfigManager.LOCK){
-            return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
-                    .setBody(0, botClientConfig)
-                    .setBody(1, serializeNull)
-            )
-                    .waitForResponse(30, TimeUnit.SECONDS)
-                    .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
-        }
+        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
+                .setBody(0, botClientConfig)
+                .setBody(1, serializeNull)
+        )
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     public void updateClientStateNoResponse(BotClientState botClientState, boolean serializeNull) {
@@ -183,14 +180,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .setBody(1, serializeNull)
 
         )
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     @SuppressWarnings("unchecked")
     public List<RSAccount> requestRSAccounts(boolean filterUnassignable) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNTS, MessagePackage.SERVER).setBody(filterUnassignable))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(RSAccount[].class)))
                 .orElse(Collections.EMPTY_LIST);
@@ -199,7 +196,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     @SuppressWarnings("unchecked")
     public List<Tag> requestTags(String title) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_TAGS, MessagePackage.SERVER).setBody(title))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(Tag[].class)))
                 .orElse(Collections.EMPTY_LIST);
@@ -210,7 +207,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .setBody(0, true)
                 .setBody(1, account)
                 .setBody(2, tag)
-        ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
+        ).waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     public boolean requestAccountAssignment(RSAccount account, boolean force) {
@@ -218,7 +215,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 new MessagePackage(MessagePackage.Type.REQUEST_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER)
                         .setBody(0, account == null ? null : account.getID())
                         .setBody(1, force))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                 .orElse(false);
@@ -226,7 +223,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public boolean isAccountAssigned(RSAccount rsAccount) {
         return send(new MessagePackage(MessagePackage.Type.CHECK_ACCOUNT_ASSIGNMENT, MessagePackage.SERVER).setBody(rsAccount.getID()))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                 .orElse(true);
@@ -234,7 +231,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public List<BotClient> requestBotClients() {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_BOT_CLIENTS, MessagePackage.SERVER))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(BotClient[].class)))
                 .orElse(Collections.emptyList());
@@ -242,7 +239,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public RemoteScriptTask.StartResponse requestRemoteTaskStart(String destinationKey, RemoteScriptTask.StartRequest startRequest) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_REMOTE_TASK_START, destinationKey).setBody(startRequest))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(RemoteScriptTask.StartResponse.class))
                 .orElse(null);
@@ -250,14 +247,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public Optional<Script> requestScript(String scriptID) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_SCRIPT, MessagePackage.SERVER).setBody(scriptID))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(Script.class));
     }
 
     public Optional<Tag> requestTag(String tagID) {
         return send(new MessagePackage(MessagePackage.Type.REQUEST_TAG, MessagePackage.SERVER).setBody(tagID))
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(Tag.class));
     }
 
@@ -276,7 +273,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .setBody(0, scriptID)
                 .setBody(1, scriptVersionID)
         )
-                .waitForResponse(30, TimeUnit.SECONDS)
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
                 .map(messagePackage -> messagePackage.getBodyAs(ScriptVersion.class));
     }

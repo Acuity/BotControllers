@@ -69,6 +69,7 @@ public class BreakManager {
     }
 
     public void onBotClientConfigUpdate(BotClientConfig config) {
+        if (config == null) return;
         Integer hashCode = profile != null ? profile.hashCode() : null;
         Integer otherHashCode = config.getBreakProfile().map(BreakProfile::hashCode).orElse(null);
         if (!Objects.equals(hashCode, otherHashCode)) setProfile(config.getBreakProfile().orElse(null));

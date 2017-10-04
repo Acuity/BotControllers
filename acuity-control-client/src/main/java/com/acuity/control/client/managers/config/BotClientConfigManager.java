@@ -23,12 +23,11 @@ public class BotClientConfigManager {
     }
 
     public void confirmState(){
-        synchronized (LOCK){
-            botControl.confirmState();
-        }
+        botControl.confirmState();
     }
 
     public void setCurrentConfig(BotClientConfig config) {
+        if (config == null) return;;
         synchronized (LOCK){
             logger.debug("BotClientConfig updated. new={}, old={}", config, currentConfig);
             this.currentConfig = config;

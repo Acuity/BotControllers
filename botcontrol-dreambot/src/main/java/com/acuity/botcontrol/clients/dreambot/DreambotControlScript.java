@@ -125,32 +125,29 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        if (loginHandler.execute()) return 1000;
+        if (!botControl.isSignedIn()) return 1000;
 
         if (botControl.getWorldManager().onLoop()) return  1000;
 
-        RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
-        if (rsAccount != null && botControl.isSignedIn(rsAccount)){
-            ScriptInstance dreambotScript = botControl.getScriptManager().getExecutionInstance().orElse(null);
-            if (dreambotScript != null) {
-                Object instance = dreambotScript.getInstance();
-                if (instance == null){
-                    dreambotScript.setInstance(botControl.createInstanceOfScript(dreambotScript.getScriptNode()));
-                }
-                else {
-                    try {
-                        int scriptSleep = ((AbstractScript) instance).onLoop();
-                        if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
-                        return Math.max(scriptSleep, 250);
-                    }
-                    catch (Throwable e){
-                        logger.error("Error during scriptOnLoop", e);
-                    }
-                }
-
+        ScriptInstance dreambotScript = botControl.getScriptManager().getExecutionInstance().orElse(null);
+        if (dreambotScript != null) {
+            Object instance = dreambotScript.getInstance();
+            if (instance == null){
+                dreambotScript.setInstance(botControl.createInstanceOfScript(dreambotScript.getScriptNode()));
             }
-        }
+            else {
+                try {
+                    logger.debug("Looping script.");
+                    int scriptSleep = ((AbstractScript) instance).onLoop();
+                    if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
+                    return Math.max(scriptSleep, 250);
+                }
+                catch (Throwable e){
+                    logger.error("Error during scriptOnLoop", e);
+                }
+            }
 
+        }
         return 1000;
     }
 

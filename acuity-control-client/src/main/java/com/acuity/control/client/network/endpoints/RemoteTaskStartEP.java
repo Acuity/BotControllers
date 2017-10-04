@@ -1,7 +1,5 @@
 package com.acuity.control.client.network.endpoints;
 
-import com.acuity.common.util.Pair;
-import com.acuity.control.client.managers.config.BotClientConfigManager;
 import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
 import com.acuity.control.client.managers.scripts.ScriptManager;
@@ -33,7 +31,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
 
             BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
-            if (botClientConfig.getTaskNode() != null){
+            if (botClientConfig.getTaskNode() != null) {
                 logger.debug("Remote Task Request - Already has task.");
                 botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                         .setBody(new RemoteScriptTask.StartResponse()));
@@ -60,7 +58,8 @@ public class RemoteTaskStartEP extends ControlEndpoint {
                 if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null) {
                     logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
                     rsAccount = botControlConnection.getBotControl().getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
-                    if (rsAccount != null) botControlConnection.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
+                    if (rsAccount != null)
+                        botControlConnection.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
                     logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
                 }
             }

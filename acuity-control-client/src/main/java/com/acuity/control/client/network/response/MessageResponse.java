@@ -51,9 +51,12 @@ public class MessageResponse {
                 e.printStackTrace();
             }
         }
+
         if (response == null) {
             logger.warn("Timed out - {}.", responseKey);
+            throw new RuntimeException("Message package timeout.");
         }
+
         return this;
     }
 }
