@@ -31,7 +31,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
 
             BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
-            if (botClientConfig.getTaskNode() != null) {
+            if (botControlConnection.getBotControl().getTaskManager().getCurrentTask() != null) {
                 logger.debug("Remote Task Request - Already has task.");
                 botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                         .setBody(new RemoteScriptTask.StartResponse()));
@@ -68,14 +68,8 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             result.setAccount(rsAccount);
             if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()) {
                 logger.debug("Remote Task Request - Adding task to queue.");
-
-                botClientConfig.setTaskNode(taskNode);
-                if (!botControlConnection.getBotControl().updateClientConfig(botClientConfig, true)) {
-                    logger.debug("Remote Task Request - Failed to add task to queue, clearing account.");
-                    botControlConnection.getBotControl().getRsAccountManager().clearRSAccount();
-                } else {
-                    result.setTaskQueued(true);
-                }
+                botControlConnection.getBotControl().getTaskManager().setCurrentTask(taskNode);
+                result.setTaskQueued(true);
             }
 
             logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());

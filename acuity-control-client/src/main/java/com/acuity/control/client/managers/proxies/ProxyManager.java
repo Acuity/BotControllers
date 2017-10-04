@@ -25,10 +25,4 @@ public class ProxyManager {
         ProxyUtil.setSocksProxy(proxy, botControl);
         botControl.getEventBus().post(new BotControlEvent.ProxyUpdated());
     }
-
-    public void onBotClientConfigUpdate(BotClientConfig config) {
-        Integer otherHashcode = config.getProxy().map(Proxy::hashCode).orElse(null);
-        Integer hashcode = proxy != null ? proxy.hashCode() : null;
-        if (!Objects.equals(otherHashcode, hashcode)) setProxy(config.getProxy().orElse(null));
-    }
 }

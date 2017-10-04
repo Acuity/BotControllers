@@ -4,6 +4,7 @@ import com.acuity.common.world_data_parser.WorldDataResult;
 import com.acuity.control.client.managers.accounts.RSAccountManager;
 import com.acuity.control.client.managers.breaks.BreakManager;
 import com.acuity.control.client.managers.config.BotClientConfigManager;
+import com.acuity.control.client.managers.config.TaskManager;
 import com.acuity.control.client.managers.proxies.ProxyManager;
 import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
@@ -51,6 +52,7 @@ public abstract class BotControl implements SubscriberExceptionHandler {
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
     private ProxyManager proxyManager = new ProxyManager(this);
     private WorldManager worldManager = new WorldManager(this);
+    private TaskManager taskManager = new TaskManager(this);
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
     private ScheduledExecutorService scriptExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -129,6 +131,10 @@ public abstract class BotControl implements SubscriberExceptionHandler {
         return clientConfigManager;
     }
 
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
+
     @SuppressWarnings("unchecked")
     public WorldDataResult requestWorldData(){
         try{
@@ -146,25 +152,14 @@ public abstract class BotControl implements SubscriberExceptionHandler {
 
     public Optional<MessagePackage> confirmState(){
         RSAccount rsAccount = getRsAccountManager().getRsAccount();
-        String rev = getBotClientConfig() != null ? getBotClientConfig().getRev() : null;
 
         Optional<MessagePackage> response = send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
-                .setBody(0, rev)
-                .setBody(1, rsAccount != null ? rsAccount.getID() : null)
+                .setBody(rsAccount != null ? rsAccount.getID() : null)
         ).waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS).getResponse();
 
-        logger.debug("Confirmed state. {}/{}, {}/{}", response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), response.map(messagePackage -> messagePackage.getBodyAs(1, Boolean.class)).orElse(false), rev, rsAccount);
+        logger.debug("Confirmed state. {}, {}", response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), rsAccount);
 
         return response;
-    }
-
-    public boolean updateClientConfig(BotClientConfig botClientConfig, boolean serializeNull) {
-        return send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_CONFIG, MessagePackage.SERVER)
-                .setBody(0, botClientConfig)
-                .setBody(1, serializeNull)
-        )
-                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .getResponse().map(messagePackage -> messagePackage.getBodyAs(boolean.class)).orElse(false);
     }
 
     public void updateClientStateNoResponse(BotClientState botClientState, boolean serializeNull) {

@@ -26,17 +26,6 @@ public class BotClientConfigManager {
         botControl.confirmState();
     }
 
-    public void setCurrentConfig(BotClientConfig config) {
-        if (config == null) return;;
-        synchronized (LOCK){
-            logger.debug("BotClientConfig updated. new={}, old={}", config, currentConfig);
-            this.currentConfig = config;
-            botControl.getScriptManager().onBotClientConfigUpdate(currentConfig);
-            botControl.getBreakManager().onBotClientConfigUpdate(currentConfig);
-            botControl.getProxyManager().onBotClientConfigUpdate(currentConfig);
-        }
-    }
-
     public BotClientConfig getCurrentConfig() {
         return currentConfig;
     }

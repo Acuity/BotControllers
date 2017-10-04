@@ -49,7 +49,7 @@ public class ScriptManager {
             ScriptInstance scriptInstance = currentNodeUID != null ? scriptInstances.get(this.currentNodeUID) : null;
             logger.trace("Current execution. {}, {}", scriptInstance, currentNodeUID);
 
-            ScriptNode taskNode = botClientConfig.getTaskNode();
+            ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
             if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)) {
                 logger.debug("Task node found, setting as current node. {}", taskNode);
                 setCurrentNode(taskNode, 2);
@@ -198,37 +198,32 @@ public class ScriptManager {
     public void onScriptEnded(ScriptInstance closedInstance) {
         if (closedInstance == null) return;
 
-        logger.debug("ScriptInstance ended. {}", closedInstance);
+        synchronized (LOCK){
+            logger.debug("ScriptInstance ended. {}", closedInstance);
 
-        BotClientConfig botClientConfig = botControl.getBotClientConfig();
-        ScriptNode scriptNode = closedInstance.getScriptNode();
+            BotClientConfig botClientConfig = botControl.getBotClientConfig();
+            ScriptNode scriptNode = closedInstance.getScriptNode();
 
-        if (closedInstance.isTask()) {
-            ScriptNode taskNode = botClientConfig.getTaskNode();
-            if (taskNode != null && taskNode.getUID().equals(scriptNode.getUID())) {
-                botClientConfig.setTaskNode(null);
-                boolean updated = botControl.updateClientConfig(botClientConfig, true);
-                logger.debug("ScriptNode was task. removed={}, updated={}", updated);
-            }
-            destroyInstance(closedInstance);
-        } else {
-            if ((boolean) scriptNode.getSettings().getOrDefault("completeOnStop", false)) {
-                logger.debug("ScriptNode was completeOnStop.");
-                scriptNode.setComplete(true);
-                botControl.updateClientConfig(botClientConfig, true);
-            }
-
-            if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)) {
-                logger.debug("ScriptNode was destroyInstanceOnStop.");
+            if (closedInstance.isTask()) {
+                ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
+                if (taskNode != null && taskNode.getUID().equals(scriptNode.getUID())) {
+                    botControl.getTaskManager().setCurrentTask(null);
+                    logger.debug("ScriptNode was task.");
+                }
                 destroyInstance(closedInstance);
+            } else {
+                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)) {
+                    logger.debug("ScriptNode was destroyInstanceOnStop.");
+                    destroyInstance(closedInstance);
+                }
+
+                if (closedInstance.isIncremental()) lastSelectorNodeUID = scriptNode.getUID();
             }
 
-            if (closedInstance.isIncremental()) lastSelectorNodeUID = scriptNode.getUID();
-        }
-
-        if (closedInstance.getScriptNode().getUID().equals(currentNodeUID)) {
-            currentNodeUID = null;
-            transitionAccount(closedInstance);
+            if (closedInstance.getScriptNode().getUID().equals(currentNodeUID)) {
+                currentNodeUID = null;
+                transitionAccount(closedInstance);
+            }
         }
     }
 }
