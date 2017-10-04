@@ -103,12 +103,12 @@ public class ScriptManager {
                 }
             }
 
-            logger.debug("Initial index. {}/{}", index, nodeList.size() - 1);
+            logger.trace("Initial index. {}/{}", index, nodeList.size() - 1);
             index++;
             if (index >= nodeList.size()) index = 0;
 
             ScriptNode scriptNode = nodeList.get(index);
-            logger.debug("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
+            logger.trace("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
 
             List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
             if (startEvaluators == null || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
@@ -118,12 +118,7 @@ public class ScriptManager {
                 logger.info("Failed start evaluation.");
                 return selectNextBaseScript(scriptNode.getUID(), attempt + 1);
             }
-        } else {
-            if (botControl.getRsAccountManager().getRsAccount() != null) {
-                botControl.getRsAccountManager().clearRSAccount();
-            }
         }
-
         return false;
     }
 
@@ -133,12 +128,15 @@ public class ScriptManager {
             return;
         }
 
-        scriptInstances.put(scriptNode.getUID(), new ScriptInstance(scriptNode)
+        ScriptInstance scriptInstance = new ScriptInstance(scriptNode)
                 .setIncremental(type == 0)
                 .setContinuous(type == 1)
-                .setTask(type == 2)
-        );
+                .setTask(type == 2);
+
+        scriptInstances.put(scriptNode.getUID(), scriptInstance);
         currentNodeUID = scriptNode.getUID();
+
+        logger.info("Set current script node/instance. {}", scriptInstance);
     }
 
     private boolean evaluate(ScriptInstance scriptInstance) {
