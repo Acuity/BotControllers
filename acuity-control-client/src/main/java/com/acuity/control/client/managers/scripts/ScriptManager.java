@@ -39,7 +39,14 @@ public class ScriptManager {
             return;
         }
 
-        synchronized (LOCK){
+        synchronized (LOCK) {
+            ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
+            if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)) {
+                logger.debug("Task node found, setting as current node. {}", taskNode);
+                setCurrentNode(taskNode, 2);
+                return;
+            }
+
             if (botControl.executeLoginHandler()) {
                 logger.warn("Login handler executing, skipping instance evaluation.");
                 return;
@@ -49,23 +56,14 @@ public class ScriptManager {
             ScriptInstance scriptInstance = currentNodeUID != null ? scriptInstances.get(this.currentNodeUID) : null;
             logger.trace("Current execution. {}, {}", scriptInstance, currentNodeUID);
 
-            ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
-            if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)) {
-                logger.debug("Task node found, setting as current node. {}", taskNode);
-                setCurrentNode(taskNode, 2);
-                return;
-            } else {
-                if (scriptInstance == null || scriptInstance.isIncremental()) {
-                    if (botClientConfig.getScriptSelector() != null && botClientConfig.getScriptSelector().getContinuousNodeList() != null) {
-                        for (ScriptNode continuousNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
-                            if (continuousNode.getComplete().orElse(false)) continue;
-
-                            List<ScriptEvaluator> startEvaluators = continuousNode.getEvaluatorGroup().getStartEvaluators();
-                            if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
-                                logger.debug("Continuous node found, setting as current node. {}", continuousNode);
-                                setCurrentNode(continuousNode, 1);
-                                return;
-                            }
+            if (scriptInstance == null || scriptInstance.isIncremental()) {
+                if (botClientConfig.getScriptSelector() != null && botClientConfig.getScriptSelector().getContinuousNodeList() != null) {
+                    for (ScriptNode continuousNode : botClientConfig.getScriptSelector().getContinuousNodeList()) {
+                        List<ScriptEvaluator> startEvaluators = continuousNode.getEvaluatorGroup().getStartEvaluators();
+                        if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
+                            logger.debug("Continuous node found, setting as current node. {}", continuousNode);
+                            setCurrentNode(continuousNode, 1);
+                            return;
                         }
                     }
                 }
@@ -189,20 +187,20 @@ public class ScriptManager {
     public void onScriptEnded(ScriptInstance closedInstance) {
         if (closedInstance == null) return;
 
-        synchronized (LOCK){
+        synchronized (LOCK) {
             logger.debug("ScriptInstance ended. {}", closedInstance);
 
             ScriptNode scriptNode = closedInstance.getScriptNode();
             if (closedInstance.isTask()) {
                 ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
                 if (taskNode != null && taskNode.getUID().equals(scriptNode.getUID())) {
+                    logger.trace("ScriptNode was task.");
                     botControl.getTaskManager().setCurrentTask(null);
-                    logger.debug("ScriptNode was task.");
                 }
                 destroyInstance(closedInstance);
             } else {
                 if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)) {
-                    logger.debug("ScriptNode was destroyInstanceOnStop.");
+                    logger.trace("ScriptNode was destroyInstanceOnStop.");
                     destroyInstance(closedInstance);
                 }
 

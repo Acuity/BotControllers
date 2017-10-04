@@ -69,7 +69,7 @@ public class DreambotScriptManager {
             if (scriptVersion != null) {
                 String[] args = runConfig.getScriptArguments() == null ? new String[0] : runConfig.getScriptArguments().toArray(new String[runConfig.getScriptArguments().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
-                    logger.debug("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
+                    logger.trace("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {
                         ScriptLocation scriptInstance = Scripts.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
@@ -89,7 +89,7 @@ public class DreambotScriptManager {
                 } else {
                     Script script = botControl.requestScript(runConfig.getScriptID()).orElse(null);
                     if (script != null){
-                        logger.debug("initDreambotScript - loading version off Dreambot-Repo.", script);
+                        logger.trace("initDreambotScript - loading version off Dreambot-Repo.", script);
                         Map<String, Class<? extends AbstractScript>> repoScripts = getRepoScripts();
                         Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
                         if (aClass != null) {

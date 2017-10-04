@@ -5,11 +5,13 @@ import com.acuity.common.world_data_parser.WorldDataResult;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.common.RSWorldSelector;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -30,7 +32,7 @@ public class WorldManager {
     public boolean onLoop(){
         if (!botControl.isSignedIn()) return false;
 
-        RSWorldSelector rsWorldSelector = botControl.getBotClientConfig().getScriptSelector().getRsWorldSelector();
+        RSWorldSelector rsWorldSelector = Optional.ofNullable(botControl.getBotClientConfig().getScriptSelector()).map(ScriptSelector::getRsWorldSelector).orElse(null);
         rsWorldSelector = botControl.getScriptManager().getExecutionNode().map(ScriptNode::getRsWorldSelector).orElse(rsWorldSelector);
 
         if (rsWorldSelector != null && !rsWorldSelector.isEnabled()) return false;

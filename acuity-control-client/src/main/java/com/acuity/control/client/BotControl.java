@@ -157,7 +157,10 @@ public abstract class BotControl implements SubscriberExceptionHandler {
                 .setBody(rsAccount != null ? rsAccount.getID() : null)
         ).waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS).getResponse();
 
-        logger.debug("Confirmed state. {}, {}", response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false), rsAccount);
+        Boolean rsAccountConfirmed = response.map(messagePackage -> messagePackage.getBodyAs(0, Boolean.class)).orElse(false);
+        if (!rsAccountConfirmed) logger.warn("RSAccount failed to be confirmed.");
+
+        logger.trace("Confirmed state. {}, {}", rsAccountConfirmed, rsAccount);
 
         return response;
     }

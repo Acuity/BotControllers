@@ -72,12 +72,12 @@ public class RSAccountManager {
                 .filter(rsAccount -> rsAccount.getTagIDs().contains(tagID))
                 .collect(Collectors.toList());
 
-        logger.debug("Viable RS-Accounts. {}", rsAccounts);
+        logger.debug("Viable RS-Accounts. {}, {}", rsAccounts.size(), rsAccounts);
 
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
             if (botControl.requestAccountAssignment(account, force)) {
-                logger.debug("Account Assigned - {}.", account.getEmail());
+                logger.info("Account Assigned - {}.", account.getEmail());
                 requestFailures = 0;
                 return account;
             }
@@ -86,7 +86,7 @@ public class RSAccountManager {
         requestFailures++;
 
         if (requestFailures > 3 && registerNewOnFail) {
-            logger.debug("Registering new RS-Account.");
+            logger.info("Registering new RS-Account.");
             String apiKey = get2CaptchaKey().orElse(null);
             if (apiKey != null) {
                 String randomEmail = accountInfoGenerator.getRandomEmail();
@@ -109,6 +109,9 @@ public class RSAccountManager {
                 } catch (Exception e) {
                     logger.error("Error during account creation.", e);
                 }
+            }
+            else {
+                logger.warn("Failed to acquire 2Captcha key.");
             }
         }
 
