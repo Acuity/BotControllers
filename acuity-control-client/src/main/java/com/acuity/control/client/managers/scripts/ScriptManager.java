@@ -157,14 +157,6 @@ public class ScriptManager {
         return true;
     }
 
-    public void onBotClientConfigUpdate(BotClientConfig botClientConfig) {
-        if (currentNodeUID != null && !botClientConfig.getScriptNode(currentNodeUID).isPresent()) {
-            ScriptInstance scriptInstance = scriptInstances.get(currentNodeUID);
-            if (scriptInstance != null) onScriptEnded(scriptInstance);
-            else currentNodeUID = null;
-        }
-    }
-
     private void destroyInstance(ScriptInstance scriptInstance) {
         if (scriptInstance == null) return;
 
@@ -176,7 +168,8 @@ public class ScriptManager {
             }
         }
 
-        scriptInstances.remove(scriptInstance.getScriptNode().getScriptID());
+        ScriptInstance remove = scriptInstances.remove(scriptInstance.getScriptNode().getUID());
+        logger.debug("Destroyed ScriptInstance, {}/{}.", remove != null, scriptInstance);
     }
 
     public Optional<ScriptNode> getExecutionNode() {
@@ -201,9 +194,7 @@ public class ScriptManager {
         synchronized (LOCK){
             logger.debug("ScriptInstance ended. {}", closedInstance);
 
-            BotClientConfig botClientConfig = botControl.getBotClientConfig();
             ScriptNode scriptNode = closedInstance.getScriptNode();
-
             if (closedInstance.isTask()) {
                 ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
                 if (taskNode != null && taskNode.getUID().equals(scriptNode.getUID())) {
