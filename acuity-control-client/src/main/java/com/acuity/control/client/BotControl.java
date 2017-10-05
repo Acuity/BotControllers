@@ -106,7 +106,7 @@ public class BotControl implements SubscriberExceptionHandler {
         return taskManager;
     }
 
-    public ClientManager getClientManager() {
+    public ClientManager getClientInterface() {
         return clientManager;
     }
 

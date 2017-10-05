@@ -28,7 +28,7 @@ public class ExecutorManager {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             try {
                 if (botControl.getConnection().isConnected()) {
-                    botControl.getClientManager().sendClientState();
+                    botControl.getClientInterface().sendClientState();
                 }
             } catch (Throwable e) {
                 logger.error("Error during sending client state.", e);

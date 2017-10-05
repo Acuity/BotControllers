@@ -127,7 +127,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        if (!botControl.getClientManager().isSignedIn()) return 1000;
+        if (!botControl.getClientInterface().isSignedIn()) return 1000;
 
         if (botControl.getWorldManager().onLoop()) return  1000;
 
@@ -135,7 +135,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         if (dreambotScript != null) {
             Object instance = dreambotScript.getInstance();
             if (instance == null){
-                dreambotScript.setInstance(botControl.getClientManager().createInstanceOfScript(dreambotScript.getScriptNode()));
+                dreambotScript.setInstance(botControl.getClientInterface().createInstanceOfScript(dreambotScript.getScriptNode()));
             }
             else {
                 try {

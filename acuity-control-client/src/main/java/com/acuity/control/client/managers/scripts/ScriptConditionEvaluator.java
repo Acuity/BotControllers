@@ -38,7 +38,7 @@ public class ScriptConditionEvaluator {
 
         try {
             Object instance = Json.GSON.fromJson(evaluatorJSON, evaluatorClass);
-            boolean evaluate = botControl.getClientManager().evaluate(instance);
+            boolean evaluate = botControl.getClientInterface().evaluate(instance);
             logger.trace("Evaluated - {}, {}, result={}.", evaluatorKey, evaluatorJSON, evaluate);
             return evaluate;
         } catch (Throwable e) {

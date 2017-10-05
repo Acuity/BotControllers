@@ -51,14 +51,14 @@ public class WorldManager {
     }
 
     public boolean onLoop(){
-        if (!botControl.getClientManager().isSignedIn()) return false;
+        if (!botControl.getClientInterface().isSignedIn()) return false;
 
         RSWorldSelector rsWorldSelector = Optional.ofNullable(botControl.getBotClientConfig().getScriptSelector()).map(ScriptSelector::getRsWorldSelector).orElse(null);
         rsWorldSelector = botControl.getScriptManager().getExecutionNode().map(ScriptNode::getRsWorldSelector).orElse(rsWorldSelector);
 
         if (rsWorldSelector != null && !rsWorldSelector.isEnabled()) return false;
 
-        Integer currentWorld = botControl.getClientManager().getCurrentWorld();
+        Integer currentWorld = botControl.getClientInterface().getCurrentWorld();
         if (currentWorld == null) return false;
 
         if (lastCheck.isBefore(LocalDateTime.now().minusSeconds(10))){
@@ -97,7 +97,7 @@ public class WorldManager {
             if (betterWorlds.size() > 0){
                 WorldData world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size())));
                 logger.info("Found better world. betterWorld={}, betterWorldBotPop={}, currentWorld={}, currentWorldBotPop={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
-                botControl.getClientManager().hopToWorld(world.getWorld());
+                botControl.getClientInterface().hopToWorld(world.getWorld());
                 lastCheck = LocalDateTime.now().plusMinutes(1);
                 return true;
             }
