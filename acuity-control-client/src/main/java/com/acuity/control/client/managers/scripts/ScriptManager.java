@@ -202,7 +202,7 @@ public class ScriptManager {
         if (closedInstance == null) return;
 
         synchronized (LOCK) {
-            logger.debug("ScriptInstance ended. {}", closedInstance);
+            logger.info("ScriptInstance ended. {}", closedInstance);
 
             ScriptNode scriptNode = closedInstance.getScriptNode();
             if (closedInstance.isTask()) {

@@ -54,9 +54,8 @@ public class RSAccountManager {
     }
 
     public void clearRSAccount() {
-        if (botControl.requestAccountAssignment(null, true)) {
-            this.rsAccount = null;
-        }
+        botControl.requestAccountAssignment(null, true);
+        this.rsAccount = null;
     }
 
     public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {

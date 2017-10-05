@@ -4,14 +4,14 @@ import com.acuity.common.world_data_parser.WorldData;
 import com.acuity.common.world_data_parser.WorldDataResult;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.common.RSWorldSelector;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -25,8 +25,29 @@ public class WorldManager {
     private BotControl botControl;
     private LocalDateTime lastCheck = LocalDateTime.MIN;
 
+    private int acceptablePopulationDifference = 2;
+    private boolean filterNonMatchingTags = false;
+
     public WorldManager(BotControl botControl) {
         this.botControl = botControl;
+    }
+
+    public int getAcceptablePopulationDifference() {
+        return acceptablePopulationDifference;
+    }
+
+    public boolean isFilterNonMatchingTags() {
+        return filterNonMatchingTags;
+    }
+
+    public WorldManager setAcceptablePopulationDifference(int acceptablePopulationDifference) {
+        this.acceptablePopulationDifference = acceptablePopulationDifference;
+        return this;
+    }
+
+    public WorldManager setFilterNonMatchingTags(boolean filterNonMatchingTags) {
+        this.filterNonMatchingTags = filterNonMatchingTags;
+        return this;
     }
 
     public boolean onLoop(){
@@ -44,9 +65,15 @@ public class WorldManager {
             WorldDataResult worldData = botControl.requestWorldData();
             if (worldData == null) return false;
 
-            worldData.zip();
+            if (filterNonMatchingTags){
+                Set<String> tagIDs = Optional.ofNullable(botControl.getRsAccountManager().getRsAccount()).map(RSAccount::getTagIDs).orElse(Collections.emptySet());
+                worldData.zip(otherTagIDs -> tagIDs.stream().anyMatch(otherTagIDs::contains));
+            }
+            else {
+                worldData.zip();
+            }
 
-            int currentWorldBotPopulation = worldData.getWorldBotPopulation().getOrDefault(currentWorld, Integer.MAX_VALUE) - 2;
+            int currentWorldBotPopulation = worldData.getWorldBotPopulation().getOrDefault(currentWorld, Integer.MAX_VALUE) - acceptablePopulationDifference;
 
             RSWorldSelector finalRsWorldSelector = rsWorldSelector;
 
@@ -62,7 +89,7 @@ public class WorldManager {
 
                         return true;
                     })
-                    .sorted((o1, o2) -> Double.compare(o1.getPopulation(), o2.getPopulation()))
+                    .sorted(Comparator.comparingDouble(WorldData::getPopulation))
                     .collect(Collectors.toList());
 
             logger.trace("Current world population vs viable world list. {}, {}", currentWorldBotPopulation, betterWorlds);
