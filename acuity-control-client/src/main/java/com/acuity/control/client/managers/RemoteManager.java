@@ -34,6 +34,27 @@ public class RemoteManager {
         this.botControl = botControl;
     }
 
+    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP) {
+        return botControl.getRemote().addRSAccount(email, ign, password, creationIP, null);
+    }
+
+    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID) {
+        return botControl.getConnection().sendWithCredentials(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
+                .setBody(2, email)
+                .setBody(3, ign)
+                .setBody(4, password)
+
+                .setBody(5, creationIP)
+                .setBody(6, tagID)
+        ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
+    }
+
+    public Optional<String> get2CaptchaKey() {
+        return botControl.getConnection().send(new MessagePackage(MessagePackage.Type.REQUEST_2CAPTCHA_KEY, MessagePackage.SERVER))
+                .waitForResponse(30, TimeUnit.SECONDS)
+                .getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
+    }
+
     @SuppressWarnings("unchecked")
     public WorldDataResult requestWorldData(){
         try{

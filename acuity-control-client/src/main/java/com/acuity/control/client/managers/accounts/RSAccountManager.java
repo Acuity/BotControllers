@@ -32,32 +32,6 @@ public class RSAccountManager {
         this.botControl = botControl;
     }
 
-    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP) {
-        return addRSAccount(email, ign, password, creationIP, null);
-    }
-
-    public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID) {
-        return botControl.getConnection().sendWithCredentials(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
-                .setBody(2, email)
-                .setBody(3, ign)
-                .setBody(4, password)
-
-                .setBody(5, creationIP)
-                .setBody(6, tagID)
-        ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
-    }
-
-    public Optional<String> get2CaptchaKey() {
-        return botControl.getConnection().send(new MessagePackage(MessagePackage.Type.REQUEST_2CAPTCHA_KEY, MessagePackage.SERVER))
-                .waitForResponse(30, TimeUnit.SECONDS)
-                .getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
-    }
-
-    public void clearRSAccount() {
-        botControl.getRemote().requestAccountAssignment(null, true);
-        this.rsAccount = null;
-    }
-
     public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
         logger.debug("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
         if (rsAccount != null) {
@@ -86,7 +60,7 @@ public class RSAccountManager {
 
         if (requestFailures > 3 && registerNewOnFail) {
             logger.info("Registering new RS-Account.");
-            String apiKey = get2CaptchaKey().orElse(null);
+            String apiKey = botControl.getRemote().get2CaptchaKey().orElse(null);
             if (apiKey != null) {
                 String randomEmail = accountInfoGenerator.getRandomEmail();
                 String randomDisplayName = accountInfoGenerator.getRandomDisplayName();
@@ -99,7 +73,7 @@ public class RSAccountManager {
                             .withAccountInfo(randomEmail, randomDisplayName, randomAge, randomPassword)
                             .run();
                     if (result) {
-                        boolean added = addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
+                        boolean added = botControl.getRemote().addRSAccount(randomEmail, randomDisplayName, randomPassword, IPUtil.getIP().orElse(null), tagID).isPresent();
                         if (added) {
                             requestFailures = 0;
                             return requestAccountFromTag(tagID, filterUnassignable, force, false);
@@ -115,6 +89,11 @@ public class RSAccountManager {
         }
 
         return null;
+    }
+
+    public void clearRSAccount() {
+        botControl.getRemote().requestAccountAssignment(null, true);
+        this.rsAccount = null;
     }
 
     public AccountInfoGenerator getAccountInfoGenerator() {
