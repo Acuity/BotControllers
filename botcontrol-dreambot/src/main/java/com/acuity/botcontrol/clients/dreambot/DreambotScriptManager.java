@@ -65,7 +65,7 @@ public class DreambotScriptManager {
     public static AbstractScript initDreambotScript(BotControl botControl, Client client, ScriptNode runConfig) {
         if (runConfig != null) {
             logger.debug("initDreambotScript - initing off ScriptStartupConfig. {}", runConfig);
-            ScriptVersion scriptVersion = botControl.requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
+            ScriptVersion scriptVersion = botControl.getRemote().requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
             if (scriptVersion != null) {
                 String[] args = runConfig.getScriptArguments() == null ? new String[0] : runConfig.getScriptArguments().toArray(new String[runConfig.getScriptArguments().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
@@ -87,7 +87,7 @@ public class DreambotScriptManager {
                         e.printStackTrace();
                     }
                 } else {
-                    Script script = botControl.requestScript(runConfig.getScriptID()).orElse(null);
+                    Script script = botControl.getRemote().requestScript(runConfig.getScriptID()).orElse(null);
                     if (script != null){
                         logger.trace("initDreambotScript - loading version off Dreambot-Repo.", script);
                         Map<String, Class<? extends AbstractScript>> repoScripts = getRepoScripts();

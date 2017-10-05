@@ -54,7 +54,7 @@ public class RSAccountManager {
     }
 
     public void clearRSAccount() {
-        botControl.requestAccountAssignment(null, true);
+        botControl.getRemote().requestAccountAssignment(null, true);
         this.rsAccount = null;
     }
 
@@ -67,7 +67,7 @@ public class RSAccountManager {
             clearRSAccount();
         }
 
-        List<RSAccount> rsAccounts = botControl.requestRSAccounts(filterUnassignable).stream()
+        List<RSAccount> rsAccounts = botControl.getRemote().requestRSAccounts(filterUnassignable).stream()
                 .filter(rsAccount -> rsAccount.getTagIDs().contains(tagID))
                 .collect(Collectors.toList());
 
@@ -75,7 +75,7 @@ public class RSAccountManager {
 
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
-            if (botControl.requestAccountAssignment(account, force)) {
+            if (botControl.getRemote().requestAccountAssignment(account, force)) {
                 logger.info("Account Assigned - {}.", account.getEmail());
                 requestFailures = 0;
                 return account;
@@ -135,19 +135,19 @@ public class RSAccountManager {
 
     public void onBannedAccount(String lastEmail, RSAccount account) {
         logger.warn("Account banned. {}, {}", lastEmail, account);
-        botControl.requestTags("Banned").forEach(tag -> botControl.requestTagAccount(account, tag));
+        botControl.getRemote().requestTags("Banned").forEach(tag -> botControl.getRemote().requestTagAccount(account, tag));
         clearRSAccount();
     }
 
     public void onLockedAccount(String lastEmail, RSAccount account) {
         logger.warn("Account locked. {}, {}", lastEmail, account);
-        botControl.requestTags("Locked").forEach(tag -> botControl.requestTagAccount(account, tag));
+        botControl.getRemote().requestTags("Locked").forEach(tag -> botControl.getRemote().requestTagAccount(account, tag));
         clearRSAccount();
     }
 
     public void onWrongLogin(String lastEmail, RSAccount account) {
         logger.warn("Account wrong login. {}, {}", lastEmail, account);
-        botControl.requestTags("Incorrect Login").forEach(tag -> botControl.requestTagAccount(account, tag));
+        botControl.getRemote().requestTags("Incorrect Login").forEach(tag -> botControl.getRemote().requestTagAccount(account, tag));
         clearRSAccount();
     }
 }

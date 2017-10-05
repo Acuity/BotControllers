@@ -16,7 +16,7 @@ public class WorldUtil {
         Map<Integer, Integer> worldPop = new HashMap<>();
 
         methodContext.getWorlds().all().forEach(world -> worldPop.put(world.getRealID(), 0));
-        botControl.requestBotClients().stream()
+        botControl.getRemote().requestBotClients().stream()
                 .map(BotClient::getClientState)
                 .map(BotClientState::getCurrentWorld)
                 .filter(Objects::nonNull)

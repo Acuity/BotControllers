@@ -45,7 +45,7 @@ public class BreakManager {
         nextBreak = System.currentTimeMillis() + interval;
         nextBeakDuration = ThreadLocalRandom.current().nextLong(profile.getMinLength(), profile.getMaxLength());
         nextBreakEndTime = nextBreak + nextBeakDuration;
-        botControl.send(new MessagePackage(MessagePackage.Type.BREAK_UPDATE, MessagePackage.SERVER)
+        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.BREAK_UPDATE, MessagePackage.SERVER)
                 .setBody(0, nextBreak)
                 .setBody(1, nextBeakDuration)
         );

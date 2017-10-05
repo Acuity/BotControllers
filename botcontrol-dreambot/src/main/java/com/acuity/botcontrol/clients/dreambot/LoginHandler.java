@@ -94,7 +94,7 @@ public class LoginHandler {
                 if (Strings.isNullOrEmpty(account.getIgn())) {
                     String ign = Optional.ofNullable(dreambotControlScript.getClient().getLocalPlayer()).map(Player::getName).orElse(null);
                     if (ign != null) {
-                        dreambotControlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
+                        dreambotControlScript.getBotControl().getRemote().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
                                 .setBody(0, ign)
                                 .setBody(1, account.getEmail())
                         );

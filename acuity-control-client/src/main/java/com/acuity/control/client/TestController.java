@@ -1,5 +1,6 @@
 package com.acuity.control.client;
 
+import com.acuity.control.client.managers.ClientManager;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
@@ -15,13 +16,13 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TestController {
 
-    BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
+    BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientManager() {
         @Override
         public void sendClientState() {
             BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(ThreadLocalRandom.current().nextDouble(1, 100));
             clientState.setGameState(0);
-            send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER).setBody(clientState));
+            botControl.getRemote().send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER).setBody(clientState));
         }
 
         @Override
@@ -71,7 +72,7 @@ public class TestController {
         public boolean executeLoginHandler() {
             return false;
         }
-    };
+    });
 
     public static void main(String[] args) {
         TestController testController = new TestController();
@@ -82,7 +83,7 @@ public class TestController {
             e.printStackTrace();
         }
 
-        testController.botControl.confirmState();
+        testController.botControl.getRemote().confirmState();
 
         while (true){
             try {

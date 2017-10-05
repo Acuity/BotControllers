@@ -15,6 +15,6 @@ public class InGameMessageEP extends ControlEndpoint {
 
     @Override
     public void handle(BotControlConnection botControlConnection, MessagePackage messagePackage) {
-        botControlConnection.getBotControl().sendInGameMessage(messagePackage.getBodyAs(String.class));
+        botControlConnection.getBotControl().getClientManager().sendInGameMessage(messagePackage.getBodyAs(String.class));
     }
 }

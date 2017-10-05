@@ -20,7 +20,7 @@ public class DreambotEvaluator {
 
     public boolean evaluate(Object evaluator) {
         if (evaluator instanceof ItemCountEvaluator){
-            if (!controlScript.getBotControl().isSignedIn()) return false;
+            if (!controlScript.getBotControl().getClientManager().isSignedIn()) return false;
 
             int itemID = ((ItemCountEvaluator) evaluator).getItemID();
             int amount = ((ItemCountEvaluator) evaluator).getAmount();
@@ -36,7 +36,7 @@ public class DreambotEvaluator {
         }
 
         if (evaluator instanceof VarpEvaluator){
-            if (!controlScript.getBotControl().isSignedIn()) return false;
+            if (!controlScript.getBotControl().getClientManager().isSignedIn()) return false;
 
             int varpID = ((VarpEvaluator) evaluator).getVarpID();
             int config = controlScript.getPlayerSettings().getConfig(varpID);

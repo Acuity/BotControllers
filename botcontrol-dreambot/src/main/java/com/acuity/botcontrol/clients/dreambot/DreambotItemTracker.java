@@ -39,7 +39,7 @@ public class DreambotItemTracker {
                 })
                 .collect(Collectors.toSet());
 
-        controlScript.getBotControl().send(new MessagePackage(MessagePackage.Type.RS_ITEM_UPDATE, MessagePackage.SERVER)
+        controlScript.getBotControl().getRemote().send(new MessagePackage(MessagePackage.Type.RS_ITEM_UPDATE, MessagePackage.SERVER)
                 .setBody(0, inv)
                 .setBody(1, 0)
                 .setBody(2, controlScript.getClient().getUsername())

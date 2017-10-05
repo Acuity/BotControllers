@@ -33,7 +33,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
             if (botControlConnection.getBotControl().getTaskManager().getCurrentTask() != null) {
                 logger.debug("Remote Task Request - Already has task.");
-                botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
+                botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                         .setBody(new RemoteScriptTask.StartResponse()));
                 return;
             }
@@ -42,7 +42,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             if (scriptInstance != null && scriptInstance.getInstance() != null && scriptInstance.getInstance() instanceof RemoteScriptStartCheck) {
                 if (!((RemoteScriptStartCheck) scriptInstance.getInstance()).isAcceptingTasks()) {
                     logger.debug("Remote Task Request - Current script not accepting new tasks.");
-                    botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
+                    botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                             .setBody(new RemoteScriptTask.StartResponse()));
                     return;
                 }
@@ -73,7 +73,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             }
 
             logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
-            botControlConnection.getBotControl().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
+            botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
     }
 }

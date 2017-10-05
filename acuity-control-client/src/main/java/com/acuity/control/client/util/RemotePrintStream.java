@@ -20,7 +20,7 @@ public class RemotePrintStream extends PrintStream {
 
     @Override
     public void print(String logMessage) {
-        if (botControl.getConnection().isConnected()) botControl.send(new MessagePackage(MessagePackage.Type.LOG, MessagePackage.SERVER).setBody(logMessage));
+        if (botControl.getConnection().isConnected()) botControl.getRemote().send(new MessagePackage(MessagePackage.Type.LOG, MessagePackage.SERVER).setBody(logMessage));
     }
 
     public void setBotControl(BotControl botControl) {

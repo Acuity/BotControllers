@@ -2,6 +2,7 @@ package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
+import com.acuity.control.client.managers.ClientManager;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
@@ -32,7 +33,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
-    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT) {
+    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientManager() {
         @Override
         public void sendClientState() {
             BotClientState clientState = new BotClientState();
@@ -59,7 +60,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 });
             }
 
-            botControl.updateClientStateNoResponse(clientState, false);
+            botControl.getRemote().updateClientStateNoResponse(clientState, false);
             logger.trace("Sent state.");
         }
 
@@ -108,7 +109,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         public boolean executeLoginHandler() {
             return loginHandler.execute();
         }
-    };
+
+    });
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
@@ -125,7 +127,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
-        if (!botControl.isSignedIn()) return 1000;
+        if (!botControl.getClientManager().isSignedIn()) return 1000;
 
         if (botControl.getWorldManager().onLoop()) return  1000;
 
@@ -133,7 +135,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         if (dreambotScript != null) {
             Object instance = dreambotScript.getInstance();
             if (instance == null){
-                dreambotScript.setInstance(botControl.createInstanceOfScript(dreambotScript.getScriptNode()));
+                dreambotScript.setInstance(botControl.getClientManager().createInstanceOfScript(dreambotScript.getScriptNode()));
             }
             else {
                 try {
@@ -225,7 +227,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     }
 
     private void sendInGameMessage(Message message){
-        botControl.send(new MessagePackage(MessagePackage.Type.IN_GAME_MESSAGE, MessagePackage.SERVER)
+        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.IN_GAME_MESSAGE, MessagePackage.SERVER)
                 .setBody(0, message.getMessage())
                 .setBody(1, message.getTypeID())
         );

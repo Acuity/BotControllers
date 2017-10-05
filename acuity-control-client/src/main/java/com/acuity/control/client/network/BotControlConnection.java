@@ -186,7 +186,7 @@ public class BotControlConnection {
     }
 
     public void sendScreenCapture(Integer scale) {
-        BufferedImage screenCapture = botControl.getScreenCapture();
+        BufferedImage screenCapture = botControl.getClientManager().getScreenCapture();
 
         if (screenCapture == null) return;
 

@@ -47,7 +47,7 @@ public class ScriptManager {
                 return;
             }
 
-            if (botControl.executeLoginHandler()) {
+            if (botControl.getClientManager().executeLoginHandler()) {
                 logger.warn("Login handler executing, skipping instance evaluation.");
                 return;
             }
@@ -137,7 +137,7 @@ public class ScriptManager {
 
             if (scriptInstance.getInstance() == null){
                 try{
-                    scriptInstance.setInstance(botControl.createInstanceOfScript(scriptNode));
+                    scriptInstance.setInstance(botControl.getClientManager().createInstanceOfScript(scriptNode));
                 }
                 catch (Throwable e){
                     logger.error("Error during ScriptInstance initialization.", e);
@@ -172,7 +172,7 @@ public class ScriptManager {
 
         if (scriptInstance.getInstance() != null) {
             try {
-                botControl.destroyInstanceOfScript(scriptInstance.getInstance());
+                botControl.getClientManager().destroyInstanceOfScript(scriptInstance.getInstance());
             } catch (Throwable e) {
                 logger.error("Error during onExit.", e);
             }

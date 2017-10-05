@@ -25,7 +25,7 @@ public class BotClientConfigManager {
     }
 
     public void confirmState(){
-        botControl.confirmState();
+        botControl.getRemote().confirmState();
     }
 
     public BotClientConfig getCurrentConfig() {
