@@ -24,7 +24,7 @@ public class ScriptManager {
     private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
     private BotControl botControl;
 
-    private String currentNodeUID;
+    private volatile String currentNodeUID;
     private String lastSelectorNodeUID;
     private Map<String, ScriptInstance> scriptInstances = new ConcurrentHashMap<>();
 
@@ -121,20 +121,34 @@ public class ScriptManager {
     }
 
     private void setCurrentNode(ScriptNode scriptNode, int type) {
-        if (scriptNode == null) {
-            currentNodeUID = null;
-            return;
+        synchronized (LOCK){
+            if (scriptNode == null) {
+                currentNodeUID = null;
+                return;
+            }
+
+            ScriptInstance scriptInstance = scriptInstances.get(scriptNode.getUID());
+            if (scriptInstance == null){
+                scriptInstance = new ScriptInstance(scriptNode)
+                        .setIncremental(type == 0)
+                        .setContinuous(type == 1)
+                        .setTask(type == 2);
+            }
+
+            if (scriptInstance.getInstance() == null){
+                try{
+                    scriptInstance.setInstance(botControl.createInstanceOfScript(scriptNode));
+                }
+                catch (Throwable e){
+                    logger.error("Error during ScriptInstance initialization.", e);
+                }
+            }
+
+            scriptInstances.put(scriptNode.getUID(), scriptInstance);
+            currentNodeUID = scriptNode.getUID();
+
+            logger.info("Set current script node/instance. {}", scriptInstance);
         }
-
-        ScriptInstance scriptInstance = new ScriptInstance(scriptNode)
-                .setIncremental(type == 0)
-                .setContinuous(type == 1)
-                .setTask(type == 2);
-
-        scriptInstances.put(scriptNode.getUID(), scriptInstance);
-        currentNodeUID = scriptNode.getUID();
-
-        logger.info("Set current script node/instance. {}", scriptInstance);
     }
 
     private boolean evaluate(ScriptInstance scriptInstance) {

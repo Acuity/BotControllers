@@ -51,16 +51,13 @@ public class LoginHandler {
 
         logger.trace("LoginHandler start. {}, {}, {}", account, executionNode, rsAccountSelector);
 
-        if (account == null && executionNode == null) {
-            if (dreambotControlScript.getClient().isLoggedIn()) {
-                logger.debug("Logged into account with assignment.");
-                logout();
-                return true;
-            }
+        if (account == null && dreambotControlScript.getClient().isLoggedIn()){
+            logger.debug("Logged into account without assignment.");
+            logout();
+            return true;
         }
 
         if (account == null && rsAccountSelector != null){
-
             RSAccount rsAccount = dreambotControlScript.getBotControl().getRsAccountManager().requestAccountFromTag(
                     rsAccountSelector.getAccountSelectionID(),
                     true,
