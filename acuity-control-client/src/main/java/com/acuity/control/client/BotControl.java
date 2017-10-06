@@ -1,7 +1,5 @@
 package com.acuity.control.client;
 
-import com.acuity.common.world_data_parser.WorldDataResult;
-import com.acuity.control.client.managers.ClientManager;
 import com.acuity.control.client.managers.ExecutorManager;
 import com.acuity.control.client.managers.RemoteManager;
 import com.acuity.control.client.managers.accounts.RSAccountManager;
@@ -11,32 +9,14 @@ import com.acuity.control.client.managers.config.TaskManager;
 import com.acuity.control.client.managers.proxies.ProxyManager;
 import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
-import com.acuity.control.client.util.RemotePrintStream;
-import com.acuity.control.client.network.response.MessageResponse;
 import com.acuity.control.client.managers.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.Script;
-import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
-import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
-import com.acuity.db.domain.vertex.impl.tag.Tag;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.awt.image.BufferedImage;
-import java.io.PrintStream;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zach on 8/20/2017.
@@ -56,13 +36,13 @@ public class BotControl implements SubscriberExceptionHandler {
     private TaskManager taskManager = new TaskManager(this);
     private RemoteManager remoteManager = new RemoteManager(this);
     private ExecutorManager executorManager = new ExecutorManager(this);
-    private ClientManager clientManager = null;
+    private ClientInterface clientInterface = null;
 
     private BotControlConnection connection;
 
-    public BotControl(String host, ClientType clientType, ClientManager clientManager) {
-        this.clientManager = clientManager;
-        this.clientManager.setBotControl(this);
+    public BotControl(String host, ClientType clientType, ClientInterface clientInterface) {
+        this.clientInterface = clientInterface;
+        this.clientInterface.setBotControl(this);
 
         this.connection = new BotControlConnection(this, host, clientType);
 
@@ -105,8 +85,8 @@ public class BotControl implements SubscriberExceptionHandler {
         return taskManager;
     }
 
-    public ClientManager getClientInterface() {
-        return clientManager;
+    public ClientInterface getClientInterface() {
+        return clientInterface;
     }
 
     public BotControlConnection getConnection() {

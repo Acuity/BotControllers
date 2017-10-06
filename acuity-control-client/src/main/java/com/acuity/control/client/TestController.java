@@ -1,6 +1,5 @@
 package com.acuity.control.client;
 
-import com.acuity.control.client.managers.ClientManager;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
@@ -16,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TestController {
 
-    BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientManager() {
+    BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientInterface() {
         @Override
         public void sendClientState() {
             BotClientState clientState = new BotClientState();

@@ -1,7 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
-import com.acuity.control.client.managers.ClientManager;
+import com.acuity.control.client.ClientInterface;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
 /**
  * Created by Zachary Herridge on 10/6/2017.
  */
-public class DreambotClientInterface extends ClientManager {
+public class DreambotClientInterface extends ClientInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotClientInterface.class);
 
