@@ -1,5 +1,6 @@
-package com.acuity.botcontrol.clients.dreambot;
+package com.acuity.botcontrol.clients.dreambot.control;
 
+import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
 import com.acuity.db.domain.common.RSItem;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.dreambot.api.wrappers.items.Item;

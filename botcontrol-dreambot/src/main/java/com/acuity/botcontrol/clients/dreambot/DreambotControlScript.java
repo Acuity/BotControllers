@@ -1,15 +1,12 @@
 package com.acuity.botcontrol.clients.dreambot;
 
+import com.acuity.botcontrol.clients.dreambot.control.DreambotClientInterface;
+import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
-import com.acuity.control.client.managers.ClientManager;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.google.common.eventbus.Subscribe;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
@@ -22,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 /**
@@ -33,110 +29,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
-    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientManager() {
-        @Override
-        public void sendClientState() {
-            BotClientState clientState = new BotClientState();
-
-            try {
-                clientState.setGameState(getClient().getGameStateID());
-                clientState.setLastEmail(getClient().getUsername());
-                clientState.setCurrentWorld(getClient().getCurrentWorld());
-                clientState.setLastIGN(getLocalPlayer().getName());
-            }
-            catch (Throwable e){
-                e.printStackTrace();
-            }
-
-            clientState.setLastRSAccount(botControl.getRsAccountManager().getRsAccount());
-
-            BotClientConfig botClientConfig = botControl.getBotClientConfig();
-            if (botClientConfig != null){
-                clientState.setLastConfigHash(botClientConfig.hashCode());
-
-                botControl.getScriptManager().getExecutionNode().ifPresent(scriptNode -> {
-                    clientState.setLastScriptID(scriptNode.getScriptID());
-                    clientState.setLastScriptVersionID(scriptNode.getScriptVersionID());
-                });
-            }
-
-            botControl.getRemote().updateClientStateNoResponse(clientState, false);
-            logger.trace("Sent state.");
-        }
-
-        @Override
-        public Object createInstanceOfScript(ScriptNode scriptRunConfig) {
-            return DreambotScriptManager.initDreambotScript(botControl, getClient(), scriptRunConfig);
-        }
-
-
-        @Override
-        public void destroyInstanceOfScript(Object scriptInstance) {
-            ((AbstractScript) scriptInstance).onExit();
-        }
-
-        @Override
-        public boolean evaluate(Object evaluator) {
-            return new DreambotEvaluator(DreambotControlScript.this).evaluate(evaluator);
-        }
-
-        @Override
-        public boolean isSignedIn(RSAccount rsAccount) {
-            return getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(getClient().getUsername());
-        }
-
-        @Override
-        public void sendInGameMessage(String message) {
-            getKeyboard().type(message);
-        }
-
-        @Override
-        public Integer getCurrentWorld() {
-            return getClient().getCurrentWorld();
-        }
-
-        @Override
-        public void hopToWorld(int world) {
-            getWorldHopper().hopWorld(world);
-        }
-
-        @Override
-        public BufferedImage getScreenCapture() {
-            return getClient().getCanvasImage();
-        }
-
-        @Override
-        public boolean executeLoginHandler() {
-            return loginHandler.execute();
-        }
-
-        @Override
-        public int getGameState() {
-            return getClient().getGameStateID();
-        }
-
-        @Override
-        public void logout() {
-            logger.debug("logging out.");
-            try {
-                getWalking().clickTileOnMinimap(getLocalPlayer().getTile());
-            }
-            catch (Throwable ignored){
-            }
-
-            try {
-                getTabs().logout();
-            }
-            catch (Throwable ignored){
-            }
-        }
-
-        @Override
-        public String getEmail() {
-            return getClient().getUsername();
-        }
-
-    });
+    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new DreambotClientInterface(this));
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
@@ -250,6 +143,10 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onPrivateOutMessage(Message message) {
+    }
+
+    public LoginHandler getLoginHandler() {
+        return loginHandler;
     }
 
     private void sendInGameMessage(Message message){

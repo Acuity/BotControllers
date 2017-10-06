@@ -45,7 +45,6 @@ public class BotControl implements SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BotControl.class);
 
-    
     private EventBus eventBus = new EventBus(this);
 
     private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
@@ -124,11 +123,11 @@ public class BotControl implements SubscriberExceptionHandler {
         connection.stop();
     }
 
-    public BotClientConfig getBotClientConfig() {
-        return clientConfigManager.getCurrentConfig();
+    public void onRunescapeUpdated() {
+        logger.warn("Runescape update detected.");
     }
 
-    public void onRunescapeUpdated() {
-
+    public BotClientConfig getBotClientConfig() {
+        return clientConfigManager.getCurrentConfig();
     }
 }

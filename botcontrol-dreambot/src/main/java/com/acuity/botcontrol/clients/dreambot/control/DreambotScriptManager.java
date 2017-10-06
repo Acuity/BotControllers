@@ -1,4 +1,4 @@
-package com.acuity.botcontrol.clients.dreambot;
+package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.ScriptLocation;

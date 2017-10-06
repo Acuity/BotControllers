@@ -1,5 +1,6 @@
-package com.acuity.botcontrol.clients.dreambot;
+package com.acuity.botcontrol.clients.dreambot.control;
 
+import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.evaluators.ItemCountEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.evaluators.VarpEvaluator;
 import org.slf4j.Logger;
