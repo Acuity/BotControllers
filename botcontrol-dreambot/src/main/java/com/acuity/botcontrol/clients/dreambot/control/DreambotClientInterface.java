@@ -2,7 +2,6 @@ package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
 import com.acuity.control.client.ClientInterface;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
@@ -32,27 +31,25 @@ public class DreambotClientInterface extends ClientInterface {
         try {
             clientState.setGameState(controlScript.getClient().getGameStateID());
             clientState.setLastEmail(controlScript.getClient().getUsername());
-            clientState.setCurrentWorld(controlScript.getClient().getCurrentWorld());
+            clientState.setRsWorld(controlScript.getClient().getCurrentWorld());
             clientState.setLastIGN(controlScript.getLocalPlayer().getName());
-        }
-        catch (Throwable e){
-            e.printStackTrace();
+        } catch (Throwable e) {
+            logger.error("Error during state gathering.", e);
         }
 
-        clientState.setLastRSAccount(controlScript.getBotControl().getRsAccountManager().getRsAccount());
+        clientState.setRsAccount(controlScript.getBotControl().getRsAccountManager().getRsAccount());
+        clientState.setProxy(controlScript.getBotControl().getProxyManager().getProxy());
+        clientState.setBreakProfile(controlScript.getBotControl().getBreakManager().getProfile());
+        clientState.setBotClientConfig(controlScript.getBotControl().getBotClientConfig());
 
-        BotClientConfig botClientConfig = controlScript.getBotControl().getBotClientConfig();
-        if (botClientConfig != null){
-            clientState.setLastConfigHash(botClientConfig.hashCode());
-
-            controlScript.getBotControl().getScriptManager().getExecutionNode().ifPresent(scriptNode -> {
-                clientState.setLastScriptID(scriptNode.getScriptID());
-                clientState.setLastScriptVersionID(scriptNode.getScriptVersionID());
-            });
-        }
+        controlScript.getBotControl().getScriptManager().getExecutionNode().ifPresent(scriptNode -> {
+            clientState.setScriptID(scriptNode.getScriptID());
+            clientState.setScriptVersionID(scriptNode.getScriptVersionID());
+        });
 
         controlScript.getBotControl().getRemote().updateClientStateNoResponse(clientState, false);
-        logger.trace("Sent state.");
+
+        logger.trace("Send client state. {}", clientState);
     }
 
     @Override
@@ -111,14 +108,12 @@ public class DreambotClientInterface extends ClientInterface {
         logger.debug("logging out.");
         try {
             controlScript.getWalking().clickTileOnMinimap(controlScript.getLocalPlayer().getTile());
-        }
-        catch (Throwable ignored){
+        } catch (Throwable ignored) {
         }
 
         try {
             controlScript.getTabs().logout();
-        }
-        catch (Throwable ignored){
+        } catch (Throwable ignored) {
         }
     }
 

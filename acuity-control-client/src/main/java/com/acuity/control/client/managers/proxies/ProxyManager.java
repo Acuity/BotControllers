@@ -25,4 +25,8 @@ public class ProxyManager {
         ProxyUtil.setSocksProxy(proxy, botControl);
         botControl.getEventBus().post(new BotControlEvent.ProxyUpdated());
     }
+
+    public Proxy getProxy() {
+        return proxy;
+    }
 }
