@@ -127,4 +127,8 @@ public class BotControl implements SubscriberExceptionHandler {
     public BotClientConfig getBotClientConfig() {
         return clientConfigManager.getCurrentConfig();
     }
+
+    public void onRunescapeUpdated() {
+
+    }
 }

@@ -47,8 +47,8 @@ public class ScriptManager {
                 return;
             }
 
-            if (botControl.getClientInterface().executeLoginHandler()) {
-                logger.warn("Login handler executing, skipping instance evaluation.");
+            if (botControl.getRsAccountManager().execute()) {
+                logger.warn("RSAccountManager executing, skipping instance evaluation.");
                 return;
             }
 

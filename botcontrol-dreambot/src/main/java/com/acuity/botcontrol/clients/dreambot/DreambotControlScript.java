@@ -110,6 +110,32 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
             return loginHandler.execute();
         }
 
+        @Override
+        public int getGameState() {
+            return getClient().getGameStateID();
+        }
+
+        @Override
+        public void logout() {
+            logger.debug("logging out.");
+            try {
+                getWalking().clickTileOnMinimap(getLocalPlayer().getTile());
+            }
+            catch (Throwable ignored){
+            }
+
+            try {
+                getTabs().logout();
+            }
+            catch (Throwable ignored){
+            }
+        }
+
+        @Override
+        public String getEmail() {
+            return getClient().getUsername();
+        }
+
     });
 
     private LoginHandler loginHandler = new LoginHandler(this);

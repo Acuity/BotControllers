@@ -33,6 +33,12 @@ public abstract class ClientManager {
 
     public abstract boolean executeLoginHandler();
 
+    public abstract int getGameState();
+
+    public abstract void logout();
+
+    public abstract String getEmail();
+
     public boolean isSignedIn() {
         RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
         return rsAccount != null && isSignedIn(rsAccount);
@@ -45,5 +51,9 @@ public abstract class ClientManager {
     public ClientManager setBotControl(BotControl botControl) {
         this.botControl = botControl;
         return this;
+    }
+
+    public boolean isLoggedIn() {
+        return getGameState() == 30;
     }
 }

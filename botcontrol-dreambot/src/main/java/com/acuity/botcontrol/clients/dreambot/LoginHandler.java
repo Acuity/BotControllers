@@ -1,22 +1,13 @@
 package com.acuity.botcontrol.clients.dreambot;
 
-import com.acuity.control.client.managers.scripts.ScriptManager;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
-import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
-import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
-import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
-import com.google.common.base.Strings;
 import org.dreambot.api.methods.MethodProvider;
 import org.dreambot.api.utilities.Timer;
-import org.dreambot.api.wrappers.interactive.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class LoginHandler {
@@ -40,144 +31,65 @@ public class LoginHandler {
 
     public boolean execute() {
         RSAccount account = dreambotControlScript.getBotControl().getRsAccountManager().getRsAccount();
-        ScriptNode executionNode = dreambotControlScript.getBotControl().getScriptManager().getExecutionNode().orElse(null);
-        RSAccountSelector rsAccountSelector = Optional.ofNullable(dreambotControlScript.getBotControl().getBotClientConfig())
-                .map(BotClientConfig::getScriptSelector)
-                .map(ScriptSelector::getRsAccountSelector).orElse(null);
-
-        if (executionNode != null && executionNode.getRsAccountSelector() != null) {
-            rsAccountSelector = executionNode.getRsAccountSelector();
-        }
-
-        logger.trace("LoginHandler start. {}, {}, {}", account, executionNode, rsAccountSelector);
-
-        if (account == null && dreambotControlScript.getClient().isLoggedIn()){
-            logger.debug("Logged into account without assignment.");
-            logout();
-            return true;
-        }
-
-        if (account == null && rsAccountSelector != null){
-            RSAccount rsAccount = dreambotControlScript.getBotControl().getRsAccountManager().requestAccountFromTag(
-                    rsAccountSelector.getAccountSelectionID(),
-                    true,
-                    false,
-                    rsAccountSelector.isRegistrationAllowed());
-
-            if (rsAccount != null) dreambotControlScript.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
-            return true;
-        }
-
-        if (account != null && executionNode == null) {
-            if (dreambotControlScript.getBotControl().getScriptManager().getExecutionNode() == null){
-                logger.debug("Assigned account without node.");
-                dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
-                return true;
-            }
-        }
-
-        if (account != null && rsAccountSelector != null) {
-            if (account.getTagIDs() == null || !account.getTagIDs().contains(rsAccountSelector.getAccountSelectionID())) {
-                logger.debug("Assigned account does not contain correct id. {}, {}", account.getTagIDs(), rsAccountSelector.getAccountSelectionID());
-                dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
-                return true;
-            }
-        }
-
-
-        if (account != null && dreambotControlScript.getClient().isLoggedIn()) {
-            if (!account.getEmail().equalsIgnoreCase(dreambotControlScript.getClient().getUsername())) {
-                logger.debug("Logged into wrong account.");
-                logout();
-                return true;
-            } else {
-                if (Strings.isNullOrEmpty(account.getIgn())) {
-                    String ign = Optional.ofNullable(dreambotControlScript.getClient().getLocalPlayer()).map(Player::getName).orElse(null);
-                    if (ign != null) {
-                        dreambotControlScript.getBotControl().getRemote().send(new MessagePackage(MessagePackage.Type.SEND_IGN, MessagePackage.SERVER)
-                                .setBody(0, ign)
-                                .setBody(1, account.getEmail())
-                        );
-                    }
+        switch (dreambotControlScript.getClient().getLoginIndex()) {
+            case 2:
+                switch (dreambotControlScript.getClient().getLoginResponse()) {
+                    case TOO_MANY_ATTEMPTS:
+                        logger.warn("Too many login attempts! Sleeping for 2 minutes.");
+                        timer.setRunTime(120000);
+                        timer.reset();
+                        break;
+                    case DISABLED:
+                        if (!Objects.equals(lastEmail, account.getEmail())) {
+                            clearText();
+                            return true;
+                        }
+                        dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount(lastEmail, account);
+                        break;
+                    case UPDATED:
+                    case SERVER_UPDATED:
+                        dreambotControlScript.getBotControl().onRunescapeUpdated();
+                        break;
+                    case ACCOUNT_LOCKED:
+                        if (!Objects.equals(lastEmail, account.getEmail())) {
+                            clearText();
+                            return true;
+                        }
+                        dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(lastEmail, account);
+                        break;
+                    default:
+                        String password = getPassword(account);// TODO: 10/5/2017 If time out restart
+                        if (!isLoginInfoCorrect(account.getEmail(), password)) clearText();
+                        if (isTextEmpty()){
+                            dreambotControlScript.getKeyboard().type(account.getEmail());
+                            dreambotControlScript.getKeyboard().type(getPassword(account));
+                            MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
+                        }
+                        if (isLoginInfoCorrect(account.getEmail(), password)){
+                            lastEmail = account.getEmail();
+                            dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
+                            MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
+                        }
+                        break;
                 }
-                return false;
-            }
+                break;
+            case 3:
+                if (!Objects.equals(lastEmail, account.getEmail())) {
+                    clearText();
+                    return true;
+                }
+                dreambotControlScript.getBotControl().getRsAccountManager().onWrongLogin(lastEmail, account);
+                dreambotControlScript.getMouse().click(new Point(379, 273));
+                break;
+            default:
+                dreambotControlScript.getMouse().click(new Point(462, 290));
+                break;
         }
-
-        if (account != null && dreambotControlScript.getClient().getGameStateID() < 25) {
-            switch (dreambotControlScript.getClient().getLoginIndex()) {
-                case 2:
-                    switch (dreambotControlScript.getClient().getLoginResponse()) {
-                        case TOO_MANY_ATTEMPTS:
-                            logger.warn("Too many login attempts! Sleeping for 2 minutes.");
-                            timer.setRunTime(120000);
-                            timer.reset();
-                            break;
-                        case DISABLED:
-                            if (!Objects.equals(lastEmail, account.getEmail())) {
-                                clearText();
-                                return true;
-                            }
-                            dreambotControlScript.getBotControl().getRsAccountManager().onBannedAccount(lastEmail, account);
-                            break;
-                        case ACCOUNT_LOCKED:
-                            if (!Objects.equals(lastEmail, account.getEmail())) {
-                                clearText();
-                                return true;
-                            }
-                            dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(lastEmail, account);
-                            break;
-                        default:
-                            String password = getPassword(account);// TODO: 10/5/2017 If time out restart
-                            if (!isLoginInfoCorrect(account.getEmail(), password)) clearText();
-                            if (isTextEmpty()){
-                                dreambotControlScript.getKeyboard().type(account.getEmail());
-                                dreambotControlScript.getKeyboard().type(getPassword(account));
-                                MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
-                            }
-                            if (isLoginInfoCorrect(account.getEmail(), password)){
-                                lastEmail = account.getEmail();
-                                dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
-                                MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
-                            }
-                            break;
-                    }
-                    break;
-                case 3:
-                    if (!Objects.equals(lastEmail, account.getEmail())) {
-                        clearText();
-                        return true;
-                    }
-                    dreambotControlScript.getBotControl().getRsAccountManager().onWrongLogin(lastEmail, account);
-                    dreambotControlScript.getMouse().click(new Point(379, 273));
-                    break;
-                default:
-                    dreambotControlScript.getMouse().click(new Point(462, 290));
-                    break;
-            }
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     private String getPassword(RSAccount rsAccount) {
         return dreambotControlScript.getBotControl().getConnection().decryptString(rsAccount.getPassword()).orElse("");
-    }
-
-    private void logout() {
-        logger.debug("logging out.");
-        try {
-            dreambotControlScript.getWalking().clickTileOnMinimap(dreambotControlScript.getLocalPlayer().getTile());
-        }
-        catch (Throwable ignored){
-        }
-
-        try {
-            dreambotControlScript.getTabs().logout();
-        }
-        catch (Throwable ignored){
-        }
     }
 
     private boolean isLoginInfoCorrect(String username, String password){

@@ -72,6 +72,21 @@ public class TestController {
         public boolean executeLoginHandler() {
             return false;
         }
+
+        @Override
+        public int getGameState() {
+            return 0;
+        }
+
+        @Override
+        public void logout() {
+
+        }
+
+        @Override
+        public String getEmail() {
+            return null;
+        }
     });
 
     public static void main(String[] args) {

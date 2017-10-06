@@ -4,13 +4,20 @@ import com.acuity.common.account_creator.AccountCreationJobV2;
 import com.acuity.common.account_creator.AccountInfoGenerator;
 import com.acuity.common.util.IPUtil;
 import com.acuity.control.client.BotControl;
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -30,6 +37,69 @@ public class RSAccountManager {
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
+    }
+
+
+    public boolean execute(){
+        RSAccount account = botControl.getRsAccountManager().getRsAccount();
+        ScriptNode executionNode = botControl.getScriptManager().getExecutionNode().orElse(null);
+        RSAccountSelector rsAccountSelector = Optional.ofNullable(botControl.getBotClientConfig())
+                .map(BotClientConfig::getScriptSelector)
+                .map(ScriptSelector::getRsAccountSelector).orElse(null);
+
+        if (executionNode != null && executionNode.getRsAccountSelector() != null) {
+            rsAccountSelector = executionNode.getRsAccountSelector();
+        }
+
+        logger.trace("LoginHandler start. {}, {}, {}", account, executionNode, rsAccountSelector);
+
+        if (account == null && botControl.getClientInterface().isLoggedIn()){
+            logger.debug("Logged into account without assignment.");
+            botControl.getClientInterface().logout();
+            return true;
+        }
+
+        if (account == null && rsAccountSelector != null){
+            RSAccount rsAccount = botControl.getRsAccountManager().requestAccountFromTag(
+                    rsAccountSelector.getAccountSelectionID(),
+                    true,
+                    false,
+                    rsAccountSelector.isRegistrationAllowed());
+
+            if (rsAccount != null) botControl.getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
+            return true;
+        }
+
+        if (account != null && executionNode == null) {
+            if (botControl.getScriptManager().getExecutionNode() == null){
+                logger.debug("Assigned account without node.");
+                botControl.getRsAccountManager().clearRSAccount();
+                return true;
+            }
+        }
+
+        if (account != null && rsAccountSelector != null) {
+            if (account.getTagIDs() == null || !account.getTagIDs().contains(rsAccountSelector.getAccountSelectionID())) {
+                logger.debug("Assigned account does not contain correct id. {}, {}", account.getTagIDs(), rsAccountSelector.getAccountSelectionID());
+                botControl.getRsAccountManager().clearRSAccount();
+                return true;
+            }
+        }
+
+
+        if (account != null && botControl.getClientInterface().isLoggedIn()) {
+            if (!account.getEmail().equalsIgnoreCase(botControl.getClientInterface().getEmail())) {
+                logger.debug("Logged into wrong account.");
+                botControl.getClientInterface().logout();
+                return true;
+            }
+        }
+
+        if (account != null && botControl.getClientInterface().getGameState() < 25) {
+            return botControl.getClientInterface().executeLoginHandler();
+        }
+
+        return false;
     }
 
     public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
