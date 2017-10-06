@@ -128,7 +128,7 @@ public class LoginHandler {
                             dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(lastEmail, account);
                             break;
                         default:
-                            String password = getPassword(account);
+                            String password = getPassword(account);// TODO: 10/5/2017 If time out restart
                             if (!isLoginInfoCorrect(account.getEmail(), password)) clearText();
                             if (isTextEmpty()){
                                 dreambotControlScript.getKeyboard().type(account.getEmail());
