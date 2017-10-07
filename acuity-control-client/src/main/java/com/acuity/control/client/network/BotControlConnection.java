@@ -83,7 +83,7 @@ public class BotControlConnection {
         this.acuityEmail = email;
         this.acuityPassword = password.toCharArray();
         connectionInterface.getEventBus().register(this);
-        connectionInterface.start();
+        connectionInterface.start(host);
     }
 
     public void stop(){
@@ -102,18 +102,22 @@ public class BotControlConnection {
             Boolean result = send(new MessagePackage(MessagePackage.Type.LOGIN, null)
                     .setBody(0, acuityEmail)
                     .setBody(1, new String(acuityPassword))
-            ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
+            ).waitForResponse(5, TimeUnit.SECONDS).getResponse()
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                     .orElse(false);
+
+            logger.info("Login request complete. {}", result);
 
             if (!result) connectionInterface.disconnect();
             else {
                 result = send(new MessagePackage(MessagePackage.Type.BOT_CLIENT_HANDSHAKE, MessagePackage.SERVER)
                         .setBody(0, botControl.getBotClientConfig())
                         .setBody(1, botTypeID)
-                ).waitForResponse(30, TimeUnit.SECONDS).getResponse()
+                ).waitForResponse(5, TimeUnit.SECONDS).getResponse()
                         .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
                         .orElse(false);
+
+                logger.info("BotClientHandshake complete. {}", result);
 
                 if (!result) connectionInterface.disconnect();
                 else {

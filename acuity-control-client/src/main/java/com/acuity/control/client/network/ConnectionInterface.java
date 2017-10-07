@@ -10,7 +10,7 @@ import com.google.common.eventbus.EventBus;
 public interface ConnectionInterface {
     EventBus getEventBus();
 
-    void start();
+    void start(String host);
 
     void shutdown();
 

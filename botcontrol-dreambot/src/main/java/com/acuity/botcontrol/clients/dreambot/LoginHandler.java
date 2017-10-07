@@ -12,18 +12,15 @@ import java.util.concurrent.TimeUnit;
 
 public class LoginHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(LoginHandler.class);
-
-    private final Timer timer = new Timer();
-
-    private DreambotControlScript dreambotControlScript;
-
     private static final Point EXISTING_USER = new Point(458, 292);
     private static final Point CANCEL = new Point(462, 326);
     private static final Point LOGIN = new Point(292, 326);
     private static final Point TRY_AGAIN = new Point(385, 278);
-
+    private static Logger logger = LoggerFactory.getLogger(LoginHandler.class);
     private static String lastEmail;
+    private final Timer timer = new Timer();
+    private DreambotControlScript dreambotControlScript;
+
 
     public LoginHandler(DreambotControlScript dreambotControlScript) {
         this.dreambotControlScript = dreambotControlScript;
@@ -58,21 +55,25 @@ public class LoginHandler {
                         dreambotControlScript.getBotControl().getRsAccountManager().onLockedAccount(lastEmail, account);
                         break;
                     default:
-                        String password = getPassword(account);// TODO: 10/5/2017 If time out restart
-                        if (!isLoginInfoCorrect(account.getEmail(), password)) clearText();
-                        if (isTextEmpty()){
-                            dreambotControlScript.getKeyboard().type(account.getEmail());
-                            dreambotControlScript.getKeyboard().type(getPassword(account));
-                            MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
+                        try {
+                            String password = getPassword(account);
+                            if (!isLoginInfoCorrect(account.getEmail(), password)) clearText();
+                            if (isTextEmpty()) {
+                                dreambotControlScript.getKeyboard().type(account.getEmail());
+                                dreambotControlScript.getKeyboard().type(getPassword(account));
+                                MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
+                            }
+                            if (isLoginInfoCorrect(account.getEmail(), password)) {
+                                lastEmail = account.getEmail();
+                                dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
+                                MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
+                            }
+                        } catch (Throwable e) {
+                            logger.error("Error during entering login.", e);
+                            dreambotControlScript.getBotControl().getRsAccountManager().clearRSAccount();
                         }
-                        if (isLoginInfoCorrect(account.getEmail(), password)){
-                            lastEmail = account.getEmail();
-                            dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
-                            MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
-                        }
-                        break;
-                }
-                break;
+                    }
+                    break;
             case 3:
                 if (!Objects.equals(lastEmail, account.getEmail())) {
                     clearText();
@@ -92,11 +93,11 @@ public class LoginHandler {
         return dreambotControlScript.getBotControl().getConnection().decryptString(rsAccount.getPassword()).orElse("");
     }
 
-    private boolean isLoginInfoCorrect(String username, String password){
+    private boolean isLoginInfoCorrect(String username, String password) {
         return Objects.equals(username, dreambotControlScript.getClient().getUsername()) && Objects.equals(dreambotControlScript.getClient().getPassword(), password);
     }
 
-    private boolean isTextEmpty(){
+    private boolean isTextEmpty() {
         return dreambotControlScript.getClient().getUsername().isEmpty() && dreambotControlScript.getClient().getPassword().isEmpty();
     }
 

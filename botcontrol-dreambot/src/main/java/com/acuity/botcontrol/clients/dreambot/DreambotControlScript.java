@@ -29,7 +29,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
-    private BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new DreambotClientInterface(this));
+    private BotControl botControl = new BotControl("107.4.185.255", ClientType.DREAMBOT, new DreambotClientInterface(this));
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);

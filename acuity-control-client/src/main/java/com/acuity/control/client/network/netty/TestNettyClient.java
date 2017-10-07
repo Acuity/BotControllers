@@ -43,7 +43,7 @@ public class TestNettyClient implements ConnectionInterface, SubscriberException
     }
 
     @Override
-    public void start() {
+    public void start(String host) {
         new Thread(() -> {
             Bootstrap bootstrap = new Bootstrap();
             Logger logger = LoggerFactory.getLogger("Client");

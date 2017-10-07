@@ -43,7 +43,7 @@ public class MachineConnection {
         this.acuityEmail = email;
         this.acuityPassword = password;
         wsClient.getEventBus().register(this);
-        wsClient.start();
+        wsClient.start(host);
     }
 
     public EventBus getEventBus(){

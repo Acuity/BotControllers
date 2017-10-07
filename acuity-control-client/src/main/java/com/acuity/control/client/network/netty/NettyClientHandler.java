@@ -24,7 +24,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private NettyClient client;
     private ChannelHandlerContext context;
 
-    private Executor executor = Executors.newSingleThreadExecutor();
+    private Executor executor = Executors.newFixedThreadPool(5);
 
     public NettyClientHandler(NettyClient nettyClient) {
         this.client = nettyClient;

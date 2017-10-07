@@ -30,8 +30,10 @@ public class NettyClient implements ConnectionInterface, SubscriberExceptionHand
     private NioEventLoopGroup group = null;
 
     private NettyClientHandler nettyClientHandler = new NettyClientHandler(this);
+    private String host;
 
-    public void start() {
+    public void start(String host) {
+        this.host = host;
         group = new NioEventLoopGroup();
         configureBootstrap(new Bootstrap(), group).connect();
     }
@@ -46,7 +48,7 @@ public class NettyClient implements ConnectionInterface, SubscriberExceptionHand
     Bootstrap configureBootstrap(Bootstrap bootstrap, EventLoopGroup g) {
         bootstrap.group(g)
                 .channel(NioSocketChannel.class)
-                .remoteAddress("localhost", 2052)
+                .remoteAddress(host, 2052)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
