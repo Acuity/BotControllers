@@ -18,9 +18,10 @@ public class WorldUtil {
         methodContext.getWorlds().all().forEach(world -> worldPop.put(world.getRealID(), 0));
         botControl.getRemote().requestBotClients().stream()
                 .map(BotClient::getClientState)
-                .map(BotClientState::getCurrentWorld)
+                .map(BotClientState::getRsWorld)
                 .filter(Objects::nonNull)
                 .forEach(world -> worldPop.put(world, worldPop.getOrDefault(world, 0) + 1));
+
 
         return worldPop;
     }
