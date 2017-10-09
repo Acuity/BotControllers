@@ -87,7 +87,7 @@ public class RSAccountManager {
         }
 
 
-        if (!botControl.getClientInterface().isSignedIn(rsAccount)) {
+        if (botControl.getClientInterface().isLoggedIn() && !botControl.getClientInterface().isSignedIn(rsAccount)) {
             logger.debug("Logged into wrong account.");
             botControl.getClientInterface().logout();
             return true;
