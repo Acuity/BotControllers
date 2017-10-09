@@ -18,5 +18,6 @@
         <module>botcontrol-dreambot</module>
         <module>acuity-control-client</module>
         <module>botcontrol-machine</module>
+        <module>jar-updater</module>
     </modules>
 </project>

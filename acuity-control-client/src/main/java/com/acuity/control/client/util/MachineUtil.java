@@ -4,20 +4,30 @@ package com.acuity.control.client.util;
 import com.acuity.db.domain.vertex.impl.machine.MachineUpdate;
 import com.sun.management.OperatingSystemMXBean;
 
-import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.List;
 
 /**
  * Created by Zachary Herridge on 8/14/2017.
  */
 public class MachineUtil {
 
+
+    /**
+     * Sun property pointing the main class and its arguments.
+     * Might not be defined on non Hotspot VM implementations.
+     */
+    public static final String SUN_JAVA_COMMAND = "sun.java.command";
 
     public static MachineUpdate buildMachineState() {
         MachineUpdate machineUpdate = new MachineUpdate();
@@ -30,7 +40,7 @@ public class MachineUtil {
         return machineUpdate;
     }
 
-    public static String getMacAddress(){
+    public static String getMacAddress() {
         try {
             InetAddress localIP = InetAddress.getLocalHost();
             NetworkInterface network = NetworkInterface.getByInetAddress(localIP);
@@ -62,5 +72,65 @@ public class MachineUtil {
         long elapsedCpu = processCpuTime - prevProcessCpuTime;
         long elapsedTime = upTime - prevUpTime;
         return Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
+    }
+
+
+    public static void download(String url, String path) throws IOException {
+        URL download = new URL(url);
+        ReadableByteChannel rbc = Channels.newChannel(download.openStream());
+        FileOutputStream fos = new FileOutputStream(new File(path));
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    }
+
+    public static void restartApplication(Runnable runBeforeRestart) throws IOException {
+        try {
+            String java = System.getProperty("java.home") + "/bin/java";
+
+            List<String> vmArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+            StringBuffer vmArgsOneLine = new StringBuffer();
+            for (String arg : vmArguments) {
+
+                if (!arg.contains("-agentlib")) {
+                    vmArgsOneLine.append(arg);
+                    vmArgsOneLine.append(" ");
+                }
+            }
+
+            final StringBuffer cmd = new StringBuffer("\"" + java + "\" " + vmArgsOneLine);
+
+            String[] mainCommand = System.getProperty(SUN_JAVA_COMMAND).split(" ");
+
+            if (mainCommand[0].endsWith(".jar")) {
+
+                cmd.append("-jar " + new File(mainCommand[0]).getPath());
+            } else {
+
+                cmd.append("-cp \"" + System.getProperty("java.class.path") + "\" " + mainCommand[0]);
+            }
+
+            for (int i = 1; i < mainCommand.length; i++) {
+                cmd.append(" ");
+                cmd.append(mainCommand[i]);
+            }
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Runtime.getRuntime().exec(cmd.toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            if (runBeforeRestart != null) {
+                runBeforeRestart.run();
+            }
+
+            System.exit(0);
+        } catch (Exception e) {
+            throw new IOException("Error while trying to restart the application", e);
+        }
     }
 }
