@@ -24,6 +24,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zach on 8/12/2017.
@@ -34,6 +35,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
     private BotControl botControl = new BotControl(ControlUtil.HOST, ClientType.DREAMBOT, new DreambotClientInterface(this));
+
+    private static final int DEFAULT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(1);
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
@@ -71,44 +74,50 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public int onLoop() {
-        if (!botControl.getConnection().isConnected()) return 1000;
+        if (!botControl.getConnection().isConnected()) return DEFAULT_TIMEOUT;
 
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
 
         experienceTracker.execute();
 
-        if (!botControl.getClientInterface().isSignedIn()) return 1000;
-
-        if (botControl.getWorldManager().onLoop()) return  1000;
+        if (!botControl.getClientInterface().isSignedIn()) return DEFAULT_TIMEOUT;
+        if (botControl.getWorldManager().onLoop()) return  DEFAULT_TIMEOUT;
 
         ScriptInstance dreambotScript = botControl.getScriptManager().getExecutionInstance().orElse(null);
         if (dreambotScript != null) {
             Object instance = dreambotScript.getInstance();
             if (instance == null){
+                logger.info("Instance null. {}", dreambotScript);
                 dreambotScript.setInstance(botControl.getClientInterface().createInstanceOfScript(dreambotScript.getScriptNode()));
             }
             else {
                 try {
-                    logger.trace("Looping script.");
                     int scriptSleep = ((AbstractScript) instance).onLoop();
                     if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
-                    return Math.max(scriptSleep, 250);
+                    return Math.max(scriptSleep, DEFAULT_TIMEOUT);
                 }
                 catch (Throwable e){
-                    logger.error("Error during scriptOnLoop", e);
+                    logger.error("Error during " + instance + " script-loop.", e);
                 }
             }
-
         }
-        return 1000;
+
+        return DEFAULT_TIMEOUT;
     }
 
     @Override
     public void onPaint(Graphics graphics) {
         super.onPaint(graphics);
         ScriptInstance scriptInstance = botControl.getScriptManager().getExecutionInstance().orElse(null);
-        if (scriptInstance != null && scriptInstance.getInstance() != null) ((AbstractScript) scriptInstance.getInstance()).onPaint(graphics);
+        if (scriptInstance != null && scriptInstance.getInstance() != null) {
+            try {
+                ((AbstractScript) scriptInstance.getInstance()).onPaint(graphics);
+            }
+            catch (Throwable e){
+                logger.error("Error during " + scriptInstance + " paint.", e);
+            }
+        }
     }
 
     @Override
@@ -132,9 +141,14 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onItemChange(Item[] items) {
-        itemTracker.onUpdate();
-        for (Item item : items) {
-            itemTracker.onChange(item);
+        try {
+            itemTracker.onUpdate();
+            for (Item item : items) {
+                itemTracker.onChange(item);
+            }
+        }
+        catch (Throwable e){
+            logger.error("Error during ItemTracker updates.", e);
         }
     }
 
