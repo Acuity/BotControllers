@@ -87,12 +87,10 @@ public class RSAccountManager {
         }
 
 
-        if (account != null && botControl.getClientInterface().isLoggedIn()) {
-            if (!account.getEmail().equalsIgnoreCase(botControl.getClientInterface().getEmail())) {
-                logger.debug("Logged into wrong account.");
-                botControl.getClientInterface().logout();
-                return true;
-            }
+        if (botControl.getClientInterface().isSignedIn(rsAccount)) {
+            logger.debug("Logged into wrong account.");
+            botControl.getClientInterface().logout();
+            return true;
         }
 
         if (account != null && botControl.getClientInterface().getGameState() < 25) {

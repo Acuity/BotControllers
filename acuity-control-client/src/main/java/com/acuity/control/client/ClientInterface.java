@@ -39,8 +39,7 @@ public abstract class ClientInterface {
     public abstract String getEmail();
 
     public boolean isSignedIn() {
-        RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
-        return rsAccount != null && isSignedIn(rsAccount);
+        return isSignedIn(botControl.getRsAccountManager().getRsAccount());
     }
 
     public BotControl getBotControl() {

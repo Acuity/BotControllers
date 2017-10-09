@@ -70,7 +70,7 @@ public class DreambotClientInterface extends ClientInterface {
 
     @Override
     public boolean isSignedIn(RSAccount rsAccount) {
-        return controlScript.getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(controlScript.getClient().getUsername());
+        return rsAccount != null && controlScript.getClient().isLoggedIn() && rsAccount.getEmail().equalsIgnoreCase(controlScript.getClient().getUsername());
     }
 
     @Override
