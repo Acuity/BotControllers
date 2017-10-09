@@ -22,7 +22,7 @@ public class JarUpdater {
 
         String downloadURL = args[0];
         String downloadPath = args[1];
-        boolean executeOnComplete = Boolean.parseBoolean(args[2]);
+        String executeOnComplete = args[2];
 
         try {
             logger.info("Starting download. {}, {}", downloadURL, downloadPath);
@@ -30,9 +30,14 @@ public class JarUpdater {
 
             logger.info("Download complete.");
 
-            if (executeOnComplete){
-                logger.info("Executing file.");
+            if ("desktop".equalsIgnoreCase(executeOnComplete)){
+                logger.info("Using Desktop to open file.");
                 Desktop.getDesktop().open(new File(downloadPath));
+            }
+            else if ("runtime".equalsIgnoreCase(executeOnComplete)){
+                String runtimeCommand = args[3];
+                logger.info("Executing command via Runtime. {}", runtimeCommand);
+                Runtime.getRuntime().exec(runtimeCommand);
             }
         } catch (Throwable e) {
             logger.error("Error during download.", e);

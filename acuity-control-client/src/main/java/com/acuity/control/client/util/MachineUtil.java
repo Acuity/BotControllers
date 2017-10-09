@@ -7,6 +7,7 @@ import com.sun.management.OperatingSystemMXBean;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
@@ -14,6 +15,8 @@ import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 
@@ -74,12 +77,11 @@ public class MachineUtil {
         return Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
     }
 
-
     public static void download(String url, String path) throws IOException {
         URL download = new URL(url);
-        ReadableByteChannel rbc = Channels.newChannel(download.openStream());
-        FileOutputStream fos = new FileOutputStream(new File(path));
-        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        try (InputStream in = download.openStream()) {
+            Files.copy(in, new File(path).toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     public static void restartApplication(Runnable runBeforeRestart) throws IOException {
@@ -113,16 +115,13 @@ public class MachineUtil {
                 cmd.append(mainCommand[i]);
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Runtime.getRuntime().exec(cmd.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    Runtime.getRuntime().exec(cmd.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
+            }));
 
             if (runBeforeRestart != null) {
                 runBeforeRestart.run();
