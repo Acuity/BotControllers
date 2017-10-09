@@ -25,12 +25,7 @@ import java.util.List;
  */
 public class MachineUtil {
 
-
-    /**
-     * Sun property pointing the main class and its arguments.
-     * Might not be defined on non Hotspot VM implementations.
-     */
-    public static final String SUN_JAVA_COMMAND = "sun.java.command";
+    private static final String SUN_JAVA_COMMAND = "sun.java.command";
 
     public static MachineUpdate buildMachineState() {
         MachineUpdate machineUpdate = new MachineUpdate();
@@ -87,11 +82,9 @@ public class MachineUtil {
     public static void restartApplication(Runnable runBeforeRestart) throws IOException {
         try {
             String java = System.getProperty("java.home") + "/bin/java";
-
             List<String> vmArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
-            StringBuffer vmArgsOneLine = new StringBuffer();
+            StringBuilder vmArgsOneLine = new StringBuilder();
             for (String arg : vmArguments) {
-
                 if (!arg.contains("-agentlib")) {
                     vmArgsOneLine.append(arg);
                     vmArgsOneLine.append(" ");
@@ -99,15 +92,11 @@ public class MachineUtil {
             }
 
             final StringBuffer cmd = new StringBuffer("\"" + java + "\" " + vmArgsOneLine);
-
             String[] mainCommand = System.getProperty(SUN_JAVA_COMMAND).split(" ");
-
             if (mainCommand[0].endsWith(".jar")) {
-
-                cmd.append("-jar " + new File(mainCommand[0]).getPath());
+                cmd.append("-jar ").append(new File(mainCommand[0]).getPath());
             } else {
-
-                cmd.append("-cp \"" + System.getProperty("java.class.path") + "\" " + mainCommand[0]);
+                cmd.append("-cp \"").append(System.getProperty("java.class.path")).append("\" ").append(mainCommand[0]);
             }
 
             for (int i = 1; i < mainCommand.length; i++) {

@@ -5,6 +5,7 @@ import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.util.ControlUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.Subscribe;
@@ -29,7 +30,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
-    private BotControl botControl = new BotControl("174.53.192.24", ClientType.DREAMBOT, new DreambotClientInterface(this));
+    private BotControl botControl = new BotControl(ControlUtil.HOST, ClientType.DREAMBOT, new DreambotClientInterface(this));
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
