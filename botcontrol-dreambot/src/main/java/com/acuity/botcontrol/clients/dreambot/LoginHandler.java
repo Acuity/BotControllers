@@ -47,6 +47,9 @@ public class LoginHandler {
                     case SERVER_UPDATED:
                         dreambotControlScript.getBotControl().onRunescapeUpdated();
                         break;
+                    case MEMBERS_WORLD:
+                        dreambotControlScript.getWorldHopper().hopWorld(308);
+                        break;
                     case ACCOUNT_LOCKED:
                         if (!Objects.equals(lastEmail, account.getEmail())) {
                             clearText();

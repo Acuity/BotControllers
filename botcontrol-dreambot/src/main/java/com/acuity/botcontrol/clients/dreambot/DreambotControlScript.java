@@ -1,6 +1,7 @@
 package com.acuity.botcontrol.clients.dreambot;
 
 import com.acuity.botcontrol.clients.dreambot.control.DreambotClientInterface;
+import com.acuity.botcontrol.clients.dreambot.control.DreambotExperienceTracker;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.BotControlEvent;
@@ -36,6 +37,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
+    private DreambotExperienceTracker experienceTracker = new DreambotExperienceTracker(this);
 
     @Override
     public void onStart() {
@@ -73,6 +75,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
         int result = botControl.getBreakManager().onLoop();
         if (result > 0) return result;
+
+        experienceTracker.execute();
 
         if (!botControl.getClientInterface().isSignedIn()) return 1000;
 
@@ -120,8 +124,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public void onProxyChange(BotControlEvent.ProxyUpdated proxyUpdated) {
         try {
             getClient().getSocketWrapper().getSocket().close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            logger.error("Error during closing Jagex socket.", e);
         }
     }
 
