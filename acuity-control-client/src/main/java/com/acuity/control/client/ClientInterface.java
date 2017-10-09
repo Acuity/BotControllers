@@ -52,6 +52,6 @@ public abstract class ClientInterface {
     }
 
     public boolean isLoggedIn() {
-        return getGameState() == 30;
+        return getGameState() >= 30;
     }
 }

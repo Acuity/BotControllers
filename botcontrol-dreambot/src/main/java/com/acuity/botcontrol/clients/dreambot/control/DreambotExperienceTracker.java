@@ -28,16 +28,17 @@ public class DreambotExperienceTracker {
 
         if (skillTracker == null){
             skillTracker = new SkillTracker(controlScript.getClient());
-            skillTracker.resetAll();
             skillTracker.start();
             return;
         }
 
         for (Skill skill : Skill.values()) {
             long gainedExperience = skillTracker.getGainedExperience(skill);
-            if (gainedExperience != 0){
+            if (gainedExperience != 0 && skillTracker.getStartExperience(skill) != 0){
                 logger.info("Gained XP in {}. {}", skill.getName(), gainedExperience);
             }
         }
+
+        skillTracker.start();
     }
 }
