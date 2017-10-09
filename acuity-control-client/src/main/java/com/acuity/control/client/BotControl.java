@@ -53,6 +53,10 @@ public class BotControl implements SubscriberExceptionHandler {
         return eventBus;
     }
 
+    public ExecutorManager getExecutorManager() {
+        return executorManager;
+    }
+
     public ScriptManager getScriptManager() {
         return scriptManager;
     }

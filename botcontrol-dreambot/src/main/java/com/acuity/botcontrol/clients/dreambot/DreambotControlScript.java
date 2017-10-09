@@ -44,11 +44,14 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onStart() {
-        try {
-            confirmVersion();
-        } catch (Throwable e) {
-            logger.error("Error during confirming version.");
-        }
+        botControl.getExecutorManager().getGeneral().execute(() -> {
+            try {
+                confirmVersion();
+            } catch (Throwable e) {
+                logger.error("Error during confirming version.", e);
+            }
+        });
+
         botControl.getEventBus().register(this);
     }
 

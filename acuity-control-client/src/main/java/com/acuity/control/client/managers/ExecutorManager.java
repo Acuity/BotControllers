@@ -4,6 +4,7 @@ import com.acuity.control.client.BotControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ public class ExecutorManager {
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
     private ScheduledExecutorService scriptExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private Executor general = Executors.newCachedThreadPool();
 
     public ExecutorManager(BotControl botControl) {
         this.botControl = botControl;
@@ -65,6 +67,10 @@ public class ExecutorManager {
                 logger.error("Error during script manager confirmState.", e);
             }
         }, 3, 1, TimeUnit.SECONDS);
+    }
+
+    public Executor getGeneral() {
+        return general;
     }
 
     public void stop() {

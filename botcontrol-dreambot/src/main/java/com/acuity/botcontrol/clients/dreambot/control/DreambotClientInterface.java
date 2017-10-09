@@ -49,7 +49,7 @@ public class DreambotClientInterface extends ClientInterface {
 
         controlScript.getBotControl().getRemote().updateClientStateNoResponse(clientState, false);
 
-        logger.debug("Send client state. {}", clientState);
+        logger.trace("Send client state. {}", clientState);
     }
 
     @Override
