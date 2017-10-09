@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Created by Zach on 8/12/2017.
@@ -37,7 +39,32 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onStart() {
+        try {
+            confirmVersion();
+        } catch (Throwable e) {
+            logger.error("Error during confirming version.");
+        }
         botControl.getEventBus().register(this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void confirmVersion() throws IOException {
+        Map<String, Object> dreambotController = (Map<String, Object>) ControlUtil.getGlobalInfoDoc().getOrDefault("dreambotController", Collections.EMPTY_MAP);
+
+        String remoteVersion = (String) dreambotController.get("version");
+        String localVersion = getControllerVersion();
+
+        logger.info("Comparing versions. {}, {}", localVersion, remoteVersion);
+        if (!localVersion.equalsIgnoreCase(remoteVersion)){
+            logger.info("Update required.");
+        }
+        else {
+            logger.info("No update required, starting script.");
+        }
+    }
+
+    public String getControllerVersion(){
+        return "1.1.1";
     }
 
     @Override
