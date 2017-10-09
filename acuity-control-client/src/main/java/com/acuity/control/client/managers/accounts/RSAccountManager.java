@@ -101,7 +101,7 @@ public class RSAccountManager {
     }
 
     public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
-        logger.debug("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
+        logger.info("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
         if (rsAccount != null) {
             if (rsAccount.getTagIDs().contains(tagID)) {
                 return rsAccount;
