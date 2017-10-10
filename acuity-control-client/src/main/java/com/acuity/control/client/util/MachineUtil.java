@@ -72,13 +72,6 @@ public class MachineUtil {
         return Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
     }
 
-    public static void download(String url, String path) throws IOException {
-        URL download = new URL(url);
-        try (InputStream in = download.openStream()) {
-            Files.copy(in, new File(path).toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
-
     public static void restartApplication(Runnable runBeforeRestart) throws IOException {
         try {
             String java = System.getProperty("java.home") + "/bin/java";

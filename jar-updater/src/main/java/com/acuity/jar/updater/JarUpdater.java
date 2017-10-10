@@ -1,6 +1,6 @@
 package com.acuity.jar.updater;
 
-import com.acuity.control.client.util.MachineUtil;
+import com.acuity.common.util.DownloadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public class JarUpdater {
 
         try {
             logger.info("Starting download. {}, {}", downloadURL, downloadPath);
-            MachineUtil.download(downloadURL, downloadPath);
+            DownloadUtil.download(downloadURL, downloadPath);
 
             logger.info("Download complete.");
 

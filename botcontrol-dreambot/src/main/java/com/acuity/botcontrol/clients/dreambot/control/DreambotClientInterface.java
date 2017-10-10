@@ -57,7 +57,6 @@ public class DreambotClientInterface extends ClientInterface {
         return DreambotScriptManager.initDreambotScript(controlScript.getBotControl(), controlScript.getClient(), scriptRunConfig);
     }
 
-
     @Override
     public void destroyInstanceOfScript(Object scriptInstance) {
         ((AbstractScript) scriptInstance).onExit();
