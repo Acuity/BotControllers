@@ -36,7 +36,7 @@ public class RemoteManager {
     }
 
     @SuppressWarnings("unchecked")
-    public Optional<Map<String, Integer>> requestIPData(){
+    public Optional<Map<String, Long>> requestIPData(){
         return send(new MessagePackage(MessagePackage.Type.REQUEST_CLIENT_IP_DATA, MessagePackage.SERVER))
                 .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
@@ -48,7 +48,6 @@ public class RemoteManager {
                 .setBody(2, email)
                 .setBody(3, ign)
                 .setBody(4, password)
-
                 .setBody(5, creationIP)
                 .setBody(6, tagID)
         ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
