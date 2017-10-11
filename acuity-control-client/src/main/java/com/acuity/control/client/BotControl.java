@@ -26,8 +26,6 @@ public class BotControl implements SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BotControl.class);
 
-    private EventBus eventBus = new EventBus(this);
-
     private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
     private ScriptManager scriptManager = new ScriptManager(this);
     private BreakManager breakManager = new BreakManager(this);
@@ -49,10 +47,6 @@ public class BotControl implements SubscriberExceptionHandler {
         this.connection = new BotControlConnection(this, host, clientType);
 
         executorManager.start();
-    }
-
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     public ExecutorManager getExecutorManager() {

@@ -51,8 +51,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 logger.error("Error during confirming version.", e);
             }
         });
-
-        botControl.getEventBus().register(this);
     }
 
     @SuppressWarnings("unchecked")
@@ -131,16 +129,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public BotControl getBotControl() {
         return botControl;
     }
-
-    @Subscribe
-    public void onProxyChange(BotControlEvent.ProxyUpdated proxyUpdated) {
-        try {
-            getClient().getSocketWrapper().getSocket().close();
-        } catch (Throwable e) {
-            logger.error("Error during closing Jagex socket.", e);
-        }
-    }
-
 
     @Override
     public void onItemChange(Item[] items) {

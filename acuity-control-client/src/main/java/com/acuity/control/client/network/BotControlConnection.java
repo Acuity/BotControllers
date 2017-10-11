@@ -174,7 +174,6 @@ public class BotControlConnection {
             }
         }
 
-
         botControl.getScriptManager().getExecutionInstance().ifPresent(scriptInstance -> {
             try {
                 Object instance = scriptInstance.getInstance();
@@ -186,7 +185,6 @@ public class BotControlConnection {
                 logger.error("Error during onMessage.", e);
             }
         });
-        botControl.getEventBus().post(messagePackage);
     }
 
     public void sendScreenCapture(Integer scale) {

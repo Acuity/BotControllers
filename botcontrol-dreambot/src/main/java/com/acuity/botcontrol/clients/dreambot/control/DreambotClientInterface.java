@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 /**
  * Created by Zachary Herridge on 10/6/2017.
@@ -103,5 +104,14 @@ public class DreambotClientInterface extends ClientInterface {
     @Override
     public String getEmail() {
         return controlScript.getClient().getUsername();
+    }
+
+    @Override
+    public void closeRSSocket() {
+        try {
+            controlScript.getClient().getSocketWrapper().getSocket().close();
+        } catch (Throwable e) {
+            logger.error("Error during closing Jagex socket.", e);
+        }
     }
 }

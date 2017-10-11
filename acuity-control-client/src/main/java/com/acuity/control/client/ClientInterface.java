@@ -55,4 +55,6 @@ public abstract class ClientInterface {
     public boolean isLoggedIn() {
         return getGameState() >= 30;
     }
+
+    public abstract void closeRSSocket();
 }

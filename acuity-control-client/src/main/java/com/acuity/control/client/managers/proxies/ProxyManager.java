@@ -24,7 +24,7 @@ public class ProxyManager {
         this.proxy = proxy;
         ProxyUtil.setSocksProxy(proxy, botControl);
         botControl.getStateManager().clearIPGrabTimestamp().send();
-        botControl.getEventBus().post(new BotControlEvent.ProxyUpdated());
+        botControl.getClientInterface().closeRSSocket();
     }
 
     public Proxy getProxy() {

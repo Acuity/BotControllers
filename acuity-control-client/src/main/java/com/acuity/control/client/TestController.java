@@ -16,12 +16,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TestController {
 
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientInterface() {
+
         @Override
-        public void updateClientState() {
-            BotClientState clientState = new BotClientState();
-            clientState.setCpuUsage(ThreadLocalRandom.current().nextDouble(1, 100));
-            clientState.setGameState(0);
-            botControl.getRemote().send(new MessagePackage(MessagePackage.Type.UPDATE_CLIENT_STATE, MessagePackage.SERVER).setBody(clientState));
+        public void updateClientState(BotClientState botClientState) {
+            botClientState.setGameState(0);
         }
 
         @Override
@@ -85,6 +83,11 @@ public class TestController {
         @Override
         public String getEmail() {
             return null;
+        }
+
+        @Override
+        public void closeRSSocket() {
+
         }
     });
 
