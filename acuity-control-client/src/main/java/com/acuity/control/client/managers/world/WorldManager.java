@@ -96,7 +96,7 @@ public class WorldManager {
 
             if (betterWorlds.size() > 0){
                 WorldData world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size())));
-                logger.info("Found better world. betterWorld={}, betterWorldBotPop={}, currentWorld={}, currentWorldBotPop={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
+                logger.info("Found better world. better={}, {}, current={}, {}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
                 botControl.getClientInterface().hopToWorld(world.getWorld());
                 lastCheck = LocalDateTime.now().plusMinutes(1);
                 return true;
