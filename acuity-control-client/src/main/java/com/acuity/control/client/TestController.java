@@ -17,7 +17,7 @@ public class TestController {
 
     BotControl botControl = new BotControl("localhost", ClientType.DREAMBOT, new ClientInterface() {
         @Override
-        public void sendClientState() {
+        public void updateClientState() {
             BotClientState clientState = new BotClientState();
             clientState.setCpuUsage(ThreadLocalRandom.current().nextDouble(1, 100));
             clientState.setGameState(0);

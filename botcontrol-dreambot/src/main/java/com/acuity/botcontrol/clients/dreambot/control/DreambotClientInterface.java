@@ -25,9 +25,7 @@ public class DreambotClientInterface extends ClientInterface {
     }
 
     @Override
-    public void sendClientState() {
-        BotClientState clientState = new BotClientState();
-
+    public void updateClientState( BotClientState clientState) {
         try {
             clientState.setGameState(controlScript.getClient().getGameStateID());
             clientState.setLastEmail(controlScript.getClient().getUsername());
@@ -36,20 +34,6 @@ public class DreambotClientInterface extends ClientInterface {
         } catch (Throwable e) {
             logger.error("Error during state gathering.", e);
         }
-
-        clientState.setRsAccount(controlScript.getBotControl().getRsAccountManager().getRsAccount());
-        clientState.setProxy(controlScript.getBotControl().getProxyManager().getProxy());
-        clientState.setBreakProfile(controlScript.getBotControl().getBreakManager().getProfile());
-        clientState.setBotClientConfig(controlScript.getBotControl().getBotClientConfig());
-
-        controlScript.getBotControl().getScriptManager().getExecutionNode().ifPresent(scriptNode -> {
-            clientState.setScriptID(scriptNode.getScriptID());
-            clientState.setScriptVersionID(scriptNode.getScriptVersionID());
-        });
-
-        controlScript.getBotControl().getRemote().updateClientStateNoResponse(clientState, false);
-
-        logger.trace("Send client state. {}", clientState);
     }
 
     @Override

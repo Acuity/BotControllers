@@ -2,6 +2,7 @@ package com.acuity.control.client;
 
 import com.acuity.control.client.managers.ExecutorManager;
 import com.acuity.control.client.managers.RemoteManager;
+import com.acuity.control.client.managers.StateManager;
 import com.acuity.control.client.managers.accounts.RSAccountManager;
 import com.acuity.control.client.managers.breaks.BreakManager;
 import com.acuity.control.client.managers.config.BotClientConfigManager;
@@ -35,6 +36,7 @@ public class BotControl implements SubscriberExceptionHandler {
     private WorldManager worldManager = new WorldManager(this);
     private TaskManager taskManager = new TaskManager(this);
     private RemoteManager remoteManager = new RemoteManager(this);
+    private StateManager stateManager = new StateManager(this);
     private ExecutorManager executorManager = new ExecutorManager(this);
     private ClientInterface clientInterface = null;
 
@@ -91,6 +93,10 @@ public class BotControl implements SubscriberExceptionHandler {
 
     public ClientInterface getClientInterface() {
         return clientInterface;
+    }
+
+    public StateManager getStateManager() {
+        return stateManager;
     }
 
     public BotControlConnection getConnection() {

@@ -1,5 +1,6 @@
 package com.acuity.control.client;
 
+import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
@@ -12,7 +13,7 @@ public abstract class ClientInterface {
 
     private BotControl botControl;
 
-    public abstract void sendClientState();
+    public abstract void updateClientState(BotClientState botClientState);
 
     public abstract Object createInstanceOfScript(ScriptNode scriptRunConfig);
 
