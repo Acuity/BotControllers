@@ -14,10 +14,7 @@ import com.acuity.db.domain.vertex.impl.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,6 +35,14 @@ public class RemoteManager {
         return botControl.getRemote().addRSAccount(email, ign, password, creationIP, null);
     }
 
+    @SuppressWarnings("unchecked")
+    public Optional<Map<String, Integer>> requestIPData(){
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_CLIENT_IP_DATA, MessagePackage.SERVER))
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .getResponse()
+                .map(messagePackage -> messagePackage.getBodyAs(HashMap.class));
+    }
+
     public Optional<RSAccount> addRSAccount(String email, String ign, String password, String creationIP, String tagID) {
         return botControl.getConnection().sendWithCredentials(new MessagePackage(MessagePackage.Type.ADD_RS_ACCOUNT, MessagePackage.SERVER)
                 .setBody(2, email)
@@ -49,7 +54,7 @@ public class RemoteManager {
         ).waitForResponse(30, TimeUnit.SECONDS).getResponse().map(messagePackage -> messagePackage.getBodyAs(RSAccount.class));
     }
 
-    public Optional<String> get2CaptchaKey() {
+    public Optional<String> request2CaptchaKey() {
         return botControl.getConnection().send(new MessagePackage(MessagePackage.Type.REQUEST_2CAPTCHA_KEY, MessagePackage.SERVER))
                 .waitForResponse(30, TimeUnit.SECONDS)
                 .getResponse().map(messagePackage -> messagePackage.getBodyAs(String.class));
@@ -70,7 +75,7 @@ public class RemoteManager {
         return null;
     }
 
-    public Optional<MessagePackage> confirmState(){
+    public void confirmState(){
         RSAccount rsAccount = botControl.getRsAccountManager().getRsAccount();
 
         Optional<MessagePackage> response = send(new MessagePackage(MessagePackage.Type.CONFIRM_CLIENT_STATE, MessagePackage.SERVER)
@@ -81,8 +86,6 @@ public class RemoteManager {
         if (!rsAccountConfirmed) logger.warn("RSAccount failed to be confirmed.");
 
         logger.trace("Confirmed state. {}, {}", rsAccountConfirmed, rsAccount);
-
-        return response;
     }
 
     public void updateClientStateNoResponse(BotClientState botClientState, boolean serializeNull) {

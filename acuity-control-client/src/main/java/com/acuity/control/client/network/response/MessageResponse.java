@@ -53,8 +53,7 @@ public class MessageResponse {
         }
 
         if (response == null) {
-            logger.warn("Timed out - {}.", responseKey);
-            throw new RuntimeException("Message package timeout.");
+            logger.error("Timed out - {}.", responseKey);
         }
 
         return this;

@@ -5,21 +5,16 @@ import com.acuity.common.account_creator.AccountInfoGenerator;
 import com.acuity.common.util.IPUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -128,7 +123,7 @@ public class RSAccountManager {
 
         if (requestFailures > 3 && registerNewOnFail) {
             logger.info("Registering new RS-Account.");
-            String apiKey = botControl.getRemote().get2CaptchaKey().orElse(null);
+            String apiKey = botControl.getRemote().request2CaptchaKey().orElse(null);
             if (apiKey != null) {
                 String randomEmail = accountInfoGenerator.getRandomEmail();
                 String randomDisplayName = accountInfoGenerator.getRandomDisplayName();
