@@ -105,7 +105,7 @@ public class LoginHandler {
     }
 
     private void clearText() {
-        for (int i = 0; i < 10; i++) {
+        for (int attempt = 0; attempt < 10; attempt++) {
             if (isTextEmpty()) break;
             switch (dreambotControlScript.getClient().getLoginIndex()) {
                 case 3:

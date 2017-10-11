@@ -12,6 +12,7 @@ import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ public class RSAccountManager {
     private static final Logger logger = LoggerFactory.getLogger(RSAccountManager.class);
 
     private BotControl botControl;
+
     private RSAccount rsAccount;
 
     private AccountInfoGenerator accountInfoGenerator = new AccountInfoGenerator();

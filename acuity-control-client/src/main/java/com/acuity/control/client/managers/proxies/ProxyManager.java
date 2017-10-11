@@ -1,12 +1,8 @@
 package com.acuity.control.client.managers.proxies;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.BotControlEvent;
 import com.acuity.control.client.util.ProxyUtil;
-import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.proxy.Proxy;
-
-import java.util.Objects;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
