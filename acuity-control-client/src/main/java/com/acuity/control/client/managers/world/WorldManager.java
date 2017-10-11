@@ -73,12 +73,12 @@ public class WorldManager {
                 worldData.zip();
             }
 
-            int currentWorldBotPopulation = worldData.getWorldBotPopulation().getOrDefault(currentWorld, Integer.MAX_VALUE) - acceptablePopulationDifference;
+            int currentWorldBotPopulation = worldData.getWorldBotPopulation().getOrDefault(currentWorld, Integer.MAX_VALUE);
 
             RSWorldSelector finalRsWorldSelector = rsWorldSelector;
 
             List<WorldData> betterWorlds = worldData.getWorldData().stream()
-                    .filter(entry -> entry.getBotPopulation() < currentWorldBotPopulation)
+                    .filter(entry -> entry.getBotPopulation() < (currentWorldBotPopulation - acceptablePopulationDifference))
                     .filter(entry -> {
                         if (finalRsWorldSelector == null) return true;
 

@@ -109,7 +109,6 @@ public class RSAccountManager {
         List<RSAccount> rsAccounts = botControl.getRemote().requestRSAccounts(filterUnassignable).stream()
                 .filter(rsAccount -> rsAccount.getTagIDs().contains(tagID))
                 .collect(Collectors.toList());
-
         logger.debug("Viable RS-Accounts. {}, {}", rsAccounts.size(), rsAccounts);
 
         Collections.shuffle(rsAccounts);
@@ -122,7 +121,6 @@ public class RSAccountManager {
         }
 
         requestFailures++;
-
         if (requestFailures > 3 && registerNewOnFail) {
             logger.info("Registering new RS-Account.");
             String apiKey = botControl.getRemote().request2CaptchaKey().orElse(null);
