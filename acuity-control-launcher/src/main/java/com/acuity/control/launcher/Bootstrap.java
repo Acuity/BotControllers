@@ -19,7 +19,11 @@ public class Bootstrap {
     public static void main(String[] args) {
         String clientType = args[0];
         String count = args[1];
+
+        logger.info("Launching Acuity with args. {}, {}.", clientType, count);
+
         String[] quickstart = Arrays.copyOfRange(args, 1, args.length - 1);
+        logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
         if (clientType.equalsIgnoreCase("Dreambot")){
             try {
@@ -29,6 +33,5 @@ public class Bootstrap {
             }
         }
 
-        logger.info("Launching Acuity with args. {}, {}.", clientType, count);
     }
 }

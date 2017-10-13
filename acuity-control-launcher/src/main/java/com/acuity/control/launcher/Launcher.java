@@ -28,7 +28,7 @@ public class Launcher {
         }
     }
 
-    public static void launch(String file, String count){
+    public static void launch(File file, String count){
 
     }
 }
