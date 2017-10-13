@@ -30,7 +30,7 @@ public class Launcher {
 
         logger.info("Comparing versions. remote={}, local={}", globalVersion, propertyVersion);
 
-        if (propertyVersion == null || !propertyVersion.equalsIgnoreCase(globalVersion)){
+        if (propertyVersion == null || !file.exists() || !propertyVersion.equalsIgnoreCase(globalVersion)){
             String url = String.valueOf(versionInfo.get("url"));
             logger.info("Downloading new version. {}", url);
             DownloadUtil.download(url, file.getPath());
@@ -38,7 +38,7 @@ public class Launcher {
         }
     }
 
-    public static void launch(File file){
+    public static void launch(File file, String[] quickstart){
         String command = "java -classpath " + file.getPath() + " com.acuity.botcontrol.clients.dreambot.Bootstrap";
 
         logger.debug("Runetime command. {}", command);

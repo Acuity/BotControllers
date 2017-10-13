@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -25,13 +26,16 @@ public class Bootstrap {
         logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
         if (clientType.equalsIgnoreCase("Dreambot")){
-            File controllerJar = new File(AcuityDir.getHome(), "dreambotController.jar");
-            try {
-                Launcher.updateVersion("dreambotController", "dreambotContollerVersion", controllerJar);
-                Launcher.launch(controllerJar);
-            } catch (Throwable e) {
-                logger.error("Error during updating dreambot controller.", e);
-            }
+            start("dreambotController", "dreambotContollerVersion", new File(AcuityDir.getHome(), "dreambotController.jar"), quickstart);
+        }
+    }
+
+    private static void start(String globalKey, String propertiesKey, File jar, String[] quickstart){
+        try {
+            Launcher.updateVersion(globalKey, propertiesKey, jar);
+            Launcher.launch(jar, quickstart);
+        } catch (IOException e) {
+            logger.error("Error during launching controller.", e);
         }
     }
 }
