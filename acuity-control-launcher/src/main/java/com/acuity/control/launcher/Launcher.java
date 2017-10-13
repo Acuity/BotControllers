@@ -7,6 +7,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -37,7 +38,24 @@ public class Launcher {
         }
     }
 
-    public static void launch(File file, String count){
+    public static void launch(File file, int count){
+        String command = "java -classpath " + file.getPath() + " com.acuity.botcontrol.clients.dreambot.Bootstrap";
 
+        logger.debug("Runetime command. {}", command);
+
+        for (int i = 0; i < count; i++) {
+            try {
+                Process exec = Runtime.getRuntime().exec(command);
+
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = exec.getInputStream().read(buffer)) != -1) {
+                    System.out.write(buffer, 0, len);
+                }
+
+            } catch (IOException e) {
+                logger.error("Error during executing Runtime command.", e);
+            }
+        }
     }
 }

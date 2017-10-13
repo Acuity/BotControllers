@@ -26,12 +26,21 @@ public class Bootstrap {
         logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
         if (clientType.equalsIgnoreCase("Dreambot")){
+            File controllerJar = new File(AcuityDir.getHome(), "dreambotController.jar");
             try {
-                Launcher.updateVersion("dreambotController", "dreambotContollerVersion", new File(AcuityDir.getHome(), "dreambotController.jar"));
+                Launcher.updateVersion("dreambotController", "dreambotContollerVersion", controllerJar);
+                Launcher.launch(controllerJar, Integer.parseInt(count));
             } catch (Throwable e) {
                 logger.error("Error during updating dreambot controller.", e);
             }
         }
 
+        while (true){
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
