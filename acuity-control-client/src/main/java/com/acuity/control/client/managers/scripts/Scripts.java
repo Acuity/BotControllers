@@ -12,7 +12,7 @@ import java.io.IOException;
 public class Scripts {
 
     public static File downloadScript(String scriptKey, int clientType, int scriptRev, String downloadLink) throws IOException {
-        return Downloader.downloadIfNotPresent(new File(AcuityDir.getScripts(), scriptKey + File.pathSeparatorChar + clientType + File.pathSeparatorChar + "jar" + File.pathSeparatorChar), "scriptRev" + scriptRev + ".jar", downloadLink, true);
+        return Downloader.downloadIfNotPresent(new File(AcuityDir.getScripts(), scriptKey + File.separatorChar + clientType + File.separatorChar + "jar" + File.separatorChar), "scriptRev" + scriptRev + ".jar", downloadLink, true);
     }
 
     public static ScriptLocation loadScript(String key, String title, int clientType, int rev, String jarURL) throws IOException {
