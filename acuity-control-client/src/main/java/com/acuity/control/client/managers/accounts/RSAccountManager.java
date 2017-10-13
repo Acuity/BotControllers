@@ -98,7 +98,8 @@ public class RSAccountManager {
     }
 
     public synchronized RSAccount requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
-        logger.info("Requesting account - {}, {}, {}.", rsAccount, tagID, force);
+        logger.info("Requesting account from tag. {}, {}.", tagID, force);
+
         if (rsAccount != null) {
             if (rsAccount.getTagIDs().contains(tagID)) {
                 return rsAccount;
@@ -109,12 +110,13 @@ public class RSAccountManager {
         List<RSAccount> rsAccounts = botControl.getRemote().requestRSAccounts(filterUnassignable).stream()
                 .filter(rsAccount -> rsAccount.getTagIDs().contains(tagID))
                 .collect(Collectors.toList());
-        logger.debug("Viable RS-Accounts. {}, {}", rsAccounts.size(), rsAccounts);
+
+        logger.debug("Viable RSAccounts found.", rsAccounts.size());
 
         Collections.shuffle(rsAccounts);
         for (RSAccount account : rsAccounts) {
             if (botControl.getRemote().requestAccountAssignment(account, force)) {
-                logger.info("Account Assigned - {}.", account.getEmail());
+                logger.trace("Account Assigned. {}.", account.getEmail());
                 requestFailures = 0;
                 return account;
             }
@@ -122,7 +124,7 @@ public class RSAccountManager {
 
         requestFailures++;
         if (requestFailures > 3 && registerNewOnFail) {
-            logger.info("Registering new RS-Account.");
+            logger.info("Registering new RS-Account. {}", requestFailures);
             String apiKey = botControl.getRemote().request2CaptchaKey().orElse(null);
             if (apiKey != null) {
                 String randomEmail = accountInfoGenerator.getRandomEmail();
@@ -142,8 +144,8 @@ public class RSAccountManager {
                             return requestAccountFromTag(tagID, filterUnassignable, force, false);
                         }
                     }
-                } catch (Exception e) {
-                    logger.error("Error during account creation.", e);
+                } catch (Throwable e) {
+                    logger.error("Error during RSAccount creation.", e);
                 }
             }
             else {
@@ -157,6 +159,7 @@ public class RSAccountManager {
     public void clearRSAccount() {
         botControl.getRemote().requestAccountAssignment(null, true);
         this.rsAccount = null;
+        logger.trace("RS Account cleared.");
     }
 
     public AccountInfoGenerator getAccountInfoGenerator() {
@@ -172,6 +175,7 @@ public class RSAccountManager {
     }
 
     public void onRSAccountAssignmentUpdate(RSAccount account) {
+        logger.info("RSAccount assigned. {}", Optional.ofNullable(rsAccount).map(RSAccount::getEmail).orElse(null));
         this.rsAccount = account;
     }
 
