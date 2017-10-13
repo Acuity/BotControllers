@@ -15,31 +15,22 @@ public class Bootstrap {
     private static final Logger logger = LoggerFactory.getLogger(Bootstrap.class);
 
     public static void main(String[] args) {
-        args = new String[]{"Dreambot", "1"};
+        args = new String[]{"Dreambot"};
 
         String clientType = args[0];
-        String count = args[1];
 
-        logger.info("Launching Acuity with args. '{}', '{}'.", clientType, count);
+        logger.info("Launching Acuity. '{}'.", clientType);
 
-        String[] quickstart = Arrays.copyOfRange(args, 1, args.length - 1);
+        String[] quickstart = Arrays.copyOfRange(args, 0, args.length - 1);
         logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
         if (clientType.equalsIgnoreCase("Dreambot")){
             File controllerJar = new File(AcuityDir.getHome(), "dreambotController.jar");
             try {
                 Launcher.updateVersion("dreambotController", "dreambotContollerVersion", controllerJar);
-                Launcher.launch(controllerJar, Integer.parseInt(count));
+                Launcher.launch(controllerJar);
             } catch (Throwable e) {
                 logger.error("Error during updating dreambot controller.", e);
-            }
-        }
-
-        while (true){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
