@@ -21,6 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ScriptManager {
 
+    public static final int CONTINUOUS = 1;
+    private static final int INCREMENTAL = 0;
+    private static final int TASK = 2;
+
     public static final Object LOCK = new Object();
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
@@ -45,7 +49,7 @@ public class ScriptManager {
             ScriptNode taskNode = botControl.getTaskManager().getCurrentTask();
             if (taskNode != null && !taskNode.getUID().equals(currentNodeUID)) {
                 logger.debug("Task node found, setting as current node. {}", taskNode);
-                setCurrentNode(taskNode, 2);
+                setCurrentNode(taskNode, TASK);
                 return;
             }
 
@@ -64,7 +68,7 @@ public class ScriptManager {
                         List<ScriptEvaluator> startEvaluators = continuousNode.getEvaluatorGroup().getStartEvaluators();
                         if (startEvaluators != null && ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
                             logger.debug("Continuous node found, setting as current node. {}", continuousNode);
-                            setCurrentNode(continuousNode, 1);
+                            setCurrentNode(continuousNode, CONTINUOUS);
                             return;
                         }
                     }
@@ -107,16 +111,16 @@ public class ScriptManager {
             index++;
             if (index >= nodeList.size()) index = 0;
 
-            ScriptNode scriptNode = nodeList.get(index);
-            logger.trace("Next script node. {} @ {}/{}", scriptNode, index, nodeList.size() - 1);
+            ScriptNode incrementalNode = nodeList.get(index);
+            logger.trace("Next script node. {} @ {}/{}", incrementalNode, index, nodeList.size() - 1);
 
-            List<ScriptEvaluator> startEvaluators = scriptNode.getEvaluatorGroup().getStartEvaluators();
+            List<ScriptEvaluator> startEvaluators = incrementalNode.getEvaluatorGroup().getStartEvaluators();
             if (startEvaluators == null || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
-                setCurrentNode(scriptNode, 0);
+                setCurrentNode(incrementalNode, INCREMENTAL);
                 return true;
             } else {
                 logger.info("Failed start evaluation.");
-                return selectNextBaseScript(scriptNode.getUID(), attempt + 1);
+                return selectNextBaseScript(incrementalNode.getUID(), attempt + 1);
             }
         }
         return false;
@@ -132,9 +136,9 @@ public class ScriptManager {
             ScriptInstance scriptInstance = scriptInstances.get(scriptNode.getUID());
             if (scriptInstance == null){
                 scriptInstance = new ScriptInstance(scriptNode)
-                        .setIncremental(type == 0)
-                        .setContinuous(type == 1)
-                        .setTask(type == 2);
+                        .setIncremental(type == INCREMENTAL)
+                        .setContinuous(type == CONTINUOUS)
+                        .setTask(type == TASK);
             }
 
             if (scriptInstance.getInstance() == null){
