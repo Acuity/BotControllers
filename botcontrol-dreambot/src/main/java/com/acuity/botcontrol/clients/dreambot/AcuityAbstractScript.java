@@ -31,37 +31,4 @@ public abstract class AcuityAbstractScript extends AbstractScript implements Rem
 
     @Override
     public abstract void onMessagePackage(MessagePackage messagePackage);
-
-    public int getBestWorld(Predicate<World> filter){
-        Map<Integer, Integer> worldBotPopulations = WorldUtil.getWorldBotPopulations(this, getBotControl());
-
-        List<World> worldsRanked = getWorlds()
-                .f2p()
-                .stream()
-                .filter(filter)
-                .sorted(Comparator.comparingInt(o -> worldBotPopulations.getOrDefault(o.getRealID(), Integer.MAX_VALUE)))
-                .collect(Collectors.toList());
-
-        World bestWorld = worldsRanked.get(0);
-
-        int currentWorld = getClient().getCurrentWorld();
-        Integer currentWorldBotPopulation = Integer.MAX_VALUE;
-
-        try{
-            World world = getWorlds().getWorld(currentWorld);
-            if (world != null && !filter.test(world)) world = null;
-            if (world != null){
-                currentWorldBotPopulation = worldBotPopulations.getOrDefault(world.getRealID(), Integer.MAX_VALUE);
-            }
-        }
-        catch (Throwable e){
-            e.printStackTrace();
-        }
-
-        if (currentWorldBotPopulation != null && worldBotPopulations.getOrDefault(bestWorld.getID(), Integer.MAX_VALUE) + 1 >= currentWorldBotPopulation){
-            return currentWorld;
-        }
-
-        return bestWorld.getRealID();
-    }
 }

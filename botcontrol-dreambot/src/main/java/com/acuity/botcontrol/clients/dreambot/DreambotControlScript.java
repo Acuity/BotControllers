@@ -19,9 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,37 +36,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     private LoginHandler loginHandler = new LoginHandler(this);
     private DreambotItemTracker itemTracker = new DreambotItemTracker(this);
     private DreambotExperienceTracker experienceTracker = new DreambotExperienceTracker(this);
-
-    @Override
-    public void onStart() {
-        botControl.getExecutorManager().getGeneral().execute(() -> {
-            try {
-                confirmVersion();
-            } catch (Throwable e) {
-                logger.error("Error during confirming version.", e);
-            }
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void confirmVersion() throws IOException {
-        Map<String, Object> dreambotController = (Map<String, Object>) ControlUtil.getGlobalInfoDoc().getOrDefault("dreambotController", Collections.EMPTY_MAP);
-
-        String remoteVersion = (String) dreambotController.get("version");
-        String localVersion = getControllerVersion();
-
-        logger.info("Comparing versions. {}, {}", localVersion, remoteVersion);
-        if (!localVersion.equalsIgnoreCase(remoteVersion)){
-            logger.info("Update required.");
-        }
-        else {
-            logger.info("No update required, starting script.");
-        }
-    }
-
-    public String getControllerVersion(){
-        return "1.1.1";
-    }
 
     @Override
     public int onLoop() {
