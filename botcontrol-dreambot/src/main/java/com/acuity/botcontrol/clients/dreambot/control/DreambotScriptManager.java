@@ -31,7 +31,7 @@ public class DreambotScriptManager {
     private static final Logger logger = LoggerFactory.getLogger(DreambotScriptManager.class);
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
+    private static Map<String, Class<? extends AbstractScript>> getRepoScripts() {
         Map<String, Class<? extends AbstractScript>> results = new HashMap<>();
         try {
             Method getAllFreeScripts = NetworkLoader.class.getDeclaredMethod("getAllFreeScripts");
@@ -62,14 +62,13 @@ public class DreambotScriptManager {
         return results;
     }
 
-    public static AbstractScript initDreambotScript(BotControl botControl, Client client, ScriptNode runConfig) {
+    public static AbstractScript loadDreambotScript(BotControl botControl, Client client, ScriptNode runConfig) {
         if (runConfig != null) {
-            logger.debug("initDreambotScript - initing off ScriptStartupConfig. {}", runConfig);
+            logger.debug("Starting script load. {}", runConfig);
             ScriptVersion scriptVersion = botControl.getRemote().requestScriptVersion(runConfig.getScriptID(), runConfig.getScriptVersionID()).orElse(null);
             if (scriptVersion != null) {
                 String[] args = runConfig.getScriptArguments() == null ? new String[0] : runConfig.getScriptArguments().toArray(new String[runConfig.getScriptArguments().size()]);
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
-                    logger.trace("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {
                         ScriptJarInstance scriptJarInstance = ScriptClassLoader.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
@@ -79,22 +78,28 @@ public class DreambotScriptManager {
                                 scriptVersion.getJarURL()
                         );
                         scriptJarInstance.loadJar();
-                        Class result = scriptJarInstance.getScriptClassLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
-                        if (result != null) {
-                            return startScript(botControl, client, result, args);
+                        Class scriptClass = scriptJarInstance.getScriptClassLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
+                        logger.trace("Loaded script off Acuity-repo. {}, {}", scriptVersion, scriptClass);
+                        if (scriptClass != null) {
+                            return startScript(botControl, client, scriptClass, args);
                         }
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         logger.error("Error during loading Acuity-repo script.", e);
                     }
                 } else {
-                    Script script = botControl.getRemote().requestScript(runConfig.getScriptID()).orElse(null);
-                    if (script != null){
-                        logger.trace("initDreambotScript - loading version off Dreambot-Repo.", script);
-                        Map<String, Class<? extends AbstractScript>> repoScripts = getRepoScripts();
-                        Class<? extends AbstractScript> aClass = repoScripts.get(script.getTitle());
-                        if (aClass != null) {
-                            return startScript(botControl, client, aClass, args);
+                    try {
+                        Script script = botControl.getRemote().requestScript(runConfig.getScriptID()).orElse(null);
+                        if (script != null){
+                            Map<String, Class<? extends AbstractScript>> repoScripts = getRepoScripts();
+                            Class<? extends AbstractScript> scriptClass = repoScripts.get(script.getTitle());
+                            logger.trace("Loaded script off Dreambot-repo. {}, {}", script, scriptClass);
+                            if (scriptClass != null) {
+                                return startScript(botControl, client, scriptClass, args);
+                            }
                         }
+                    }
+                    catch (Throwable e){
+                        logger.error("Error during loading Dreambot-repo script.", e);
                     }
                 }
             }

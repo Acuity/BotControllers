@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 /**
  * Created by Zachary Herridge on 10/6/2017.
@@ -39,7 +38,7 @@ public class DreambotClientInterface extends ClientInterface {
 
     @Override
     public Object createInstanceOfScript(ScriptNode scriptRunConfig) {
-        return DreambotScriptManager.initDreambotScript(controlScript.getBotControl(), controlScript.getClient(), scriptRunConfig);
+        return DreambotScriptManager.loadDreambotScript(controlScript.getBotControl(), controlScript.getClient(), scriptRunConfig);
     }
 
     @Override
