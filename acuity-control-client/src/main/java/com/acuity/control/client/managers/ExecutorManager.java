@@ -51,6 +51,17 @@ public class ExecutorManager {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             try {
                 if (botControl.getConnection().isConnected()){
+                    botControl.getProxyManager().loop();
+                }
+            }
+            catch (Throwable e){
+                logger.error("Error during ProxyManager loop.", e);
+            }
+        }, 30, 15, TimeUnit.SECONDS);
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            try {
+                if (botControl.getConnection().isConnected()){
                     botControl.getClientConfigManager().confirmState();
                 }
             }

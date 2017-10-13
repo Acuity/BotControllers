@@ -10,7 +10,9 @@ import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -23,7 +25,7 @@ public class WorldManager {
     private static final Logger logger = LoggerFactory.getLogger(WorldManager.class);
 
     private BotControl botControl;
-    private LocalDateTime lastCheck = LocalDateTime.MIN;
+    private Instant lastCheck = Instant.MIN;
 
     private int acceptablePopulationDifference = 2;
     private boolean filterNonMatchingTags = false;
@@ -63,7 +65,7 @@ public class WorldManager {
         Integer currentWorld = botControl.getClientInterface().getCurrentWorld();
         if (currentWorld == null) return false;
 
-        if (lastCheck.isBefore(LocalDateTime.now().minusSeconds(10))){
+        if (lastCheck.isBefore(Instant.now().minusSeconds(10))){
             WorldDataResult worldData = botControl.getRemote().requestWorldData();
             if (worldData == null) return false;
 
@@ -98,13 +100,13 @@ public class WorldManager {
 
             if (betterWorlds.size() > 0){
                 WorldData world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size())));
-                logger.info("Found better world. better={}={}, current={}={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
+                logger.info("Found better world. better: {}={}, current: {}={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
                 botControl.getClientInterface().hopToWorld(world.getWorld());
-                lastCheck = LocalDateTime.now().plusMinutes(1);
+                lastCheck = Instant.now().plus(1, ChronoUnit.MINUTES);
                 return true;
             }
 
-            lastCheck = LocalDateTime.now();
+            lastCheck = Instant.now();
         }
         return false;
     }
