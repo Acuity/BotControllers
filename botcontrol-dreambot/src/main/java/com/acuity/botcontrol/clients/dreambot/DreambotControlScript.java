@@ -5,7 +5,7 @@ import com.acuity.botcontrol.clients.dreambot.control.DreambotExperienceTracker;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
 import com.acuity.common.util.ControlUtil;
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.instance.ScriptInstance;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.dreambot.api.script.AbstractScript;

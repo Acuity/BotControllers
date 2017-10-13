@@ -22,6 +22,7 @@ public class Downloader {
         if (scriptFile.exists()) return scriptFile;
 
         File lockFile = new File(parentDir, "lock");
+        if (!lockFile.exists()) lockFile.createNewFile();
         lockFile.deleteOnExit();
         FileLock lock = new RandomAccessFile(lockFile, "rw").getChannel().lock();
         try {

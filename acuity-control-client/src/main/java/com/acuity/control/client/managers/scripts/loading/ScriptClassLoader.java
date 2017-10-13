@@ -1,5 +1,7 @@
-package com.acuity.control.client.managers.scripts;
+package com.acuity.control.client.managers.scripts.loading;
 
+import com.acuity.common.util.AcuityDir;
+import com.acuity.control.client.util.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +18,9 @@ import java.util.jar.JarFile;
 /**
  * Created by Zach on 8/12/2017.
  */
-public class ScriptLoader {
+public class ScriptClassLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScriptClassLoader.class);
 
     private static final String CLASS_EXTENSION = ".class";
 
@@ -56,15 +58,12 @@ public class ScriptLoader {
         logger.debug("Loading {} complete.", jarLocation);
     }
 
-    public Class getClass(Class type) throws IOException {
-        return getClass(type.getName());
-    }
-
     public Map<String, Class> getLoadedClasses() {
         return loadedClasses;
     }
 
-    public Class getClass(String type) throws IOException {
-        return loadedClasses.get(type);
+    public static ScriptJarInstance loadScript(String key, String title, int clientType, int rev, String jarURL) throws IOException {
+        File file = Downloader.downloadIfNotPresent(new File(AcuityDir.getScripts(), key + File.separatorChar + clientType + File.separatorChar + "jar" + File.separatorChar), "scriptRev" + rev + ".jar", jarURL, true);
+        return new ScriptJarInstance(key, title, file);
     }
 }

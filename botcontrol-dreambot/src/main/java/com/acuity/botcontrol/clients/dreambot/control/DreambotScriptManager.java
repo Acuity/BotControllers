@@ -1,8 +1,8 @@
 package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.control.client.BotControl;
-import com.acuity.control.client.managers.scripts.ScriptLocation;
-import com.acuity.control.client.managers.scripts.Scripts;
+import com.acuity.control.client.managers.scripts.loading.ScriptClassLoader;
+import com.acuity.control.client.managers.scripts.loading.ScriptJarInstance;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
@@ -52,12 +52,12 @@ public class DreambotScriptManager {
                         Class<? extends AbstractScript> remoteClass = NetworkLoader.getRemoteClass(scriptData);
                         if (remoteClass != null) results.put(scriptData.name, remoteClass);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    logger.error("Error during loading Dream repo script.", e);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            logger.error("Error during loading Dreambot repo scripts.", e);
         }
         return results;
     }
@@ -71,20 +71,20 @@ public class DreambotScriptManager {
                 if (scriptVersion.getType() == ScriptVersion.Type.ACUITY_REPO) {
                     logger.trace("initDreambotScript - loading version off Acuity-Repo.", scriptVersion);
                     try {
-                        ScriptLocation scriptInstance = Scripts.loadScript(
+                        ScriptJarInstance scriptJarInstance = ScriptClassLoader.loadScript(
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
                                 ArangoDBUtil.keyFromID(runConfig.getScriptID()),
                                 ClientType.DREAMBOT.getID(),
                                 scriptVersion.getRevision(),
                                 scriptVersion.getJarURL()
                         );
-                        scriptInstance.loadJar();
-                        Class result = scriptInstance.getScriptLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
+                        scriptJarInstance.loadJar();
+                        Class result = scriptJarInstance.getScriptClassLoader().getLoadedClasses().values().stream().filter(AbstractScript.class::isAssignableFrom).findAny().orElse(null);
                         if (result != null) {
                             return startScript(botControl, client, result, args);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("Error during loading Acuity-repo script.", e);
                     }
                 } else {
                     Script script = botControl.getRemote().requestScript(runConfig.getScriptID()).orElse(null);
@@ -109,7 +109,7 @@ public class DreambotScriptManager {
             try {
                 field.set(object, botControl);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                logger.error("Error during using reflection to fill Botcontrol fields.", e);
             }
             if (!accessible) field.setAccessible(false);
         });
@@ -134,6 +134,7 @@ public class DreambotScriptManager {
         } catch (Throwable e) {
             logger.error("Error during script startup.", e);
         }
+
         return null;
     }
 

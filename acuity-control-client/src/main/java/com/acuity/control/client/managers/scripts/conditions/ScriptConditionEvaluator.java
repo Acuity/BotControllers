@@ -1,4 +1,4 @@
-package com.acuity.control.client.managers.scripts;
+package com.acuity.control.client.managers.scripts.conditions;
 
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.scripts.conditions.Evaluators;

@@ -1,7 +1,7 @@
 package com.acuity.control.client.network.endpoints;
 
-import com.acuity.control.client.managers.scripts.RemoteScriptStartCheck;
-import com.acuity.control.client.managers.scripts.ScriptInstance;
+import com.acuity.control.client.managers.scripts.task.TaskBlocking;
+import com.acuity.control.client.managers.scripts.instance.ScriptInstance;
 import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.network.ControlEndpoint;
@@ -39,8 +39,8 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             }
 
             ScriptInstance scriptInstance = botControlConnection.getBotControl().getScriptManager().getExecutionInstance().orElse(null);
-            if (scriptInstance != null && scriptInstance.getInstance() != null && scriptInstance.getInstance() instanceof RemoteScriptStartCheck) {
-                if (!((RemoteScriptStartCheck) scriptInstance.getInstance()).isAcceptingTasks()) {
+            if (scriptInstance != null && scriptInstance.getInstance() != null && scriptInstance.getInstance() instanceof TaskBlocking) {
+                if (!((TaskBlocking) scriptInstance.getInstance()).isAcceptingTasks()) {
                     logger.debug("Remote Task Request - Current script not accepting new tasks.");
                     botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                             .setBody(new RemoteScriptTask.StartResponse()));

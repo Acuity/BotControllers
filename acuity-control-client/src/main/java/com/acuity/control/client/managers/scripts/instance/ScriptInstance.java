@@ -1,4 +1,4 @@
-package com.acuity.control.client.managers.scripts;
+package com.acuity.control.client.managers.scripts.instance;
 
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.google.common.base.MoreObjects;

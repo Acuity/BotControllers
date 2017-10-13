@@ -1,6 +1,8 @@
 package com.acuity.control.client.managers.scripts;
 
 import com.acuity.control.client.BotControl;
+import com.acuity.control.client.managers.scripts.conditions.ScriptConditionEvaluator;
+import com.acuity.control.client.managers.scripts.instance.ScriptInstance;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptEvaluator;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;

@@ -18,7 +18,7 @@ public class ExecutorManager {
 
     private BotControl botControl;
 
-    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
+    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
     private ScheduledExecutorService scriptExecutorService = Executors.newSingleThreadScheduledExecutor();
     private Executor general = Executors.newCachedThreadPool();
 
@@ -77,7 +77,7 @@ public class ExecutorManager {
             catch (Throwable e){
                 logger.error("Error during script manager confirmState.", e);
             }
-        }, 3, 1, TimeUnit.SECONDS);
+        }, 5, 3, TimeUnit.SECONDS);
     }
 
     public Executor getGeneral() {
