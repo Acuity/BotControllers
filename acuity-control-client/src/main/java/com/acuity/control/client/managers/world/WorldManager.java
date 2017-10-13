@@ -42,11 +42,13 @@ public class WorldManager {
 
     public WorldManager setAcceptablePopulationDifference(int acceptablePopulationDifference) {
         this.acceptablePopulationDifference = acceptablePopulationDifference;
+        logger.info("Population difference set. {}", acceptablePopulationDifference);
         return this;
     }
 
     public WorldManager setFilterNonMatchingTags(boolean filterNonMatchingTags) {
         this.filterNonMatchingTags = filterNonMatchingTags;
+        logger.info("Filter non matching tags set. {}", filterNonMatchingTags);
         return this;
     }
 
@@ -96,7 +98,7 @@ public class WorldManager {
 
             if (betterWorlds.size() > 0){
                 WorldData world = betterWorlds.get(ThreadLocalRandom.current().nextInt(0, Math.min(5, betterWorlds.size())));
-                logger.info("Found better world. better={}, {}, current={}, {}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
+                logger.info("Found better world. better={}={}, current={}={}", world.getWorld(), world.getBotPopulation(), currentWorld, currentWorldBotPopulation);
                 botControl.getClientInterface().hopToWorld(world.getWorld());
                 lastCheck = LocalDateTime.now().plusMinutes(1);
                 return true;

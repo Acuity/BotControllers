@@ -76,5 +76,6 @@ public class ExecutorManager {
     public void stop() {
         scheduledExecutorService.shutdownNow();
         scriptExecutorService.shutdownNow();
+        logger.info("Shutdown complete.");
     }
 }
