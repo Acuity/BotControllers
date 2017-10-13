@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 /**
@@ -38,20 +39,20 @@ public class Launcher {
         }
     }
 
-    public static void launch(File file, String[] quickstart){
-        String command = "java -classpath " + file.getPath() + " com.acuity.botcontrol.clients.dreambot.Bootstrap";
+    public static void launch(File file, String classpath, String[] quickstart){
+        String command = "java -classpath " + file.getPath() + " " + classpath;
 
-        logger.debug("Runetime command. {}", command);
+        logger.debug("Runtime command. {}", command);
 
         try {
             Process exec = Runtime.getRuntime().exec(command);
-
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = exec.getInputStream().read(buffer)) != -1) {
-                System.out.write(buffer, 0, len);
+            try (InputStream stream = exec.getInputStream()){
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = stream.read(buffer)) != -1) {
+                    System.out.write(buffer, 0, len);
+                }
             }
-
         } catch (IOException e) {
             logger.error("Error during executing Runtime command.", e);
         }

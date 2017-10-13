@@ -16,7 +16,7 @@ public class Bootstrap {
     private static final Logger logger = LoggerFactory.getLogger(Bootstrap.class);
 
     public static void main(String[] args) {
-        args = new String[]{"Dreambot"};
+        args = new String[]{"dreambot"};
 
         String clientType = args[0];
 
@@ -25,15 +25,15 @@ public class Bootstrap {
         String[] quickstart = Arrays.copyOfRange(args, 0, args.length - 1);
         logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
-        if (clientType.equalsIgnoreCase("Dreambot")){
-            start("dreambotController", "dreambotContollerVersion", new File(AcuityDir.getHome(), "dreambotController.jar"), quickstart);
+        if (clientType.equalsIgnoreCase("dreambot")) {
+            start("dreambotController", "dreambotContollerVersion", "com.acuity.botcontrol.clients.dreambot.Bootstrap", new File(AcuityDir.getHome(), "dreambotController.jar"), quickstart);
         }
     }
 
-    private static void start(String globalKey, String propertiesKey, File jar, String[] quickstart){
+    private static void start(String globalKey, String propertiesKey, String classPath, File jar, String[] quickstart) {
         try {
             Launcher.updateVersion(globalKey, propertiesKey, jar);
-            Launcher.launch(jar, quickstart);
+            Launcher.launch(jar, classPath, quickstart);
         } catch (IOException e) {
             logger.error("Error during launching controller.", e);
         }
