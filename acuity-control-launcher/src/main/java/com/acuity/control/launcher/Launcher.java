@@ -11,7 +11,9 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 10/13/2017.
@@ -40,7 +42,7 @@ public class Launcher {
     }
 
     public static void launch(File file, String classpath, String[] quickstart){
-        String command = "java -classpath " + file.getPath() + " " + classpath;
+        String command = "java -classpath " + file.getPath() + " " + classpath + " " + Arrays.stream(quickstart).collect(Collectors.joining(" "));
 
         logger.debug("Runtime command. {}", command);
 

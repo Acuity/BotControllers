@@ -16,8 +16,6 @@ public class Bootstrap {
     private static final Logger logger = LoggerFactory.getLogger(Bootstrap.class);
 
     public static void main(String[] args) {
-        args = new String[]{"dreambot"};
-
         String clientType = args[0];
 
         logger.info("Launching Acuity. '{}'.", clientType);
