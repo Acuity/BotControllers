@@ -24,7 +24,7 @@ public class Bootstrap {
         logger.debug("Quickstart args. {}", Arrays.toString(quickstart));
 
         if (clientType.equalsIgnoreCase("dreambot")) {
-            start("dreambotController", "dreambotContollerVersion", "com.acuity.botcontrol.clients.dreambot.Bootstrap", new File(AcuityDir.getHome(), "dreambotController.jar"), quickstart);
+            start("dreambotController", "dreambotContollerVersion", "com.acuity.botcontrol.clients.dreambot.Bootstrap", new File(AcuityDir.getControllers(), "dreambotController.jar"), quickstart);
         }
     }
 
