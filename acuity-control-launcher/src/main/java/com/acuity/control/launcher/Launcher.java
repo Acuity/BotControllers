@@ -24,7 +24,7 @@ public class Launcher {
 
     @SuppressWarnings("unchecked")
     public static void updateVersion(String globalKey, String propertiesKey, File file) throws IOException {
-        HashMap<String, Object> globalInfoDoc = ControlUtil.getGlobalInfoDoc("http://174.53.192.24/Control/GlobalInfo");
+        HashMap<String, Object> globalInfoDoc = ControlUtil.getGlobalInfoDoc();
 
         LinkedTreeMap<String, Object> versionInfo = (LinkedTreeMap<String, Object>) globalInfoDoc.get(globalKey);
 

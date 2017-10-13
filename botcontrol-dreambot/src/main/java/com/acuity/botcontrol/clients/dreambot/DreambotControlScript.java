@@ -3,9 +3,9 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotClientInterface;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotExperienceTracker;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
+import com.acuity.common.util.ControlUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.ScriptInstance;
-import com.acuity.control.client.util.ControlUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.dreambot.api.script.AbstractScript;
@@ -57,14 +57,16 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
                 dreambotScript.setInstance(botControl.getClientInterface().createInstanceOfScript(dreambotScript.getScriptNode()));
             }
             else {
+                int scriptSleep = 0;
                 try {
-                    int scriptSleep = ((AbstractScript) instance).onLoop();
-                    if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
-                    return Math.max(scriptSleep, DEFAULT_TIMEOUT);
+                    scriptSleep = ((AbstractScript) instance).onLoop();
                 }
                 catch (Throwable e){
                     logger.error("Error during " + instance + " script-loop.", e);
                 }
+
+                if (scriptSleep < 0) botControl.getScriptManager().onScriptEnded(dreambotScript);
+                return Math.max(scriptSleep, DEFAULT_TIMEOUT);
             }
         }
 
@@ -73,14 +75,13 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onPaint(Graphics graphics) {
-        super.onPaint(graphics);
         ScriptInstance scriptInstance = botControl.getScriptManager().getExecutionInstance().orElse(null);
         if (scriptInstance != null && scriptInstance.getInstance() != null) {
             try {
                 ((AbstractScript) scriptInstance.getInstance()).onPaint(graphics);
             }
             catch (Throwable e){
-                logger.error("Error during " + scriptInstance + " paint.", e);
+                logger.error("Error during " + scriptInstance + " onPaint.", e);
             }
         }
     }
