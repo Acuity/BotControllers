@@ -41,9 +41,6 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     public int onLoop() {
         if (!botControl.getConnection().isConnected()) return DEFAULT_TIMEOUT;
 
-        int result = botControl.getBreakManager().onLoop();
-        if (result > 0) return result;
-
         experienceTracker.execute();
 
         if (!botControl.getClientInterface().isSignedIn()) return DEFAULT_TIMEOUT;

@@ -36,7 +36,6 @@ public class StateManager {
 
         clientState.setRsAccount(botControl.getRsAccountManager().getRsAccount());
         clientState.setProxy(botControl.getProxyManager().getProxy());
-        clientState.setBreakProfile(botControl.getBreakManager().getProfile());
         clientState.setBotClientConfig(botControl.getBotClientConfig());
 
         botControl.getScriptManager().getExecutionNode().ifPresent(scriptNode -> {

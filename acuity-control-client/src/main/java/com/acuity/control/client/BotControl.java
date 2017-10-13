@@ -4,7 +4,6 @@ import com.acuity.control.client.managers.ExecutorManager;
 import com.acuity.control.client.managers.RemoteManager;
 import com.acuity.control.client.managers.StateManager;
 import com.acuity.control.client.managers.accounts.RSAccountManager;
-import com.acuity.control.client.managers.breaks.BreakManager;
 import com.acuity.control.client.managers.config.BotClientConfigManager;
 import com.acuity.control.client.managers.config.TaskManager;
 import com.acuity.control.client.managers.proxies.ProxyManager;
@@ -13,7 +12,6 @@ import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.managers.world.WorldManager;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 import org.slf4j.Logger;
@@ -28,7 +26,6 @@ public class BotControl implements SubscriberExceptionHandler {
 
     private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
     private ScriptManager scriptManager = new ScriptManager(this);
-    private BreakManager breakManager = new BreakManager(this);
     private RSAccountManager rsAccountManager = new RSAccountManager(this);
     private ProxyManager proxyManager = new ProxyManager(this);
     private WorldManager worldManager = new WorldManager(this);
@@ -59,10 +56,6 @@ public class BotControl implements SubscriberExceptionHandler {
 
     public RSAccountManager getRsAccountManager() {
         return rsAccountManager;
-    }
-
-    public BreakManager getBreakManager() {
-        return breakManager;
     }
 
     public WorldManager getWorldManager() {

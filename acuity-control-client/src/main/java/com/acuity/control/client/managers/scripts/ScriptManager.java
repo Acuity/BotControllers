@@ -92,37 +92,38 @@ public class ScriptManager {
 
         ScriptSelector scriptSelector = botClientConfig.getScriptSelector();
         if (scriptSelector != null && scriptSelector.getBaseNodeList() != null && scriptSelector.getBaseNodeList().size() > 0) {
-            logger.debug("Selecting next script. {}", lastScriptNodeUID);
+            logger.trace("Selecting next script. {}", lastScriptNodeUID);
 
             List<ScriptNode> nodeList = botClientConfig.getScriptSelector().getBaseNodeList();
 
             if (attempt > nodeList.size()) return false;
 
-            int index = -1;
-            for (int i = 0; i < nodeList.size(); i++) {
-                ScriptNode scriptNode = nodeList.get(i);
-                if (Objects.equals(scriptNode.getUID(), lastScriptNodeUID)) {
-                    index = i;
+            int index;
+            ScriptNode currentNode = null;
+            for (index = 0; index < nodeList.size(); index++) {
+                currentNode = nodeList.get(index);
+                if (Objects.equals(currentNode.getUID(), lastScriptNodeUID)) {
                     break;
                 }
             }
 
-            logger.trace("Initial index. {}/{}", index, nodeList.size() - 1);
+            logger.trace("Selecting node after. {} @ {}/{}", currentNode, index + 1, nodeList.size());
             index++;
             if (index >= nodeList.size()) index = 0;
 
             ScriptNode incrementalNode = nodeList.get(index);
-            logger.trace("Next script node. {} @ {}/{}", incrementalNode, index, nodeList.size() - 1);
+            logger.trace("Next script node. {} @ {}/{}", incrementalNode, index + 1, nodeList.size());
 
             List<ScriptEvaluator> startEvaluators = incrementalNode.getEvaluatorGroup().getStartEvaluators();
             if (startEvaluators == null || ScriptConditionEvaluator.evaluate(botControl, startEvaluators)) {
                 setCurrentNode(incrementalNode, INCREMENTAL);
                 return true;
             } else {
-                logger.info("Failed start evaluation.");
+                logger.trace("Failed start evaluation.");
                 return selectNextBaseScript(incrementalNode.getUID(), attempt + 1);
             }
         }
+
         return false;
     }
 
