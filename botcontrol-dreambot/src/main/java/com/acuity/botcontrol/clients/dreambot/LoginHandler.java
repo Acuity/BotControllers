@@ -66,10 +66,12 @@ public class LoginHandler {
                                 dreambotControlScript.getKeyboard().type(getPassword(account));
                                 MethodProvider.sleepUntil(() -> isLoginInfoCorrect(account.getEmail(), password), 10000);
                             }
-                            if (isLoginInfoCorrect(account.getEmail(), password)) {
+                            if (isLoginInfoCorrect(account.getEmail(), password) && dreambotControlScript.getClient().getLoginIndex() == 2) {
                                 lastEmail = account.getEmail();
                                 dreambotControlScript.getMouse().click(new Point((int) (235 + (Math.random() * (370 - 235))), (int) (305 + (Math.random() * (335 - 305)))));
                                 MethodProvider.sleepUntil(() -> dreambotControlScript.getClient().getGameStateID() >= 25, TimeUnit.SECONDS.toMillis(15));
+                            } else {
+                                clearText();
                             }
                         } catch (Throwable e) {
                             logger.error("Error during entering login.", e);
