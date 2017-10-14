@@ -35,7 +35,16 @@ public class DreambotItemTracker {
                 .map(item -> new RSItem(item.getID(), item.getName(), item.getAmount(), item.isNoted()))
                 .distinct()
                 .map(rsItem -> {
-                    rsItem.setQuantity(controlScript.getInventory().count(rsItem.getId()));
+                    int count = 0;
+
+                    for (Item item : controlScript.getInventory()) {
+                        if (item != null && item.getID() == rsItem.getId()) {
+                            count += item.getAmount();
+                        }
+                    }
+
+                    rsItem.setQuantity(count);
+
                     return rsItem;
                 })
                 .collect(Collectors.toSet());
