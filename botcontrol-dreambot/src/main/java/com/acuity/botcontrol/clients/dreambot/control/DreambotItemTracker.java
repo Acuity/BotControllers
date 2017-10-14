@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class DreambotItemTracker {
 
     private DreambotControlScript controlScript;
+    private long lastSend = 0;
 
     public DreambotItemTracker(DreambotControlScript controlScript) {
         this.controlScript = controlScript;
@@ -25,7 +26,14 @@ public class DreambotItemTracker {
 
     }
 
-    private long lastSend = 0;
+    private int count(int itemID) {
+        return controlScript.getInventory().stream()
+                .filter(Objects::nonNull)
+                .filter(item -> itemID == item.getID())
+                .mapToInt(Item::getAmount).sum();
+    }
+
+
     public void onUpdate() {
         long time = System.currentTimeMillis();
         if (time - lastSend < TimeUnit.SECONDS.toMillis(10)) return;
@@ -35,16 +43,7 @@ public class DreambotItemTracker {
                 .map(item -> new RSItem(item.getID(), item.getName(), item.getAmount(), item.isNoted()))
                 .distinct()
                 .map(rsItem -> {
-                    int count = 0;
-
-                    for (Item item : controlScript.getInventory()) {
-                        if (item != null && item.getID() == rsItem.getId()) {
-                            count += item.getAmount();
-                        }
-                    }
-
-                    rsItem.setQuantity(count);
-
+                    rsItem.setQuantity(count(rsItem.getId()));
                     return rsItem;
                 })
                 .collect(Collectors.toSet());
