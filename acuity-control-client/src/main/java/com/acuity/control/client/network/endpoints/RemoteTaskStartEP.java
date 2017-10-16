@@ -28,11 +28,10 @@ public class RemoteTaskStartEP extends ControlEndpoint {
     @Override
     public void handle(BotControlConnection botControlConnection, MessagePackage messagePackage) {
         synchronized (ScriptManager.LOCK){
-            logger.debug("onMessage - REQUEST_REMOTE_TASK_START");
+            logger.info("RemoteTaskRequest received.");
 
-            BotClientConfig botClientConfig = botControlConnection.getBotControl().getBotClientConfig();
             if (botControlConnection.getBotControl().getTaskManager().getCurrentTask() != null) {
-                logger.debug("Remote Task Request - Already has task.");
+                logger.info("Task already running.");
                 botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                         .setBody(new RemoteScriptTask.StartResponse()));
                 return;
@@ -41,7 +40,7 @@ public class RemoteTaskStartEP extends ControlEndpoint {
             ScriptInstance scriptInstance = botControlConnection.getBotControl().getScriptManager().getExecutionInstance().orElse(null);
             if (scriptInstance != null && scriptInstance.getInstance() != null && scriptInstance.getInstance() instanceof TaskBlocking) {
                 if (!((TaskBlocking) scriptInstance.getInstance()).isAcceptingTasks()) {
-                    logger.debug("Remote Task Request - Current script not accepting new tasks.");
+                    logger.info("Current executing script not accepting new tasks.");
                     botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey())
                             .setBody(new RemoteScriptTask.StartResponse()));
                     return;
@@ -56,23 +55,28 @@ public class RemoteTaskStartEP extends ControlEndpoint {
                 String accountAssignmentTag = taskNode.getRsAccountSelector().getAccountSelectionID();
                 boolean registrationEnabled = taskNode.getRsAccountSelector().isRegistrationAllowed();
                 if (scriptStartRequest.isConditionalOnAccountAssignment() && accountAssignmentTag != null) {
-                    logger.debug("Remote Task Request - Conditional on account assignment, requesting account.");
-                    rsAccount = botControlConnection.getBotControl().getRsAccountManager().requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled);
-                    if (rsAccount != null)
+                    logger.trace("Conditional on account assignment, requesting account.");
+                    rsAccount = botControlConnection.getBotControl().getRsAccountManager()
+                            .requestAccountFromTag(accountAssignmentTag, true, false, registrationEnabled)
+                            .orElse(null);
+                    logger.trace("Account assignment result. {}", rsAccount);
+                    if (rsAccount != null){
                         botControlConnection.getBotControl().getRsAccountManager().onRSAccountAssignmentUpdate(rsAccount);
-                    logger.debug("Remote Task Request - Account assignment result. {}", rsAccount);
+                    }
                 }
             }
 
             RemoteScriptTask.StartResponse result = new RemoteScriptTask.StartResponse();
             result.setAccount(rsAccount);
             if (rsAccount != null || !scriptStartRequest.isConditionalOnAccountAssignment()) {
-                logger.debug("Remote Task Request - Adding task to queue.");
                 botControlConnection.getBotControl().getTaskManager().setCurrentTask(taskNode);
                 result.setTaskQueued(true);
             }
+            else {
+                logger.info("Failed to acquire RSAccount assignment.");
+            }
 
-            logger.debug("Remote Task Request - Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
+            logger.trace("Sending result to requester. {}, {}", result, messagePackage.getSourceKey());
             botControlConnection.getBotControl().getRemote().respond(messagePackage, new MessagePackage(MessagePackage.Type.DIRECT, messagePackage.getSourceKey()).setBody(result));
         }
     }

@@ -32,6 +32,15 @@ public class StateManager {
             clientState.setIP(IPUtil.getIP().orElse(null));
         }
 
+        try {
+            clientState.setLastEmail(botControl.getClientInterface().getEmail());
+            clientState.setGameState(botControl.getClientInterface().getGameState());
+            clientState.setRsWorld(botControl.getClientInterface().getCurrentWorld());
+        }
+        catch (Throwable e){
+            logger.error("Error during updating ClientState", e);
+        }
+
         botControl.getClientInterface().updateClientState(clientState);
 
         clientState.setRsAccount(botControl.getRsAccountManager().getRsAccount());

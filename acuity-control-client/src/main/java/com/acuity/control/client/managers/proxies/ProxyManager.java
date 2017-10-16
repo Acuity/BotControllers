@@ -43,9 +43,9 @@ public class ProxyManager {
         }
 
         if (autoBalance){
-            Map<String, Long> ipData = botControl.getRemote().requestIPData().orElse(null);
+            Map<String, Double> ipData = botControl.getRemote().requestIPData().orElse(null);
             if (ipData != null){
-                long ipBotCount = ipData.getOrDefault(ip, 1L);
+                double ipBotCount = ipData.getOrDefault(ip, 1d);
                 if (ipBotCount > 10){
                     logger.warn("To many bots on IP. {}, {}", ip, ipBotCount);
                 }

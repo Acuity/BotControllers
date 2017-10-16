@@ -20,6 +20,7 @@ public class TestController {
         @Override
         public void updateClientState(BotClientState botClientState) {
             botClientState.setGameState(0);
+            botClientState.setRsWorld(getCurrentWorld());
         }
 
         @Override
@@ -100,7 +101,7 @@ public class TestController {
             e.printStackTrace();
         }
 
-        testController.botControl.getRemote().confirmState();
+        testController.botControl.getRsAccountManager().requestAccountFromTag("Tag/24536663", true, true, false);
 
         while (true){
             try {

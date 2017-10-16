@@ -2,14 +2,17 @@ package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
 import com.acuity.control.client.ClientInterface;
+import com.acuity.db.domain.common.RSTile;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import org.dreambot.api.script.AbstractScript;
+import org.dreambot.api.wrappers.interactive.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 10/6/2017.
@@ -27,12 +30,13 @@ public class DreambotClientInterface extends ClientInterface {
     @Override
     public void updateClientState( BotClientState clientState) {
         try {
-            clientState.setGameState(controlScript.getClient().getGameStateID());
-            clientState.setLastEmail(controlScript.getClient().getUsername());
-            clientState.setRsWorld(controlScript.getClient().getCurrentWorld());
-            clientState.setLastIGN(controlScript.getLocalPlayer().getName());
+            Player localPlayer = controlScript.getLocalPlayer();
+            if (localPlayer != null){
+                clientState.setLastIGN(controlScript.getLocalPlayer().getName());
+                clientState.setTile(new RSTile(localPlayer.getX(), localPlayer.getY(), localPlayer.getZ()));
+            }
         } catch (Throwable e) {
-            logger.error("Error during state gathering.", e);
+            logger.error("Error during updating ClientState", e);
         }
     }
 
@@ -88,15 +92,18 @@ public class DreambotClientInterface extends ClientInterface {
 
     @Override
     public void logout() {
-        logger.debug("logging out.");
         try {
-            controlScript.getWalking().clickTileOnMinimap(controlScript.getLocalPlayer().getTile());
-        } catch (Throwable ignored) {
+            Optional.ofNullable(controlScript.getLocalPlayer())
+                    .map(Player::getTile)
+                    .ifPresent(controlScript.getWalking()::clickTileOnMinimap);
+        } catch (Throwable e) {
+            logger.error("Error during walking to LocalPlayer tile.", e);
         }
 
         try {
             controlScript.getTabs().logout();
-        } catch (Throwable ignored) {
+        } catch (Throwable e) {
+            logger.error("Error during clicking logout.", e);
         }
     }
 

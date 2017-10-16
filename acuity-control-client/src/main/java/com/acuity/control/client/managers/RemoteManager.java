@@ -36,7 +36,7 @@ public class RemoteManager {
     }
 
     @SuppressWarnings("unchecked")
-    public Optional<Map<String, Long>> requestIPData(){
+    public Optional<Map<String, Double>> requestIPData(){
         return send(new MessagePackage(MessagePackage.Type.REQUEST_CLIENT_IP_DATA, MessagePackage.SERVER))
                 .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .getResponse()
