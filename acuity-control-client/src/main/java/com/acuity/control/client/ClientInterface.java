@@ -2,6 +2,7 @@ package com.acuity.control.client;
 
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
 import java.awt.image.BufferedImage;
@@ -57,4 +58,6 @@ public abstract class ClientInterface {
     }
 
     public abstract void closeRSSocket();
+
+    public abstract void updateAccountState(RSAccountState rsAccountState);
 }

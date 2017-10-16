@@ -1,18 +1,26 @@
 package com.acuity.botcontrol.clients.dreambot.control;
 
 import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
+import com.acuity.common.util.Pair;
 import com.acuity.control.client.ClientInterface;
 import com.acuity.db.domain.common.RSTile;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
+import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.wrappers.interactive.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 10/6/2017.
@@ -118,6 +126,27 @@ public class DreambotClientInterface extends ClientInterface {
             controlScript.getClient().getSocketWrapper().getSocket().close();
         } catch (Throwable e) {
             logger.error("Error during closing Jagex socket.", e);
+        }
+    }
+
+    @Override
+    public void updateAccountState(RSAccountState rsAccountState) {
+        try {
+            Map<String, Integer> exp = Arrays.stream(Skill.values())
+                    .collect(Collectors.toMap(Skill::getName, skill -> controlScript.getSkills().getExperience(skill)));
+            rsAccountState.setSkillExperience(exp);
+
+            rsAccountState.setHpPercent(controlScript.getCombat().getHealthPercent());
+            rsAccountState.setPrayerPoints(controlScript.getSkills().getBoostedLevels(Skill.PRAYER));
+            rsAccountState.setRunEnergy(controlScript.getWalking().getRunEnergy());
+
+            Player localPlayer = controlScript.getLocalPlayer();
+            if (localPlayer != null){
+                rsAccountState.setTile(new RSTile(localPlayer.getX(), localPlayer.getY(), localPlayer.getZ()));
+            }
+        }
+        catch (Throwable e){
+            logger.error("Error during updating RSAccountState.", e);
         }
     }
 }

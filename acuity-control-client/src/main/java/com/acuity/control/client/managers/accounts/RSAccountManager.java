@@ -5,8 +5,10 @@ import com.acuity.common.account_creator.AccountInfoGenerator;
 import com.acuity.common.util.IPUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
+import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountSelector;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptSelector;
 import org.slf4j.Logger;
@@ -31,6 +33,8 @@ public class RSAccountManager {
 
     private AccountInfoGenerator accountInfoGenerator = new AccountInfoGenerator();
     private int requestFailures = 0;
+
+    private Instant lastStateSend = Instant.MIN;
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
@@ -94,7 +98,19 @@ public class RSAccountManager {
             return botControl.getClientInterface().executeLoginHandler();
         }
 
+        Instant now = Instant.now();
+        if (lastStateSend.isBefore(now.minusSeconds(10))){
+            sendRSAccountState();
+            lastStateSend = now;
+        }
+
         return false;
+    }
+
+    public void sendRSAccountState(){
+        RSAccountState rsAccountState = new RSAccountState();
+        botControl.getClientInterface().updateAccountState(rsAccountState);
+        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.ACCOUNT_STATE_UPDATE, MessagePackage.SERVER).setBody(rsAccountState));
     }
 
     public synchronized Optional<RSAccount> requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
