@@ -38,6 +38,8 @@ public class DreambotClientInterface extends ClientInterface {
     @Override
     public void updateClientState( BotClientState clientState) {
         try {
+            if (!isSignedIn()) return;
+
             Player localPlayer = controlScript.getLocalPlayer();
             if (localPlayer != null){
                 clientState.setLastIGN(controlScript.getLocalPlayer().getName());
@@ -132,6 +134,8 @@ public class DreambotClientInterface extends ClientInterface {
     @Override
     public void updateAccountState(RSAccountState rsAccountState) {
         try {
+            if (!isSignedIn()) return;
+
             Map<String, Integer> exp = Arrays.stream(Skill.values())
                     .collect(Collectors.toMap(Skill::getName, skill -> controlScript.getSkills().getExperience(skill)));
             rsAccountState.setSkillExperience(exp);

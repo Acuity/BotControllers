@@ -4,6 +4,7 @@ import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
+import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
 import java.awt.*;
@@ -88,6 +89,11 @@ public class TestController {
 
         @Override
         public void closeRSSocket() {
+
+        }
+
+        @Override
+        public void updateAccountState(RSAccountState rsAccountState) {
 
         }
     });

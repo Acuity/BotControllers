@@ -35,6 +35,7 @@ public class RSAccountManager {
     private int requestFailures = 0;
 
     private Instant lastStateSend = Instant.MIN;
+    private Instant lastSignedIn = Instant.MIN;
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
@@ -104,6 +105,7 @@ public class RSAccountManager {
             lastStateSend = now;
         }
 
+        lastSignedIn = Instant.now();
         return false;
     }
 
@@ -111,6 +113,10 @@ public class RSAccountManager {
         RSAccountState rsAccountState = new RSAccountState();
         botControl.getClientInterface().updateAccountState(rsAccountState);
         botControl.getRemote().send(new MessagePackage(MessagePackage.Type.ACCOUNT_STATE_UPDATE, MessagePackage.SERVER).setBody(rsAccountState));
+    }
+
+    public Instant getLastSignedIn() {
+        return lastSignedIn;
     }
 
     public synchronized Optional<RSAccount> requestAccountFromTag(String tagID, boolean filterUnassignable, boolean force, boolean registerNewOnFail) {
