@@ -146,7 +146,7 @@ public class DreambotClientInterface extends ClientInterface {
 
             Player localPlayer = controlScript.getLocalPlayer();
             if (localPlayer != null){
-                rsAccountState.setTile(new RSTile(localPlayer.getX(), localPlayer.getY(), localPlayer.getZ()));
+                rsAccountState.setRsTile(new RSTile(localPlayer.getX(), localPlayer.getY(), localPlayer.getZ()));
             }
         }
         catch (Throwable e){
