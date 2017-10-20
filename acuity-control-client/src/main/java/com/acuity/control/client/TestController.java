@@ -1,8 +1,12 @@
 package com.acuity.control.client;
 
+import com.acuity.common.account_creator.captcha.ProxyType;
+import com.acuity.common.util.IPUtil;
+import com.acuity.control.client.util.ProxyUtil;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
+import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;

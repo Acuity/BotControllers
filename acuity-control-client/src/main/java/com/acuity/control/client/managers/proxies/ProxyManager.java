@@ -7,8 +7,8 @@ import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/21/2017.
@@ -48,6 +48,12 @@ public class ProxyManager {
                 double ipBotCount = ipData.getOrDefault(ip, 1d);
                 if (ipBotCount > 10){
                     logger.warn("To many bots on IP. {}, {}", ip, ipBotCount);
+                    List<Proxy> proxies = botControl.getRemote().requestProxies().orElse(Collections.emptyList());
+                    Set<Proxy> viableProxies = proxies.stream().filter(proxy -> ipData.getOrDefault(proxy.getHost(), 0d) >= 10).collect(Collectors.toSet());
+                    logger.debug("Viable proxies. {}", viableProxies.size());
+                    if (viableProxies.size() > 0){
+                        setProxy(viableProxies.stream().findAny().orElse(null));
+                    }
                 }
             }
         }

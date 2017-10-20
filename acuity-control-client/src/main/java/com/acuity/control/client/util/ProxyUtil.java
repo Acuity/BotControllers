@@ -36,6 +36,29 @@ public class ProxyUtil {
         }
     }
 
+    public static void setSocksProxy(Proxy proxy, String password){
+        System.clearProperty("socksProxyHost");
+        System.clearProperty("socksProxyPort");
+        System.clearProperty("java.net.socks.username");
+        System.clearProperty("java.net.socks.password");
+        Authenticator.setDefault(null);
+
+        if (proxy != null) {
+            System.setProperty("socksProxyHost", proxy.getHost());
+            System.setProperty("socksProxyPort", String.valueOf(proxy.getPort()));
+
+            if (proxy.getUsername() != null) {
+                System.setProperty("java.net.socks.username", proxy.getUsername());
+                Authenticator.setDefault(new ProxyAuth(proxy.getUsername(), null));
+            }
+
+            if (password != null) {
+                System.setProperty("java.net.socks.password", password);
+                Authenticator.setDefault(new ProxyAuth(proxy.getUsername(), password));
+            }
+        }
+    }
+
     public static class ProxyAuth extends Authenticator {
         private PasswordAuthentication auth;
 

@@ -7,6 +7,7 @@ import com.acuity.db.domain.vertex.impl.bot_clients.BotClient;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.acuity.db.domain.vertex.impl.message_package.data.RemoteScriptTask;
+import com.acuity.db.domain.vertex.impl.proxy.Proxy;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.scripts.Script;
 import com.acuity.db.domain.vertex.impl.scripts.ScriptVersion;
@@ -205,5 +206,11 @@ public class RemoteManager {
     public void respond(MessagePackage init, MessagePackage response) {
         response.setResponseToKey(init.getResponseKey());
         send(response);
+    }
+
+    public Optional<List<Proxy>> requestProxies() {
+        return send(new MessagePackage(MessagePackage.Type.REQUEST_PROXIES, MessagePackage.SERVER))
+                .waitForResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .getResponse().map(messagePackage -> Arrays.asList(messagePackage.getBodyAs(Proxy[].class)));
     }
 }
