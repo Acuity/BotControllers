@@ -11,6 +11,7 @@ import com.acuity.db.domain.common.EncryptedString;
 import com.acuity.db.domain.vertex.impl.message_package.MessageEndpoint;
 import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import com.google.common.eventbus.Subscribe;
+import com.google.gson.JsonSyntaxException;
 import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,11 +179,18 @@ public class BotControlConnection {
             try {
                 Object instance = scriptInstance.getInstance();
                 if (instance != null && instance instanceof NetworkedInterface){
-                    ((NetworkedInterface) instance).onMessagePackage(messagePackage);
+                    try {
+                        ((NetworkedInterface) instance).onMessagePackage(messagePackage);
+                    }
+                    catch (JsonSyntaxException e){
+                        logger.error("Error during script message handling.", e);
+                        logger.debug("Erroneous message. {}", messagePackage);
+                    }
                 }
             }
             catch (Throwable e){
                 logger.error("Error during onMessage.", e);
+
             }
         });
     }

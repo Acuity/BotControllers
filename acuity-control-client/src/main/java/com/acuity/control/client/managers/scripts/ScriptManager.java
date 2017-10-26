@@ -220,7 +220,7 @@ public class ScriptManager {
                 }
                 destroyInstance(closedInstance);
             } else {
-                if ((boolean) scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", true)) {
+                if (Boolean.parseBoolean(scriptNode.getSettings().getOrDefault("destroyInstanceOnStop", "true"))) {
                     logger.trace("ScriptNode was destroyInstanceOnStop.");
                     destroyInstance(closedInstance);
                 }

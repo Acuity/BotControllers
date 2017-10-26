@@ -83,16 +83,7 @@ public class WorldManager {
 
             List<WorldData> betterWorlds = worldData.getWorldData().stream()
                     .filter(entry -> entry.getBotPopulation() < (currentWorldBotPopulation - acceptablePopulationDifference))
-                    .filter(entry -> {
-                        if (finalRsWorldSelector == null) return true;
-
-                        if (entry.isMembers() && !finalRsWorldSelector.isP2p()) return false;
-                        if (!entry.isMembers() && !finalRsWorldSelector.isF2p()) return false;
-                        if (entry.isDangerous() && !finalRsWorldSelector.isPvp()) return false;
-                        if (entry.isSkillTotal()) return false;
-
-                        return true;
-                    })
+                    .filter(entry -> finalRsWorldSelector == null || finalRsWorldSelector.getValidWorlds() == null || finalRsWorldSelector.getValidWorlds().contains(entry.getWorld()))
                     .sorted(Comparator.comparingDouble(WorldData::getPopulation))
                     .collect(Collectors.toList());
 
