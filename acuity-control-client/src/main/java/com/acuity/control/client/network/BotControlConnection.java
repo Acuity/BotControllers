@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.security.Permission;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -105,7 +106,7 @@ public class BotControlConnection {
                     .setBody(1, new String(acuityPassword))
             ).waitForResponse(5, TimeUnit.SECONDS).getResponse()
                     .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
-                    .orElse(false);
+                    .orElseThrow(() -> new RuntimeException("Failed to receive login response."));
 
             logger.info("Login request complete. {}", result);
 
@@ -116,7 +117,7 @@ public class BotControlConnection {
                         .setBody(1, botTypeID)
                 ).waitForResponse(5, TimeUnit.SECONDS).getResponse()
                         .map(messagePackage -> messagePackage.getBodyAs(boolean.class))
-                        .orElse(false);
+                        .orElseThrow(() -> new RuntimeException("Failed to receive handshake response."));
 
                 logger.info("BotClientHandshake complete. {}", result);
 
