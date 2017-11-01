@@ -17,6 +17,8 @@ public class ProxyManager {
 
     private static Logger logger = LoggerFactory.getLogger(ProxyManager.class);
 
+    private int maxBotsPerIP = 10;
+
     private Proxy proxy;
     private boolean proxyConfirmed = false;
     private BotControl botControl;
@@ -46,17 +48,29 @@ public class ProxyManager {
             Map<String, Double> ipData = botControl.getRemote().requestIPData().orElse(null);
             if (ipData != null){
                 double ipBotCount = ipData.getOrDefault(ip, 1d);
-                if (ipBotCount > 10){
+                if (ipBotCount > maxBotsPerIP){
                     logger.warn("To many bots on IP. {}, {}", ip, ipBotCount);
-                    List<Proxy> proxies = botControl.getRemote().requestProxies().orElse(Collections.emptyList());
-                    Set<Proxy> viableProxies = proxies.stream().filter(proxy -> ipData.getOrDefault(proxy.getHost(), 0d) >= 10).collect(Collectors.toSet());
-                    logger.debug("Viable proxies. {}", viableProxies.size());
+                    Set<Proxy> viableProxies = botControl.getRemote().requestProxies().orElse(Collections.emptyList()).stream()
+                            .filter(proxy -> ipData.getOrDefault(proxy.getHost(), 0d) < maxBotsPerIP)
+                            .collect(Collectors.toSet());
+
+                    logger.debug("Viable proxies under count {}. {}", maxBotsPerIP, viableProxies.size());
                     if (viableProxies.size() > 0){
                         setProxy(viableProxies.stream().findAny().orElse(null));
                     }
                 }
             }
         }
+    }
+
+    public int getMaxBotsPerIP() {
+        return maxBotsPerIP;
+    }
+
+    public ProxyManager setMaxBotsPerIP(int maxBotsPerIP) {
+        if (maxBotsPerIP > 10) throw new IllegalArgumentException("Max bots per IP must be 10 or under.");
+        this.maxBotsPerIP = maxBotsPerIP;
+        return this;
     }
 
     public ProxyManager setAutoBalance(boolean autoBalance) {

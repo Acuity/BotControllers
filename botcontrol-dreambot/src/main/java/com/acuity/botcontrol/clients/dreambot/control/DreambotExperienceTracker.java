@@ -26,7 +26,8 @@ public class DreambotExperienceTracker {
     }
 
     public void execute(){
-        if (!controlScript.getBotControl().getClientInterface().isSignedIn()){
+        if (!controlScript.getBotControl().getClientInterface().isSignedIn() ||
+                controlScript.getBotControl().getRsAccountManager().getLastNotSignedIn().isAfter(Instant.now().minusSeconds(15))){
             skillTracker = null;
             return;
         }
@@ -37,13 +38,10 @@ public class DreambotExperienceTracker {
             return;
         }
 
-        if (controlScript.getBotControl().getRsAccountManager().getLastSignedIn().isAfter(Instant.now().minusSeconds(15))){
-            return;
-        }
-
         for (Skill skill : Skill.values()) {
             long gainedExperience = skillTracker.getGainedExperience(skill);
             if (gainedExperience != 0 && skillTracker.getStartExperience(skill) != 0){
+                logger.debug("Sending skill xp event {}, {}.", skill.getName(), gainedExperience);
                 Map<String, Object> event = new HashMap<>();
                 event.put("skill", skill.getName());
                 event.put("xpGained", gainedExperience);

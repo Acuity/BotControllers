@@ -36,13 +36,35 @@ public class RSAccountManager {
 
     private Instant lastStateSend = Instant.MIN;
     private Instant lastSignedIn = Instant.MIN;
+    private Instant lastNotSignedIn = Instant.now();
 
     public RSAccountManager(BotControl botControl) {
         this.botControl = botControl;
     }
 
-
     public boolean execute(){
+        boolean loginHandlerResult = handleLogin();
+
+        if (loginHandlerResult){
+            lastSignedIn = Instant.now();
+            sendState();
+        }
+        else {
+            lastNotSignedIn = Instant.now();
+        }
+
+        return loginHandlerResult;
+    }
+
+    private void sendState(){
+        Instant now = Instant.now();
+        if (lastStateSend.isBefore(now.minusSeconds(10))){
+            sendRSAccountState();
+            lastStateSend = now;
+        }
+    }
+
+    private boolean handleLogin(){
         RSAccount account = botControl.getRsAccountManager().getRsAccount();
         ScriptNode executionNode = botControl.getScriptManager().getExecutionNode().orElse(null);
         RSAccountSelector rsAccountSelector = Optional.ofNullable(botControl.getBotClientConfig())
@@ -99,13 +121,6 @@ public class RSAccountManager {
             return botControl.getClientInterface().executeLoginHandler();
         }
 
-        Instant now = Instant.now();
-        if (lastStateSend.isBefore(now.minusSeconds(10))){
-            sendRSAccountState();
-            lastStateSend = now;
-        }
-
-        lastSignedIn = Instant.now();
         return false;
     }
 
@@ -190,6 +205,10 @@ public class RSAccountManager {
 
     public void setAccountInfoGenerator(AccountInfoGenerator accountInfoGenerator) {
         this.accountInfoGenerator = accountInfoGenerator;
+    }
+
+    public Instant getLastNotSignedIn() {
+        return lastNotSignedIn;
     }
 
     public RSAccount getRsAccount() {
