@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Zachary Herridge on 10/11/2017.
@@ -17,6 +19,7 @@ public class StateManager {
 
     private BotControl botControl;
     private Instant lastIPGrab = Instant.MIN;
+    private List<String> last10Messages = new ArrayList<>();
 
     public StateManager(BotControl botControl) {
         this.botControl = botControl;
@@ -26,6 +29,8 @@ public class StateManager {
         Instant now = Instant.now();
 
         BotClientState clientState = new BotClientState();
+
+        clientState.setLastMessages(last10Messages);
 
         if (lastIPGrab.isBefore(now.minusSeconds(15))){
             lastIPGrab = now;
@@ -60,5 +65,14 @@ public class StateManager {
     public StateManager clearIPGrabTimestamp(){
         lastIPGrab = Instant.MIN;
         return this;
+    }
+
+    public List<String> getLast10Messages() {
+        return last10Messages;
+    }
+
+    public synchronized void receivedInGameMessage(int typeID, String message) {
+        last10Messages.add(0, message);
+        while (last10Messages.size() > 10) last10Messages.remove(10);
     }
 }

@@ -3,11 +3,9 @@ package com.acuity.botcontrol.clients.dreambot;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotClientInterface;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotExperienceTracker;
 import com.acuity.botcontrol.clients.dreambot.control.DreambotItemTracker;
-import com.acuity.common.util.ControlUtil;
 import com.acuity.control.client.BotControl;
 import com.acuity.control.client.managers.scripts.instance.ScriptInstance;
 import com.acuity.db.domain.common.ClientType;
-import com.acuity.db.domain.vertex.impl.message_package.MessagePackage;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -29,7 +27,8 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
-    private BotControl botControl = new BotControl("174.53.192.24", ClientType.DREAMBOT, new DreambotClientInterface(this));
+    private DreambotClientInterface dreambotClientInterface = new DreambotClientInterface(this);
+    private BotControl botControl = new BotControl("174.53.192.24", ClientType.DREAMBOT, dreambotClientInterface);
 
     private static final int DEFAULT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(1);
 
@@ -107,37 +106,37 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
 
     @Override
     public void onAutoMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onPrivateInfoMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onClanMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onGameMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onPlayerMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onTradeMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
     public void onPrivateInMessage(Message message) {
-        sendInGameMessage(message);
+        receivedInGameMessage(message);
     }
 
     @Override
@@ -148,10 +147,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
         return loginHandler;
     }
 
-    private void sendInGameMessage(Message message){
-        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.IN_GAME_MESSAGE, MessagePackage.SERVER)
-                .setBody(0, message.getMessage())
-                .setBody(1, message.getTypeID())
-        );
+    private void receivedInGameMessage(Message message){
+        botControl.getStateManager().receivedInGameMessage(message.getTypeID(), message.getMessage());
     }
 }
