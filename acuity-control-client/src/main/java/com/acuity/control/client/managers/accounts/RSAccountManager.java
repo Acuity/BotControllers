@@ -15,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +43,14 @@ public class RSAccountManager {
     public boolean execute(){
         boolean loginHandlerResult = handleLogin();
 
-        if (loginHandlerResult){
-            lastSignedIn = Instant.now();
-            sendState();
+        if (loginHandlerResult) {
+            Instant now = Instant.now();
+            lastSignedIn = now;
+
+            if (lastStateSend.isBefore(now.minusSeconds(15) ) && lastNotSignedIn.isBefore(now.minusSeconds(10))) {
+                sendRSAccountState();
+                lastStateSend = lastSignedIn;
+            }
         }
         else {
             lastNotSignedIn = Instant.now();
@@ -56,13 +59,6 @@ public class RSAccountManager {
         return loginHandlerResult;
     }
 
-    private void sendState(){
-        Instant now = Instant.now();
-        if (lastStateSend.isBefore(now.minusSeconds(10))){
-            sendRSAccountState();
-            lastStateSend = now;
-        }
-    }
 
     private boolean handleLogin(){
         RSAccount account = botControl.getRsAccountManager().getRsAccount();
@@ -223,6 +219,12 @@ public class RSAccountManager {
     public void onBannedAccount(String lastEmail, RSAccount account) {
         logger.warn("Account banned. {}, {}", lastEmail, account);
         botControl.getRemote().requestTags("Banned").forEach(tag -> botControl.getRemote().requestTagAccount(account, tag));
+
+        Map<String, Object> event = new HashMap<>();
+        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.ADD_KEENIO_EVENT, MessagePackage.SERVER)
+                .setBody(0, "accounts.banned")
+                .setBody(1,  event));
+
         clearRSAccount();
     }
 

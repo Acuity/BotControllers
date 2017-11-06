@@ -3,6 +3,7 @@ package com.acuity.botcontrol.clients.dreambot.control;
 import com.acuity.botcontrol.clients.dreambot.DreambotControlScript;
 import com.acuity.common.util.Pair;
 import com.acuity.control.client.ClientInterface;
+import com.acuity.db.domain.common.RSItem;
 import com.acuity.db.domain.common.RSTile;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
@@ -15,10 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -123,6 +121,11 @@ public class DreambotClientInterface extends ClientInterface {
     }
 
     @Override
+    public Set<RSItem> getInventory() {
+        return DreambotItemTracker.getInv(controlScript.getInventory());
+    }
+
+    @Override
     public void closeRSSocket() {
         try {
             controlScript.getClient().getSocketWrapper().getSocket().close();
@@ -143,6 +146,8 @@ public class DreambotClientInterface extends ClientInterface {
             rsAccountState.setHpPercent(controlScript.getCombat().getHealthPercent());
             rsAccountState.setPrayerPoints(controlScript.getSkills().getBoostedLevels(Skill.PRAYER));
             rsAccountState.setRunEnergy(controlScript.getWalking().getRunEnergy());
+
+            rsAccountState.setInventory(controlScript.getBotControl().getClientInterface().getInventory());
 
             Player localPlayer = controlScript.getLocalPlayer();
             if (localPlayer != null){

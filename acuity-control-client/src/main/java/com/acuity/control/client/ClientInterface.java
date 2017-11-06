@@ -1,11 +1,13 @@
 package com.acuity.control.client;
 
+import com.acuity.db.domain.common.RSItem;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientState;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccount;
 import com.acuity.db.domain.vertex.impl.rs_account.RSAccountState;
 import com.acuity.db.domain.vertex.impl.scripts.selector.ScriptNode;
 
 import java.awt.image.BufferedImage;
+import java.util.Set;
 
 /**
  * Created by Zachary Herridge on 10/5/2017.
@@ -39,6 +41,8 @@ public abstract class ClientInterface {
     public abstract void logout();
 
     public abstract String getEmail();
+
+    public abstract Set<RSItem> getInventory();
 
     public boolean isSignedIn() {
         return isSignedIn(botControl.getRsAccountManager().getRsAccount());
