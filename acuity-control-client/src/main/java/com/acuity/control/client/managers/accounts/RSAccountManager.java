@@ -43,13 +43,13 @@ public class RSAccountManager {
     public boolean execute(){
         boolean loginHandlerResult = handleLogin();
 
-        if (loginHandlerResult) {
+        if (!loginHandlerResult) {
             Instant now = Instant.now();
             lastSignedIn = now;
 
             if (lastStateSend.isBefore(now.minusSeconds(15) ) && lastNotSignedIn.isBefore(now.minusSeconds(10))) {
                 sendRSAccountState();
-                lastStateSend = lastSignedIn;
+                lastStateSend = Instant.now();
             }
         }
         else {
