@@ -25,6 +25,7 @@ public class DreambotExperienceTracker {
         this.controlScript = controlScript;
     }
 
+
     public void execute(){
         if (!controlScript.getBotControl().getClientInterface().isSignedIn() ||
                 controlScript.getBotControl().getRsAccountManager().getLastNotSignedIn().isAfter(Instant.now().minusSeconds(15))){
@@ -46,7 +47,7 @@ public class DreambotExperienceTracker {
                 event.put("skill", skill.getName());
                 event.put("xpGained", gainedExperience);
 
-                controlScript.getBotControl().getRemote().send(new MessagePackage(MessagePackage.Type.ADD_KEENIO_EVENT, MessagePackage.SERVER)
+                controlScript.getBotControl().getRabbitMQClient().sendEvent(new MessagePackage(MessagePackage.Type.ADD_KEENIO_EVENT, MessagePackage.SERVER)
                         .setBody(0, "skills.gainedXP")
                         .setBody(1,  event));
             }

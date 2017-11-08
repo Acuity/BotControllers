@@ -10,6 +10,7 @@ import com.acuity.control.client.managers.proxies.ProxyManager;
 import com.acuity.control.client.managers.scripts.ScriptManager;
 import com.acuity.control.client.network.BotControlConnection;
 import com.acuity.control.client.managers.world.WorldManager;
+import com.acuity.control.client.network.rabbitmq.RabbitMQClient;
 import com.acuity.db.domain.common.ClientType;
 import com.acuity.db.domain.vertex.impl.bot_clients.BotClientConfig;
 import com.google.common.eventbus.SubscriberExceptionContext;
@@ -23,6 +24,8 @@ import org.slf4j.LoggerFactory;
 public class BotControl implements SubscriberExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BotControl.class);
+
+    private RabbitMQClient rabbitMQClient = new RabbitMQClient();
 
     private BotClientConfigManager clientConfigManager = new BotClientConfigManager(this);
     private ScriptManager scriptManager = new ScriptManager(this);
@@ -38,6 +41,7 @@ public class BotControl implements SubscriberExceptionHandler {
     private BotControlConnection connection;
 
     public BotControl(String host, ClientType clientType, ClientInterface clientInterface) {
+        rabbitMQClient.start();
         this.clientInterface = clientInterface;
         this.clientInterface.setBotControl(this);
 
@@ -88,6 +92,10 @@ public class BotControl implements SubscriberExceptionHandler {
 
     public BotControlConnection getConnection() {
         return connection;
+    }
+
+    public RabbitMQClient getRabbitMQClient() {
+        return rabbitMQClient;
     }
 
     @Override

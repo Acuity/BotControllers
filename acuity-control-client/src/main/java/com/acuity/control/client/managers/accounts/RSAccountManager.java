@@ -219,13 +219,11 @@ public class RSAccountManager {
     public void onBannedAccount(String lastEmail, RSAccount account) {
         logger.warn("Account banned. {}, {}", lastEmail, account);
         botControl.getRemote().requestTags("Banned").forEach(tag -> botControl.getRemote().requestTagAccount(account, tag));
-
-        Map<String, Object> event = new HashMap<>();
-        botControl.getRemote().send(new MessagePackage(MessagePackage.Type.ADD_KEENIO_EVENT, MessagePackage.SERVER)
-                .setBody(0, "accounts.banned")
-                .setBody(1,  event));
-
         clearRSAccount();
+
+        botControl.getRabbitMQClient().sendEvent(new MessagePackage(MessagePackage.Type.ADD_KEENIO_EVENT, MessagePackage.SERVER)
+                .setBody(0, "accounts.banned")
+                .setBody(1,  Collections.EMPTY_MAP));
     }
 
     public void onLockedAccount(String lastEmail, RSAccount account) {

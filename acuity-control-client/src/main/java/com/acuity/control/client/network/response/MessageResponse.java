@@ -52,10 +52,6 @@ public class MessageResponse {
             }
         }
 
-        if (response == null) {
-            logger.error("Timed out - {}.", responseKey);
-        }
-
         return this;
     }
 }

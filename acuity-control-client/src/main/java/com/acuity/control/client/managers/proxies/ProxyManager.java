@@ -22,6 +22,7 @@ public class ProxyManager {
     private Proxy proxy;
     private boolean proxyConfirmed = false;
     private BotControl botControl;
+    private boolean requireProxy = true;
 
     private boolean autoBalance = true;
 
@@ -31,6 +32,8 @@ public class ProxyManager {
 
     public void loop(){
         String ip = IPUtil.getIP().orElse(null);
+
+        System.out.println("FOUND IP: " + ip);
 
         if (ip == null) return;
 
@@ -44,11 +47,12 @@ public class ProxyManager {
             }
         }
 
+
         if (autoBalance){
             Map<String, Double> ipData = botControl.getRemote().requestIPData().orElse(null);
             if (ipData != null){
                 double ipBotCount = ipData.getOrDefault(ip, 1d);
-                if (ipBotCount > maxBotsPerIP){
+                if ((proxy == null && requireProxy) || ipBotCount > maxBotsPerIP){
                     logger.warn("To many bots on IP. {}, {}", ip, ipBotCount);
                     Set<Proxy> viableProxies = botControl.getRemote().requestProxies().orElse(Collections.emptyList()).stream()
                             .filter(proxy -> ipData.getOrDefault(proxy.getHost(), 0d) < maxBotsPerIP)

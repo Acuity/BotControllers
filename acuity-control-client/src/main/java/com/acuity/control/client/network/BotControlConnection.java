@@ -183,7 +183,7 @@ public class BotControlConnection {
                     try {
                         ((NetworkedInterface) instance).onMessagePackage(messagePackage);
                     }
-                    catch (JsonSyntaxException e){
+                    catch (Throwable e){
                         logger.error("Error during script message handling.", e);
                         logger.debug("Erroneous message. {}", messagePackage);
                     }

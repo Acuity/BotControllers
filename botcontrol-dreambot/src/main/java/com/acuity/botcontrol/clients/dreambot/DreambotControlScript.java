@@ -28,6 +28,7 @@ public class DreambotControlScript extends AbstractScript implements InventoryLi
     private static final Logger logger = LoggerFactory.getLogger(DreambotControlScript.class);
 
     private DreambotClientInterface dreambotClientInterface = new DreambotClientInterface(this);
+    //"174.53.192.24"
     private BotControl botControl = new BotControl("174.53.192.24", ClientType.DREAMBOT, dreambotClientInterface);
 
     private static final int DEFAULT_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(1);
